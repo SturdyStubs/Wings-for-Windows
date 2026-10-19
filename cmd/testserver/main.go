@@ -1,0 +1,44 @@
+// A harmless stdio server used only by local runtime integration tests.
+package main
+
+import (
+	"bufio"
+	"encoding/json"
+	"fmt"
+	"os"
+	"os/exec"
+	"time"
+)
+
+func main() {
+	if len(os.Args) > 1 && os.Args[1] == "child" {
+		for {
+			time.Sleep(time.Second)
+		}
+	}
+	fmt.Println("SERVER_READY")
+	if len(os.Args) > 1 && os.Args[1] == "noinput" {
+		for {
+			time.Sleep(time.Second)
+		}
+	}
+	if len(os.Args) > 1 && os.Args[1] == "arguments" {
+		b, _ := json.Marshal(os.Args[2:])
+		fmt.Println("ARGS:" + string(b))
+	}
+	if len(os.Args) > 1 && os.Args[1] == "spawn" {
+		p := exec.Command(os.Args[0], "child")
+		if p.Start() == nil {
+			fmt.Printf("CHILD:%d\n", p.Process.Pid)
+		}
+	}
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == "stop" {
+			fmt.Println("STOPPING")
+			return
+		}
+		fmt.Println("ECHO:" + line)
+	}
+}

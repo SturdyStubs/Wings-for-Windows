@@ -1,0 +1,405 @@
+package node
+
+import (
+	"bufio"
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
+	"sync"
+	"time"
+	"wings-windows/internal/config"
+	"wings-windows/internal/native"
+)
+
+type Event struct {
+	Event string   `json:"event"`
+	Args  []string `json:"args"`
+}
+type Server struct {
+	mu             sync.Mutex
+	power          sync.Mutex
+	write          sync.Mutex
+	settings       Settings
+	Profile        config.Profile
+	Root           string
+	panel          *Panel
+	process        *native.Process
+	state          string
+	started        time.Time
+	previousSample time.Time
+	previousCPU    uint64
+	cpu            float64
+	logs           []string
+	logBytes       int
+	subscribers    map[chan Event]struct{}
+	closing        bool
+}
+type Manager struct {
+	Config  config.Config
+	Panel   *Panel
+	mu      sync.RWMutex
+	servers map[string]*Server
+}
+
+func NewManager(c config.Config) *Manager {
+	return &Manager{Config: c, Panel: NewPanel(c), servers: make(map[string]*Server)}
+}
+func (m *Manager) Sync(ctx context.Context) error {
+	remote, err := m.Panel.Servers(ctx)
+	if err != nil {
+		return err
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for _, r := range remote {
+		id := strings.ToLower(r.Settings.UUID)
+		if !config.UUID.MatchString(id) || (r.UUID != "" && !strings.EqualFold(r.UUID, id)) {
+			return errors.New("invalid panel server UUID")
+		}
+		profile, ok := m.Config.Profiles[id]
+		if !ok {
+			continue
+		}
+		if _, ok = m.servers[id]; ok {
+			continue
+		}
+		root := filepath.Join(m.Config.DataDirectory, id)
+		if err = os.MkdirAll(root, 0700); err != nil {
+			return err
+		}
+		m.servers[id] = &Server{settings: r.Settings, Profile: profile, Root: root, panel: m.Panel, state: "offline", subscribers: make(map[chan Event]struct{})}
+	}
+	return nil
+}
+func (m *Manager) Get(id string) *Server {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return m.servers[strings.ToLower(id)]
+}
+func (m *Manager) All() []*Server {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	result := make([]*Server, 0, len(m.servers))
+	for _, s := range m.servers {
+		result = append(result, s)
+	}
+	return result
+}
+func (m *Manager) Close() {
+	for _, s := range m.All() {
+		s.mu.Lock()
+		s.closing = true
+		p := s.process
+		s.mu.Unlock()
+		if p != nil {
+			p.Kill()
+			<-p.Done
+		}
+	}
+}
+func (s *Server) ID() string    { s.mu.Lock(); defer s.mu.Unlock(); return s.settings.UUID }
+func (s *Server) State() string { s.mu.Lock(); defer s.mu.Unlock(); return s.state }
+func (s *Server) Subscribe() (chan Event, func()) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	ch := make(chan Event, 128)
+	s.subscribers[ch] = struct{}{}
+	return ch, func() { s.mu.Lock(); delete(s.subscribers, ch); s.mu.Unlock() }
+}
+func (s *Server) emitLocked(event string, args ...string) {
+	for ch := range s.subscribers {
+		select {
+		case ch <- Event{event, args}:
+		default: // Disconnect lagging consumers instead of blocking the game process.
+			delete(s.subscribers, ch)
+			close(ch)
+		}
+	}
+}
+func (s *Server) setStateLocked(state string) { s.state = state; s.emitLocked("status", state) }
+func (s *Server) log(line string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.logs = append(s.logs, line)
+	s.logBytes += len(line)
+	for len(s.logs) > 1000 || s.logBytes > 1<<20 {
+		s.logBytes -= len(s.logs[0])
+		s.logs[0] = ""
+		s.logs = s.logs[1:]
+	}
+	s.emitLocked("console output", line)
+}
+func (s *Server) processLine(p *native.Process, line string) {
+	s.log(line)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.process == p && s.state == "starting" && regexp.MustCompile(s.Profile.ReadyPattern).MatchString(line) {
+		s.setStateLocked("running")
+	}
+}
+func (s *Server) Logs(count int) []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if count < 1 {
+		count = 100
+	}
+	if count > len(s.logs) {
+		count = len(s.logs)
+	}
+	return append([]string{}, s.logs[len(s.logs)-count:]...)
+}
+func (s *Server) Sync(ctx context.Context) error {
+	settings, err := s.panel.Server(ctx, s.ID())
+	if err != nil {
+		return err
+	}
+	s.mu.Lock()
+	s.settings = settings
+	s.mu.Unlock()
+	if settings.Suspended && s.State() != "offline" {
+		return s.Power("kill")
+	}
+	return nil
+}
+
+var variable = regexp.MustCompile(`\{\{([A-Z_][A-Z0-9_]*)\}\}`)
+
+func (s *Server) spec() (native.Spec, error) {
+	s.mu.Lock()
+	settings := s.settings
+	s.mu.Unlock()
+	env := map[string]string{}
+	for _, key := range s.Profile.AllowedEnvironment {
+		if value, ok := settings.Environment[key]; ok {
+			env[key] = fmt.Sprint(value)
+		}
+	}
+	args := make([]string, len(s.Profile.Arguments))
+	var missing string
+	for i, arg := range s.Profile.Arguments {
+		args[i] = variable.ReplaceAllStringFunc(arg, func(token string) string {
+			key := variable.FindStringSubmatch(token)[1]
+			value, ok := env[key]
+			if !ok {
+				missing = key
+			}
+			return value
+		})
+	}
+	if missing != "" {
+		return native.Spec{}, fmt.Errorf("missing allowed environment value %s", missing)
+	}
+	temp := filepath.Join(s.Root, ".tmp")
+	if err := os.MkdirAll(temp, 0700); err != nil {
+		return native.Spec{}, err
+	}
+	systemRoot := os.Getenv("SystemRoot")
+	if systemRoot == "" {
+		return native.Spec{}, errors.New("SystemRoot is not set")
+	}
+	clean := []string{"SystemRoot=" + systemRoot, "WINDIR=" + systemRoot, "TEMP=" + temp, "TMP=" + temp, "PATH=" + filepath.Dir(s.Profile.Executable) + ";" + filepath.Join(systemRoot, "System32")}
+	for k, v := range env {
+		if strings.ContainsRune(v, 0) {
+			return native.Spec{}, errors.New("NUL in environment")
+		}
+		clean = append(clean, k+"="+v)
+	}
+	memory := settings.Build.Memory
+	if memory <= 0 || (s.Profile.MemoryMB > 0 && s.Profile.MemoryMB < memory) {
+		memory = s.Profile.MemoryMB
+	}
+	return native.Spec{Executable: s.Profile.Executable, Arguments: args, Environment: clean, Directory: s.Root, MemoryMB: memory, CPUPercent: settings.Build.CPU}, nil
+}
+func (s *Server) Power(action string) error {
+	switch action {
+	case "start", "stop", "restart", "kill":
+	default:
+		return errors.New("unknown power action")
+	}
+	if !s.power.TryLock() {
+		return errors.New("another power action is in progress")
+	}
+	s.mu.Lock()
+	closing := s.closing
+	s.mu.Unlock()
+	if closing {
+		s.power.Unlock()
+		return errors.New("node is shutting down")
+	}
+	go func() {
+		defer s.power.Unlock()
+		var err error
+		switch action {
+		case "start":
+			err = s.start()
+		case "stop":
+			err = s.stop(false)
+		case "kill":
+			err = s.stop(true)
+		case "restart":
+			if err = s.stop(false); err == nil {
+				err = s.start()
+			}
+		}
+		if err != nil {
+			s.log("[Windows node] " + err.Error())
+		}
+	}()
+	return nil
+}
+func (s *Server) start() error {
+	s.mu.Lock()
+	if s.process != nil {
+		s.mu.Unlock()
+		return errors.New("server is already started")
+	}
+	s.mu.Unlock()
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	settings, err := s.panel.Server(ctx, s.ID())
+	if err != nil {
+		return err
+	}
+	s.mu.Lock()
+	s.settings = settings
+	closing := s.closing
+	s.mu.Unlock()
+	if closing {
+		return errors.New("node is shutting down")
+	}
+	if settings.Suspended {
+		return errors.New("server is suspended")
+	}
+	spec, err := s.spec()
+	if err != nil {
+		return err
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.closing {
+		return errors.New("node is shutting down")
+	}
+	p, err := native.Start(spec)
+	if err != nil {
+		return fmt.Errorf("start native process: %w", err)
+	}
+	s.process = p
+	s.started = time.Now()
+	s.previousSample = s.started
+	s.previousCPU = 0
+	s.cpu = 0
+	s.setStateLocked("starting")
+	go func() {
+		defer p.Stdout.Close()
+		reader := bufio.NewReaderSize(p.Stdout, 64*1024)
+		for {
+			line, _, err := reader.ReadLine()
+			if len(line) > 0 {
+				s.processLine(p, string(line))
+			}
+			if err != nil {
+				return
+			}
+		}
+	}()
+	go func() {
+		<-p.Done
+		s.mu.Lock()
+		if s.process == p {
+			s.process = nil
+			s.setStateLocked("offline")
+			s.emitLocked("console output", fmt.Sprintf("[Windows node] process exited (%d)", p.ExitCode))
+		}
+		s.mu.Unlock()
+	}()
+	return nil
+}
+func (s *Server) stop(kill bool) error {
+	s.mu.Lock()
+	p := s.process
+	if p == nil {
+		s.mu.Unlock()
+		return nil
+	}
+	s.setStateLocked("stopping")
+	s.mu.Unlock()
+	if kill {
+		p.Kill()
+	} else if s.Profile.StopCommand != "" {
+		s.Command(s.Profile.StopCommand)
+	} else {
+		p.Kill()
+	}
+	timer := time.NewTimer(time.Duration(s.Profile.StopTimeoutSeconds) * time.Second)
+	defer timer.Stop()
+	select {
+	case <-p.Done:
+	case <-timer.C:
+		if err := p.Kill(); err != nil {
+			return err
+		}
+		<-p.Done
+	}
+	s.mu.Lock()
+	if s.process == p {
+		s.process = nil
+		s.setStateLocked("offline")
+	}
+	s.mu.Unlock()
+	return nil
+}
+func (s *Server) Command(command string) error {
+	if len(command) > 4096 || strings.ContainsAny(command, "\r\n\x00") {
+		return errors.New("command must be a single line of at most 4096 bytes")
+	}
+	s.write.Lock()
+	defer s.write.Unlock()
+	s.mu.Lock()
+	p := s.process
+	s.mu.Unlock()
+	if p == nil {
+		return errors.New("server is offline")
+	}
+	return p.Command(command)
+}
+func (s *Server) Response() map[string]any {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	uptime := int64(0)
+	var memory uint64
+	metricsAvailable := false
+	if s.process != nil {
+		uptime = time.Since(s.started).Milliseconds()
+		if sample, err := s.process.Stats(); err == nil {
+			metricsAvailable = true
+			memory = sample.MemoryBytes
+			now := time.Now()
+			elapsed := now.Sub(s.previousSample).Seconds()
+			if elapsed >= 0.25 {
+				if sample.CPUTime100ns >= s.previousCPU {
+					s.cpu = float64(sample.CPUTime100ns-s.previousCPU) / 1e7 / elapsed * 100
+				}
+				s.previousCPU = sample.CPUTime100ns
+				s.previousSample = now
+			}
+		}
+	}
+	if s.process == nil {
+		s.cpu = 0
+	}
+	limit := s.settings.Build.Memory
+	if limit <= 0 || (s.Profile.MemoryMB > 0 && s.Profile.MemoryMB < limit) {
+		limit = s.Profile.MemoryMB
+	}
+	stats := map[string]any{"state": s.state, "uptime": uptime, "memory_bytes": memory, "memory_limit_bytes": int64(limit) * 1024 * 1024, "cpu_absolute": s.cpu, "disk_bytes": 0, "network": map[string]int{"rx_bytes": 0, "tx_bytes": 0}, "native_metrics": map[string]any{"process_metrics_available": metricsAvailable, "scope": "root_process", "network_available": false, "disk_available": false}}
+	return map[string]any{"state": s.state, "is_suspended": s.settings.Suspended, "configuration": s.settings, "utilization": stats}
+}
+func (s *Server) StatsJSON() string {
+	b, _ := json.Marshal(s.Response()["utilization"])
+	return string(b)
+}

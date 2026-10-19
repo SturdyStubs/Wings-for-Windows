@@ -1,0 +1,5 @@
+dist/
+config.json
+config.local.json
+data/
+*.log
