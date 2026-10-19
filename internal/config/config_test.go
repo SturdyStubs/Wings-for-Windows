@@ -73,3 +73,17 @@ func TestTimezoneValidationAndDefault(t *testing.T) {
 		t.Fatal("invalid timezone accepted")
 	}
 }
+func TestPanelReadinessIsExplicitOptIn(t *testing.T) {
+	c := valid(t)
+	p := c.Profiles[id]
+	p.ReadyPattern = ""
+	c.Profiles[id] = p
+	if c.Validate() == nil {
+		t.Fatal("missing local readiness accepted")
+	}
+	p.UseEggProcessConfiguration = true
+	c.Profiles[id] = p
+	if err := c.Validate(); err != nil {
+		t.Fatal("egg policy profile rejected", err)
+	}
+}

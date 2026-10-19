@@ -35,14 +35,21 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 func setup(t *testing.T) (*Manager, *Server, *atomic.Bool) {
+	return setupConfigured(t, nil)
+}
+func setupConfigured(t *testing.T, configure func(*RemoteServer)) (*Manager, *Server, *atomic.Bool) {
 	t.Helper()
 	suspended := &atomic.Bool{}
 	panel := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		settings := Settings{UUID: testID, Environment: map[string]any{"PORT": "28015", "UNTRUSTED": "ignored"}, Suspended: suspended.Load()}
+		remote := RemoteServer{UUID: testID, Settings: settings}
+		if configure != nil {
+			configure(&remote)
+		}
 		if strings.HasSuffix(r.URL.Path, "/servers") {
-			json.NewEncoder(w).Encode(map[string]any{"data": []RemoteServer{{UUID: testID, Settings: settings}}})
+			json.NewEncoder(w).Encode(map[string]any{"data": []RemoteServer{remote}})
 		} else {
-			json.NewEncoder(w).Encode(map[string]any{"settings": settings})
+			json.NewEncoder(w).Encode(remote)
 		}
 	}))
 	t.Cleanup(panel.Close)

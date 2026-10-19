@@ -21,25 +21,28 @@ type Event struct {
 	Args  []string `json:"args"`
 }
 type Server struct {
-	mu             sync.Mutex
-	power          sync.Mutex
-	powerCancel    context.CancelFunc
-	filePolicy     *FilePolicy
-	write          sync.Mutex
-	settings       Settings
-	Profile        config.Profile
-	Root           string
-	panel          *Panel
-	process        *native.Process
-	state          string
-	started        time.Time
-	previousSample time.Time
-	previousCPU    uint64
-	cpu            float64
-	logs           []string
-	logBytes       int
-	subscribers    map[chan Event]struct{}
-	closing        bool
+	mu                sync.Mutex
+	configurationSync sync.Mutex
+	power             sync.Mutex
+	powerCancel       context.CancelFunc
+	filePolicy        *FilePolicy
+	processPolicy     *processPolicy
+	appliedLimits     native.Limits
+	write             sync.Mutex
+	settings          Settings
+	Profile           config.Profile
+	Root              string
+	panel             *Panel
+	process           *native.Process
+	state             string
+	started           time.Time
+	previousSample    time.Time
+	previousCPU       uint64
+	cpu               float64
+	logs              []string
+	logBytes          int
+	subscribers       map[chan Event]struct{}
+	closing           bool
 }
 type Manager struct {
 	Config  config.Config
@@ -75,11 +78,15 @@ func (m *Manager) Sync(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+		processPolicy, err := newProcessPolicy(profile, r.ProcessConfiguration)
+		if err != nil {
+			return fmt.Errorf("server %s: %w", id, err)
+		}
 		if err = os.MkdirAll(root, 0700); err != nil {
 			return err
 		}
 		r.Settings.UUID = id
-		m.servers[id] = &Server{settings: r.Settings, filePolicy: policy, Profile: profile, Root: root, panel: m.Panel, state: "offline", subscribers: make(map[chan Event]struct{})}
+		m.servers[id] = &Server{settings: r.Settings, filePolicy: policy, processPolicy: processPolicy, Profile: profile, Root: root, panel: m.Panel, state: "offline", subscribers: make(map[chan Event]struct{})}
 	}
 	return nil
 }
@@ -148,7 +155,7 @@ func (s *Server) processLine(p *native.Process, line string) {
 	s.log(line)
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if s.process == p && s.state == "starting" && regexp.MustCompile(s.Profile.ReadyPattern).MatchString(line) {
+	if s.process == p && s.state == "starting" && s.processPolicy.ready(line) {
 		s.setStateLocked("running")
 	}
 }
@@ -164,22 +171,51 @@ func (s *Server) Logs(count int) []string {
 	return append([]string{}, s.logs[len(s.logs)-count:]...)
 }
 func (s *Server) Sync(ctx context.Context) error {
-	settings, err := s.panel.Server(ctx, s.ID())
+	s.configurationSync.Lock()
+	defer s.configurationSync.Unlock()
+	details, err := s.panel.Details(ctx, s.ID())
 	if err != nil {
 		return err
+	}
+	settings := details.Settings
+	// Suspension must stop the process even if unrelated new egg settings fail validation.
+	if settings.Suspended {
+		s.mu.Lock()
+		s.settings.Suspended = true
+		s.mu.Unlock()
+		if err := s.Power("kill"); err != nil {
+			return err
+		}
 	}
 	policy, err := NewFilePolicy(settings.Egg.FileDenylist)
 	if err != nil {
 		return err
 	}
+	processPolicy, err := newProcessPolicy(s.Profile, details.ProcessConfiguration)
+	if err != nil {
+		return err
+	}
 	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.process != nil && !settings.Suspended {
+		limits := effectiveLimits(settings, s.Profile)
+		if err := s.process.UpdateLimits(limits); err != nil && !errors.Is(err, native.ErrExited) {
+			return fmt.Errorf("update running job limits: %w", err)
+		} else if err == nil {
+			s.appliedLimits = limits
+		}
+	}
 	s.settings = settings
 	s.filePolicy = policy
-	s.mu.Unlock()
-	if settings.Suspended && s.State() != "offline" {
-		return s.Power("kill")
-	}
+	s.processPolicy = processPolicy
 	return nil
+}
+func effectiveLimits(settings Settings, profile config.Profile) native.Limits {
+	memory := settings.Build.Memory
+	if memory <= 0 || (profile.MemoryMB > 0 && profile.MemoryMB < memory) {
+		memory = profile.MemoryMB
+	}
+	return native.Limits{MemoryMB: memory, CPUPercent: settings.Build.CPU}
 }
 
 var variable = regexp.MustCompile(`\{\{([A-Z_][A-Z0-9_]*)\}\}`)
@@ -245,11 +281,8 @@ func (s *Server) spec() (native.Spec, error) {
 		}
 		clean = append(clean, k+"="+v)
 	}
-	memory := settings.Build.Memory
-	if memory <= 0 || (s.Profile.MemoryMB > 0 && s.Profile.MemoryMB < memory) {
-		memory = s.Profile.MemoryMB
-	}
-	return native.Spec{Executable: s.Profile.Executable, Arguments: args, Environment: clean, Directory: s.Root, MemoryMB: memory, CPUPercent: settings.Build.CPU}, nil
+	limits := effectiveLimits(settings, s.Profile)
+	return native.Spec{Executable: s.Profile.Executable, Arguments: args, Environment: clean, Directory: s.Root, MemoryMB: limits.MemoryMB, CPUPercent: limits.CPUPercent}, nil
 }
 
 var ErrSuspended = errors.New("cannot start or restart a suspended server")
@@ -311,6 +344,8 @@ func (s *Server) Power(action string) error {
 }
 func (s *Server) start() error { return s.startWithContext(context.Background()) }
 func (s *Server) startWithContext(parent context.Context) error {
+	s.configurationSync.Lock()
+	defer s.configurationSync.Unlock()
 	s.mu.Lock()
 	if s.process != nil {
 		s.mu.Unlock()
@@ -319,17 +354,23 @@ func (s *Server) startWithContext(parent context.Context) error {
 	s.mu.Unlock()
 	ctx, cancel := context.WithTimeout(parent, 20*time.Second)
 	defer cancel()
-	settings, err := s.panel.Server(ctx, s.ID())
+	details, err := s.panel.Details(ctx, s.ID())
 	if err != nil {
 		return err
 	}
+	settings := details.Settings
 	policy, err := NewFilePolicy(settings.Egg.FileDenylist)
+	if err != nil {
+		return err
+	}
+	processPolicy, err := newProcessPolicy(s.Profile, details.ProcessConfiguration)
 	if err != nil {
 		return err
 	}
 	s.mu.Lock()
 	s.settings = settings
 	s.filePolicy = policy
+	s.processPolicy = processPolicy
 	closing := s.closing
 	s.mu.Unlock()
 	if closing {
@@ -355,6 +396,7 @@ func (s *Server) startWithContext(parent context.Context) error {
 		return fmt.Errorf("start native process: %w", err)
 	}
 	s.process = p
+	s.appliedLimits = native.Limits{MemoryMB: spec.MemoryMB, CPUPercent: spec.CPUPercent}
 	s.started = time.Now()
 	s.previousSample = s.started
 	s.previousCPU = 0
@@ -394,11 +436,12 @@ func (s *Server) stopWithContext(ctx context.Context, kill bool) error {
 		return nil
 	}
 	s.setStateLocked("stopping")
+	policy := s.processPolicy
 	s.mu.Unlock()
-	if kill {
+	if kill || policy.forceStop {
 		p.Kill()
-	} else if s.Profile.StopCommand != "" {
-		s.Command(s.Profile.StopCommand)
+	} else if policy.stopCommand != "" {
+		s.Command(policy.stopCommand)
 	} else {
 		p.Kill()
 	}
@@ -464,9 +507,9 @@ func (s *Server) Response() map[string]any {
 	if s.process == nil {
 		s.cpu = 0
 	}
-	limit := s.settings.Build.Memory
-	if limit <= 0 || (s.Profile.MemoryMB > 0 && s.Profile.MemoryMB < limit) {
-		limit = s.Profile.MemoryMB
+	limit := effectiveLimits(s.settings, s.Profile).MemoryMB
+	if s.process != nil {
+		limit = s.appliedLimits.MemoryMB
 	}
 	stats := map[string]any{"state": s.state, "uptime": uptime, "memory_bytes": memory, "memory_limit_bytes": int64(limit) * 1024 * 1024, "cpu_absolute": s.cpu, "disk_bytes": 0, "network": map[string]int{"rx_bytes": 0, "tx_bytes": 0}, "native_metrics": map[string]any{"process_metrics_available": metricsAvailable, "scope": "root_process", "network_available": false, "disk_available": false}}
 	return map[string]any{"state": s.state, "is_suspended": s.settings.Suspended, "configuration": s.settings, "utilization": stats}

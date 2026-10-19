@@ -2,9 +2,29 @@
 
 Run native Windows game-server executables through a Pterodactyl panel. This is a separate Go daemon implementing a **subset of the Wings protocol**, with Windows Job Objects replacing the Docker process runtime.
 
-**Version: 0.1.0-alpha.2. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
+**Version: 0.1.0-alpha.3. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
 
-Follow the [progress tracker](ROADMAP.md), [GitHub issues](https://github.com/SturdyStubs/Wings-for-Windows/issues), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). Alpha 2 corrects the file-listing URL/schema, applies egg file restrictions, supplies derived startup variables and lets emergency kill interrupt power operations. Full Wings parity remains in progress.
+Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). Alpha 3 adds opt-in egg readiness/stopping and live CPU/memory limit updates. Full Wings parity remains in progress.
+
+<!-- progress:start -->
+
+## Project progress
+
+[Milestone progress bars](https://github.com/SturdyStubs/Wings-for-Windows/milestones) update as their task issues close. The badges below refresh automatically through Shields.io; GitHub/image caches may delay updates.
+
+| Milestone | Live issue progress | Tracking |
+| --- | --- | --- |
+| M1: Core protocol compatibility | [![M1 closed tasks](https://img.shields.io/github/milestones/progress/SturdyStubs/Wings-for-Windows/1?label=tasks&cacheSeconds=300)](https://github.com/SturdyStubs/Wings-for-Windows/milestone/1) | [Details #1](https://github.com/SturdyStubs/Wings-for-Windows/issues/1) |
+| M2: Isolation and threat model | [![M2 closed tasks](https://img.shields.io/github/milestones/progress/SturdyStubs/Wings-for-Windows/2?label=tasks&cacheSeconds=300)](https://github.com/SturdyStubs/Wings-for-Windows/milestone/2) | [Details #2](https://github.com/SturdyStubs/Wings-for-Windows/issues/2) |
+| M3: Provisioning and recovery | [![M3 closed tasks](https://img.shields.io/github/milestones/progress/SturdyStubs/Wings-for-Windows/3?label=tasks&cacheSeconds=300)](https://github.com/SturdyStubs/Wings-for-Windows/milestone/3) | [Details #3](https://github.com/SturdyStubs/Wings-for-Windows/issues/3) |
+| M4: Files and SFTP | [![M4 closed tasks](https://img.shields.io/github/milestones/progress/SturdyStubs/Wings-for-Windows/4?label=tasks&cacheSeconds=300)](https://github.com/SturdyStubs/Wings-for-Windows/milestone/4) | [Details #4](https://github.com/SturdyStubs/Wings-for-Windows/issues/4) |
+| M5: Backups and transfers | [![M5 closed tasks](https://img.shields.io/github/milestones/progress/SturdyStubs/Wings-for-Windows/5?label=tasks&cacheSeconds=300)](https://github.com/SturdyStubs/Wings-for-Windows/milestone/5) | [Details #5](https://github.com/SturdyStubs/Wings-for-Windows/issues/5) |
+| M6: Operations and validation | [![M6 closed tasks](https://img.shields.io/github/milestones/progress/SturdyStubs/Wings-for-Windows/6?label=tasks&cacheSeconds=300)](https://github.com/SturdyStubs/Wings-for-Windows/milestone/6) | [Details #6](https://github.com/SturdyStubs/Wings-for-Windows/issues/6) |
+
+**Completion means all six milestones are closed after their acceptance checks, including live panel/game/service validation.** Task counts are not estimates of engineering effort or universal Linux egg compatibility. The current release remains experimental.
+
+GitHub Issues are the source of truth; ROADMAP.md records implementation scope and verification. Run `scripts/Update-Progress.ps1` to regenerate this section. Use `-Initialize` to add missing planned milestones/tasks; rerunning it never automatically re-closes existing issues.
+<!-- progress:end -->
 
 ## What works
 
@@ -14,9 +34,9 @@ Follow the [progress tracker](ROADMAP.md), [GitHub issues](https://github.com/St
 | Panel discovery | Fetches this node's assigned servers with the node credentials; only registered local profiles can run. |
 | Power controls | Start, stop, restart and forced kill; kill cancels pending starts/restarts and interrupts graceful shutdown. Suspended start/restart requests return 400. |
 | Process trees | Creates the process suspended, assigns it to a Job Object, then resumes it. Killing/exiting the root or closing the daemon kills descendants. |
-| Resource limits | Optional job memory limit and panel CPU limit; CPU `100` means approximately one core. |
+| Resource limits | Job memory and panel CPU limits update on sync without a restart; local memory caps remain authoritative. CPU `100` means approximately one core. |
 | Console | Combined stdout/stderr, bounded recent logs, single-line stdin commands and authenticated WebSocket events. |
-| Status | Offline, starting, running after a configured readiness regex, and stopping. |
+| Status | Offline, starting, running after local readiness or opted-in egg literal/regex matches with ANSI stripping, and stopping. |
 | Statistics | Root-process CPU, working-set memory and uptime. Network and disk accounting are unavailable and identified as such in `native_metrics`. |
 | File API | Wings-compatible listing URL/metadata, MIME/length/download headers, confined reads/writes up to 8 MiB and case-insensitive egg denylist checks. Contract tests pass; live panel verification remains open. |
 | Startup variables | Derived `SERVER_IP`, `SERVER_PORT`, `SERVER_MEMORY`, `STARTUP` and `TZ`, alongside explicitly allowed egg variables. |
@@ -45,8 +65,8 @@ cd Wings-for-Windows
 If Go is not on PATH, pass `-GoExecutable C:\path\to\go.exe`. The script runs the Windows integration tests and `go vet`, then creates:
 
 ```text
-dist/wings-windows-native-0.1.0-alpha.2-windows-amd64.zip
-dist/wings-windows-native-0.1.0-alpha.2-windows-amd64.zip.sha256
+dist/wings-windows-native-0.1.0-alpha.3-windows-amd64.zip
+dist/wings-windows-native-0.1.0-alpha.3-windows-amd64.zip.sha256
 ```
 
 The archive includes the daemon, a harmless console demo executable, configuration example, documentation and service script. Docker, Node, PHP and a C compiler are not needed to build it. Native integration tests compile a temporary demo executable using Go.

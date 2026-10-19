@@ -4,6 +4,8 @@ This is an independent native Windows runtime, not a build of upstream Wings wit
 
 See the [original source parity audit](WINGS-PARITY-AUDIT.md) and [current progress](../ROADMAP.md). Alpha 2 fixes the listing URL/schema, file denylist, derived environment and emergency-kill defects. The route table describes implemented behavior; live panel compatibility remains unverified.
 
+Alpha 3 adds decoded egg process configuration and live Job Object CPU/memory updates during sync. Opt-in `use_egg_process_configuration` supports readiness literals/regexes, ANSI stripping, command stops and explicit SIGKILL. Local mode remains the default. Unsupported signal/native-stop strategies and `configs` rewrites fail explicitly in egg mode. User-interaction adapters remain unimplemented.
+
 ```text
 Pterodactyl panel backend -- node bearer / HTTPS --> Windows Native HTTP API
 Browser console --------- scoped JWT / WSS ------> WebSocket console bridge
@@ -44,7 +46,7 @@ Except for the WebSocket upgrade, API endpoints require the incoming node bearer
 | `POST /api/servers/{uuid}/power` | JSON `action`: `start`, `stop`, `restart`, `kill`. Returns 202 when queued; an active power action returns 409. Startup failures appear in console logs. `wait_seconds` is not implemented. |
 | `POST /api/servers/{uuid}/commands` | JSON `commands`: up to 32 single-line commands, each at most 4096 bytes. |
 | `GET /api/servers/{uuid}/logs` | Most recent 100 lines. Custom `size` is not implemented. |
-| `POST /api/servers/{uuid}/sync` | Reload panel settings; suspension requests terminate the game. |
+| `POST /api/servers/{uuid}/sync` | Reload settings, file and process policies; apply active job limits without restart. Suspension stops the game even if another new egg setting is invalid. Failed limit updates do not change the reported applied cap. |
 | `GET /api/servers/{uuid}/ws` | Origin-checked WebSocket upgrade, followed by JWT auth. |
 | `POST /api/servers/{uuid}/ws/deny` | Revoke old tokens for supplied `jtis`. |
 | `POST /api/deauthorize-user` | Revoke existing user tokens with JSON `user` and optional `servers`. An empty server list revokes access on all locally registered servers. |

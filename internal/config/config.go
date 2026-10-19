@@ -15,7 +15,7 @@ import (
 	_ "time/tzdata"
 )
 
-const Version = "0.1.0-alpha.2"
+const Version = "0.1.0-alpha.3"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -24,13 +24,14 @@ type TLS struct {
 	Key  string `json:"key"`
 }
 type Profile struct {
-	Executable         string   `json:"executable"`
-	Arguments          []string `json:"arguments"`
-	AllowedEnvironment []string `json:"allowed_environment"`
-	StopCommand        string   `json:"stop_command"`
-	ReadyPattern       string   `json:"ready_pattern"`
-	StopTimeoutSeconds int      `json:"stop_timeout_seconds"`
-	MemoryMB           int      `json:"memory_mb"`
+	UseEggProcessConfiguration bool     `json:"use_egg_process_configuration,omitempty"`
+	Executable                 string   `json:"executable"`
+	Arguments                  []string `json:"arguments"`
+	AllowedEnvironment         []string `json:"allowed_environment"`
+	StopCommand                string   `json:"stop_command"`
+	ReadyPattern               string   `json:"ready_pattern"`
+	StopTimeoutSeconds         int      `json:"stop_timeout_seconds"`
+	MemoryMB                   int      `json:"memory_mb"`
 }
 type Config struct {
 	Listen                string             `json:"listen"`
@@ -128,10 +129,10 @@ func (c *Config) Validate() error {
 		if len(p.Arguments) > 256 || p.MemoryMB < 0 {
 			return fmt.Errorf("%s: invalid arguments/memory limit", id)
 		}
-		if p.ReadyPattern == "" {
+		if p.ReadyPattern == "" && !p.UseEggProcessConfiguration {
 			return fmt.Errorf("%s: ready_pattern is required", id)
 		}
-		if _, err := regexp.Compile(p.ReadyPattern); err != nil {
+		if _, err := regexp.Compile(p.ReadyPattern); err != nil && !p.UseEggProcessConfiguration {
 			return fmt.Errorf("%s ready_pattern: %w", id, err)
 		}
 		if p.StopTimeoutSeconds == 0 {
@@ -140,7 +141,7 @@ func (c *Config) Validate() error {
 		if p.StopTimeoutSeconds < 1 || p.StopTimeoutSeconds > 300 {
 			return errors.New("stop_timeout_seconds must be 1..300")
 		}
-		if strings.ContainsAny(p.StopCommand, "\r\n") {
+		if len(p.StopCommand)>4096 || strings.ContainsAny(p.StopCommand, "\r\n\x00") {
 			return errors.New("stop_command must be a single console line")
 		}
 		for _, key := range p.AllowedEnvironment {

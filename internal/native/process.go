@@ -17,6 +17,17 @@ type Stats struct {
 	CPUTime100ns uint64
 	MemoryBytes  uint64
 }
+type Limits struct{ MemoryMB, CPUPercent int }
+
+var ErrExited = errors.New("native process exited")
+
+func (p *Process) UpdateLimits(limits Limits) error {
+	if limits.MemoryMB < 0 || limits.MemoryMB > 1<<30 || limits.CPUPercent < 0 || limits.CPUPercent > 1_000_000 {
+		return errors.New("invalid native process limits")
+	}
+	return p.implementation.updateLimits(limits)
+}
+
 type Process struct {
 	implementation platformProcess
 	Stdin          io.WriteCloser

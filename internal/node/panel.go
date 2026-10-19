@@ -31,8 +31,9 @@ type Settings struct {
 	} `json:"build"`
 }
 type RemoteServer struct {
-	UUID     string   `json:"uuid"`
-	Settings Settings `json:"settings"`
+	UUID                 string                `json:"uuid"`
+	Settings             Settings              `json:"settings"`
+	ProcessConfiguration *ProcessConfiguration `json:"process_configuration"`
 }
 type Panel struct {
 	Config config.Config
@@ -84,9 +85,11 @@ func (p *Panel) Servers(ctx context.Context) ([]RemoteServer, error) {
 	return nil, fmt.Errorf("panel server pagination exceeded 100 pages")
 }
 func (p *Panel) Server(ctx context.Context, id string) (Settings, error) {
-	var result struct {
-		Settings Settings `json:"settings"`
-	}
+	details, err := p.Details(ctx, id)
+	return details.Settings, err
+}
+func (p *Panel) Details(ctx context.Context, id string) (RemoteServer, error) {
+	var result RemoteServer
 	err := p.request(ctx, "GET", "/servers/"+id, nil, &result)
 	if err == nil && !strings.EqualFold(result.Settings.UUID, id) {
 		err = fmt.Errorf("panel returned a different server UUID")
@@ -94,7 +97,7 @@ func (p *Panel) Server(ctx context.Context, id string) (Settings, error) {
 	if err == nil {
 		result.Settings.UUID = strings.ToLower(id)
 	}
-	return result.Settings, err
+	return result, err
 }
 func (p *Panel) Installed(ctx context.Context, id string) error {
 	return p.request(ctx, "POST", "/servers/"+id+"/install", strings.NewReader(`{"successful":true,"reinstall":false}`), nil)

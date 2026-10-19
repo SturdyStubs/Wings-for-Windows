@@ -16,7 +16,11 @@ func main() {
 			time.Sleep(time.Second)
 		}
 	}
-	fmt.Println("SERVER_READY")
+	if len(os.Args) > 1 && os.Args[1] == "colored" {
+		fmt.Println("\x1b[32mSERVER_READY\x1b[0m")
+	} else {
+		fmt.Println("SERVER_READY")
+	}
 	if len(os.Args) > 1 && os.Args[1] == "noinput" {
 		for {
 			time.Sleep(time.Second)

@@ -65,6 +65,16 @@ Stopping sends one configured stdin line, waits the configured number of seconds
 
 The smaller positive value of `memory_mb` and the panel memory limit becomes the job memory cap; zero means no local cap. The panel CPU limit uses one core as 100. CPU and memory statistics cover the root process, while limits apply to the job. There is no disk or network quota. Binding the panel's allocated IP/ports is the executable's responsibility through its arguments/configuration; games sharing a host can conflict if misconfigured.
 
+## Egg process settings and live limits
+
+Set `use_egg_process_configuration: true` on a local Windows profile to use the panel's `process_configuration`. The locally approved executable, argument array and environment allowlist remain authoritative. Omit `ready_pattern` and `stop_command` in this mode; they are replaced by the egg's process settings. Existing profiles default to `false` and keep their local settings.
+
+Supported readiness uses `startup.done` with 1–64 literal strings or `regex:` patterns, plus `startup.strip_ansi`. Invalid `regex:` expressions fall back to literal matching as upstream does. Supported stop strategies are `type: command` with a single stdin line, or `type: signal` with `SIGKILL` for explicit forced termination.
+
+`SIGINT`, `SIGTERM`, Docker-native `stop`, automatic config-file rewrites (`configs`) and user-interaction adapters are not implemented. Profiles opting into an unsupported process configuration fail explicitly; they do not silently run Linux behavior or substitute a forced stop. Node initialization can therefore fail if a registered opted-in profile has unsupported settings. `--check` cannot validate remote egg settings without contacting the panel.
+
+Sync now applies supported CPU/memory changes to active jobs. The smaller positive panel/local memory limit remains in force; zero removes the corresponding cap when no local cap exists. The game keeps the same process and uptime. If an update is rejected, the API reports failure and does not display the requested value as applied. If a partial update cannot be rolled back, the job is terminated rather than left with unknown enforcement. Future allocations are subject to the new memory cap; a lower cap is not a guarantee of immediate termination of an already large process.
+
 ## TLS and connectivity
 
 Use the same node hostname in the panel, certificate and browser connection. Both the API client on the panel and the browser must trust its certificate. Certificate renewal requires replacing the PEM files and restarting the daemon. Self-signed certificates require explicitly installed trust; certificate validation is not disabled.

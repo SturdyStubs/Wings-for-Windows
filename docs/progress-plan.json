@@ -1,0 +1,76 @@
+{
+  "repository": "SturdyStubs/Wings-for-Windows",
+  "milestones": [
+    {
+      "key": "M1", "title": "M1: Core protocol compatibility", "tracking_issue": 1,
+      "description": "Complete when the supported Windows core protocol matches the panel contract and live TLS console/file workflows have been verified. Local tests alone do not satisfy the live gate.",
+      "tasks": [
+        {"title":"Correct file listing URL, metadata and content headers", "verified_in":"0.1.0-alpha.2"},
+        {"title":"Enforce and refresh Windows egg file restrictions", "verified_in":"0.1.0-alpha.2"},
+        {"title":"Derive authoritative startup, allocation and timezone variables", "verified_in":"0.1.0-alpha.2"},
+        {"title":"Make emergency kill interrupt and cancel power operations", "verified_in":"0.1.0-alpha.2"},
+        {"title":"Match suspended start and restart HTTP responses", "verified_in":"0.1.0-alpha.2"},
+        {"title":"Add independent upstream and panel contract fixtures", "verified_in":"0.1.0-alpha.2"},
+        {"title":"Support opted-in Windows egg readiness and stop configuration", "verified_in":"0.1.0-alpha.3", "notes":"Supported scope: multiple literal/regex readiness matchers, ANSI stripping, stdin commands and explicit SIGKILL. Unsupported signals/native Docker stop and config rewrites fail explicitly; they are not silently emulated."},
+        {"title":"Apply live job resource limits during panel sync", "verified_in":"0.1.0-alpha.3", "notes":"Verify applied Windows Job Object CPU/memory limits, removal of caps, local cap retention and no process restart. Reject failed updates without claiming new enforcement."},
+        {"title":"Match power wait_seconds and remaining operation locking"},
+        {"title":"Complete system information, HTTP preflight and request errors"},
+        {"title":"Verify real panel TLS, console, subuser revocation and file workflows", "notes":"Live verification gate: record actual panel/Windows versions and results; do not close using mock-panel tests."}
+      ]
+    },
+    {
+      "key":"M2", "title":"M2: Isolation and threat model", "tracking_issue":2,
+      "description":"Required before public or mutually untrusted hosting claims. Define and verify the supported Windows isolation model.",
+      "tasks":[
+        {"title":"Choose Windows native identities versus container or VM isolation"},
+        {"title":"Separate daemon credentials and enforce filesystem and network policies"},
+        {"title":"Test cross-server access, hardlinks, aliases, reparse points and races"},
+        {"title":"Publish and verify supported host, runtime and game matrix"}
+      ]
+    },
+    {
+      "key":"M3", "title":"M3: Provisioning and recovery", "tracking_issue":3,
+      "description":"Complete a real supported Windows game's entire panel-managed lifecycle, including installation and recovery.",
+      "tasks":[
+        {"title":"Version Windows profiles and validate dependencies and OS requirements"},
+        {"title":"Implement create, delete, install and reinstall with cancellation and callbacks"},
+        {"title":"Implement egg text, JSON, YAML, INI, properties and XML config parsers"},
+        {"title":"Add crash recovery, persistent logs and interrupted-operation recovery"},
+        {"title":"Add Windows control-event, log-tail and game console adapters"},
+        {"title":"Verify a real game from creation through installation and deletion", "notes":"Live gate: create, install, start, stop/restart, reinstall and delete from the panel."}
+      ]
+    },
+    {
+      "key":"M4", "title":"M4: Files and SFTP", "tracking_issue":4,
+      "description":"Complete the file manager and SFTP with permissions, streaming, confinement and storage accounting.",
+      "tasks":[
+        {"title":"Implement remaining file operations and scoped large-file upload/download"},
+        {"title":"Add safe archives and guarded remote fetch with cancellation"},
+        {"title":"Implement SFTP authentication, permissions, revocation and limits"},
+        {"title":"Enforce storage accounting across file, archive, installer and game writes"},
+        {"title":"Verify locked files, long paths, disk-full, archives and link attacks"}
+      ]
+    },
+    {
+      "key":"M5", "title":"M5: Backups and transfers", "tracking_issue":5,
+      "description":"Complete verified backups, restore and native-to-native transfers with recovery and integrity checks.",
+      "tasks":[
+        {"title":"Implement local and S3 backups, exclusions, checksums and downloads"},
+        {"title":"Implement safe restore, operation locking and completion events"},
+        {"title":"Implement source/destination transfer, integrity, cancel and rollback"},
+        {"title":"Verify interruption recovery and restore and boot a real game", "notes":"Live gate: the restored game must actually boot and retain expected data."}
+      ]
+    },
+    {
+      "key":"M6", "title":"M6: Operations and validation", "tracking_issue":6,
+      "description":"Complete operational support and deployment validation on the explicitly supported Windows/panel matrix.",
+      "tasks":[
+        {"title":"Add aggregate metrics, disk/network accounting and affinity"},
+        {"title":"Enforce allocations, networking, shared mounts and supported limit mappings"},
+        {"title":"Implement runtime config, credential rotation, audit delivery and retries"},
+        {"title":"Add diagnostics, service logs, certificate renewal, upgrade checks and CI"},
+        {"title":"Verify multi-server load, Windows Server service/reboot and panel versions", "notes":"Live gate: record versions, sustained-load results, SCM/reboot/upgrade and real panel behavior."}
+      ]
+    }
+  ]
+}

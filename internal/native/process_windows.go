@@ -28,27 +28,8 @@ func startPlatform(spec Spec) (result *Process, err error) {
 			windows.CloseHandle(job)
 		}
 	}()
-	limits := windows.JOBOBJECT_EXTENDED_LIMIT_INFORMATION{}
-	limits.BasicLimitInformation.LimitFlags = windows.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
-	if spec.MemoryMB > 0 {
-		limits.BasicLimitInformation.LimitFlags |= windows.JOB_OBJECT_LIMIT_JOB_MEMORY
-		limits.JobMemoryLimit = uintptr(spec.MemoryMB) * 1024 * 1024
-	}
-	if _, err = windows.SetInformationJobObject(job, windows.JobObjectExtendedLimitInformation, uintptr(unsafe.Pointer(&limits)), uint32(unsafe.Sizeof(limits))); err != nil {
+	if err = setJobLimits(job, Limits{spec.MemoryMB, spec.CPUPercent}); err != nil {
 		return nil, err
-	}
-	if spec.CPUPercent > 0 {
-		rate := spec.CPUPercent * 100 / runtime.NumCPU()
-		if rate < 1 {
-			rate = 1
-		}
-		if rate > 10000 {
-			rate = 10000
-		}
-		cpu := struct{ Flags, Rate uint32 }{5, uint32(rate)}
-		if _, err = windows.SetInformationJobObject(job, 15, uintptr(unsafe.Pointer(&cpu)), uint32(unsafe.Sizeof(cpu))); err != nil {
-			return nil, err
-		}
 	}
 	sa := windows.SecurityAttributes{Length: uint32(unsafe.Sizeof(windows.SecurityAttributes{})), InheritHandle: 1}
 	var inRead, inWrite, outRead, outWrite windows.Handle
@@ -146,6 +127,65 @@ func startPlatform(spec Spec) (result *Process, err error) {
 		close(p.Done)
 	}()
 	return p, nil
+}
+
+type jobCPU struct{ Flags, Rate uint32 }
+
+func setJobLimits(job windows.Handle, desired Limits) error {
+	if desired.MemoryMB < 0 || desired.MemoryMB > 1<<30 || desired.CPUPercent < 0 || desired.CPUPercent > 1_000_000 {
+		return fmt.Errorf("invalid job limits")
+	}
+	var before windows.JOBOBJECT_EXTENDED_LIMIT_INFORMATION
+	var previousCPU jobCPU
+	if err := windows.QueryInformationJobObject(job, 15, uintptr(unsafe.Pointer(&previousCPU)), uint32(unsafe.Sizeof(previousCPU)), nil); err != nil {
+		return err
+	}
+	if err := windows.QueryInformationJobObject(job, windows.JobObjectExtendedLimitInformation, uintptr(unsafe.Pointer(&before)), uint32(unsafe.Sizeof(before)), nil); err != nil {
+		return err
+	}
+	limits := before
+	limits.BasicLimitInformation.LimitFlags |= windows.JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+	limits.BasicLimitInformation.LimitFlags &^= windows.JOB_OBJECT_LIMIT_JOB_MEMORY
+	limits.JobMemoryLimit = 0
+	if desired.MemoryMB > 0 {
+		limits.BasicLimitInformation.LimitFlags |= windows.JOB_OBJECT_LIMIT_JOB_MEMORY
+		limits.JobMemoryLimit = uintptr(desired.MemoryMB) * 1024 * 1024
+	}
+	if _, err := windows.SetInformationJobObject(job, windows.JobObjectExtendedLimitInformation, uintptr(unsafe.Pointer(&limits)), uint32(unsafe.Sizeof(limits))); err != nil {
+		return err
+	}
+	if desired.CPUPercent == 0 && previousCPU.Flags == 0 {
+		return nil
+	}
+	// Windows still validates CpuRate when disabling an existing cap. Supply
+	// an in-range value with the enable flag cleared, rather than CpuRate=0.
+	cpu := jobCPU{Rate: 10000}
+	if desired.CPUPercent > 0 {
+		rate := desired.CPUPercent * 100 / runtime.NumCPU()
+		if rate < 1 {
+			rate = 1
+		}
+		if rate > 10000 {
+			rate = 10000
+		}
+		cpu = jobCPU{5, uint32(rate)}
+	}
+	if _, err := windows.SetInformationJobObject(job, 15, uintptr(unsafe.Pointer(&cpu)), uint32(unsafe.Sizeof(cpu))); err != nil {
+		if _, rollbackErr := windows.SetInformationJobObject(job, windows.JobObjectExtendedLimitInformation, uintptr(unsafe.Pointer(&before)), uint32(unsafe.Sizeof(before))); rollbackErr != nil {
+			windows.TerminateJobObject(job, 1)
+			return fmt.Errorf("CPU limit update failed; memory rollback failed and job was terminated: %w", rollbackErr)
+		}
+		return err
+	}
+	return nil
+}
+func (p platformProcess) updateLimits(limits Limits) error {
+	p.state.Lock()
+	defer p.state.Unlock()
+	if p.state.job == 0 {
+		return ErrExited
+	}
+	return setJobLimits(p.state.job, limits)
 }
 func (p platformProcess) kill() error {
 	p.state.Lock()

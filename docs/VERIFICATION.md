@@ -1,6 +1,6 @@
 # Verification and release status
 
-Version `0.1.0-alpha.2`, verified locally October 18, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). No production panel, game server, service registration or firewall configuration was changed.
+Version `0.1.0-alpha.3`, verified locally October 18, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). No production panel, game server, service registration or firewall configuration was changed.
 
 The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed by the original tests. Alpha 2 adds upstream/panel-derived metadata fixtures and canonical route assertions, plus regression checks for the fixes below. Passing these tests is still not proof that a complete live panel/game deployment works. Current outstanding work is tracked in [ROADMAP.md](../ROADMAP.md).
 
@@ -25,6 +25,10 @@ Coverage includes:
 - Rejected reads/writes/new-file creation through a junction to a denied directory. `os.Root` rejects absolute junctions before access; resolved-handle policy checks also run on successfully opened targets.
 - Emergency kill interrupting stop/restart, cancelling an in-flight panel configuration fetch, releasing the operation lock and preventing restart after cancellation.
 - Standard allocation/memory/startup/timezone values overriding untrusted egg variables, IANA timezone validation/defaults and HTTP 400 for suspended starts/restarts.
+- Egg process fixtures: literal/regex matching, invalid-regex literal fallback, ANSI stripping, native command stopping, local-policy preservation and explicit rejection of unsupported signals/rewrites.
+- Live Windows Job Object queries verify CPU/memory changes and removal while retaining kill-on-close. Integration checks retain the same game process/uptime and the local memory ceiling.
+- Failed limit updates retain reported enforcement; suspension still terminates a game when other new egg settings are invalid. Readiness policy refresh is tested while a game is starting.
+- GitHub milestones and README badge endpoints are checked against actual repository counts. Progress initialization is idempotent; closing/reopening issues remains authoritative.
 
 The build script produces the Windows amd64 daemon, demo executable, documentation, dependency licenses and a ZIP checksum. Go race-detector testing is not included; no compatible C toolchain is configured on this host.
 
