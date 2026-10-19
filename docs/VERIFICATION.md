@@ -1,6 +1,6 @@
 # Verification and release status
 
-Version `0.1.0-alpha.8`, verified locally October 18, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). No production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration was changed. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
+Version `0.1.0-alpha.9`, verified locally October 18, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). No production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration was changed. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
 
 The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed by the original tests. Alpha 2 adds upstream/panel-derived metadata fixtures and canonical route assertions, plus regression checks for the fixes below. Passing these tests is still not proof that a complete live panel/game deployment works. Current outstanding work is tracked in [ROADMAP.md](../ROADMAP.md).
 
@@ -44,6 +44,7 @@ Coverage includes:
 - Daemon process/primary-token DACL checks and actual Windows denial of process-memory reads/token duplication under a restricting token. Thread impersonation is reverted before test assertions; no account is created or authenticated.
 - Process/token rights fixtures distinguish dangerous access from query-only rights. Raw generic applicable permission entries fail explicitly; inheritance-only generic entries remain compatible with ordinary Windows root ACLs.
 - Configured game executable/dependency write guards, shared-file rule deduplication, retained case variants and preservation of stricter secret bans when paths overlap.
+- Exact-UUID credential lifecycle: missing status/removal, metadata without password fields, explicit same-account rotation, refused accidental overwrite/identity change, removal/repeated removal and invalid namespace/wildcard rejection. All credential values are fake fixtures and cleaned up; no Windows account password is changed.
 - GitHub milestones and README badge endpoints are checked against actual repository counts. Progress initialization is idempotent; closing/reopening issues remains authoritative.
 
 The build script produces the Windows amd64 daemon, demo executable, documentation, dependency licenses and a ZIP checksum. Go race-detector testing is not included; no compatible C toolchain is configured on this host.

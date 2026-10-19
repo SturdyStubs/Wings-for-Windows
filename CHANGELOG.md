@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0-alpha.9 — October 18, 2026
+
+- Continue M2 with local `--credential-status <UUID>` JSON metadata and `--remove-credential <UUID>` exact-target removal. Missing entries are handled idempotently; neither operation loads node config, logs on an account or changes running processes.
+- Require `-Replace` for deliberate same-account credential rotation; refuse accidental overwrite, account-name changes and rotation of a missing target. Retain secure-input handling and clear returned credential memory copies.
+- Reject conflicting CLI operations, empty credential UUIDs and positional arguments before management actions.
+- Add temporary fake-credential lifecycle regressions and document inspection, rotation, retirement, concurrency limits and interrupted-password-change recovery.
+- Windows account provisioning/deletion, actual password changes, token revocation, durable recovery and live service validation remain open. These tools do not complete M2.
+
 ## 0.1.0-alpha.8 — October 18, 2026
 
 - Continue M2 with read-only daemon process and primary-token DACL guards before identity launches. Reject dangerous memory, injection, duplication, termination, token adjustment and ownership/security grants.

@@ -32,7 +32,7 @@ $gameCredential = Get-Credential -UserName '.\WingsGameRust'
 
 The helper requires `.\local-account`, writes only `WingsWindows/<UUID>` and clears its temporary unmanaged password buffer. It changes no user accounts, rights or ACLs. Credentials stored by an administrator in their own account are not the daemon account's credential set. Provisioning a noninteractive service account's credential set needs an appropriate host-administration workflow; the helper does not solve service-profile initialization.
 
-Do not put passwords in JSON, arguments, panel variables or logs. The runtime copies the credential password directly into UTF-16 memory for logon and clears its buffers afterward. This is best-effort memory cleanup, not a guarantee against administrator inspection or memory dumps. Stored credentials are not deleted automatically. Rotation updates the same target; the next start reads it again. Remove unused targets through Credential Manager when retiring a server.
+Do not put passwords in JSON, arguments, panel variables or logs. The runtime copies the credential password directly into UTF-16 memory for logon and clears its buffers afterward. This is best-effort memory cleanup, not a guarantee against administrator inspection or memory dumps. Stored credentials are not deleted automatically. The helper refuses accidental overwrite; pass `-Replace` for an existing target and the same account name when rotating. The next start reads the updated target. `--credential-status <UUID>` emits metadata without the password; `--remove-credential <UUID>` removes exactly that target and succeeds harmlessly when already missing. Neither command requires node config or attempts account logon. See [credential lifecycle](CREDENTIAL-LIFECYCLE.md) for maintenance, removal semantics and recovery limits.
 
 ## Read-only ACL guard
 
@@ -61,7 +61,7 @@ The guard evaluates handle-derived security descriptors and rejects unreadable d
 
 This is a launch-time descriptor check, not a system-wide handle audit. Previously acquired handles, other privileged helper processes, subsequent permission changes and a complete inter-process threat model still need validation. No untrusted-hosting guarantee follows from it.
 
-There is no network namespace, allocation firewall enforcement, complete mount/loader policy, account lifecycle recovery or virtualization backend. Mixing legacy shared-account games with `run_as` profiles does not protect credentials from the legacy games. The [isolation plan](ISOLATION.md) and all remaining M2 gates still apply.
+There is no network namespace, allocation firewall enforcement, complete mount/loader policy, account provisioning/password-change recovery or virtualization backend. Mixing legacy shared-account games with `run_as` profiles does not protect credentials from the legacy games. The [isolation plan](ISOLATION.md) and all remaining M2 gates still apply.
 
 ## Verification and rollout gate
 

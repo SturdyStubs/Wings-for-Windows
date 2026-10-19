@@ -71,7 +71,7 @@ The smaller positive value of `memory_mb` and the panel memory limit becomes the
 
 ## Optional game identities
 
-See [experimental identity setup](IDENTITIES.md) before enabling `run_as`. It requires a pinned non-built-in local account SID, a per-server credential stored as the daemon account, service token privileges and suitable ACLs. The existing service installer does not provision those requirements. Default profiles retain the daemon account. Full isolation and live separate-account deployment remain unverified.
+See [experimental identity setup](IDENTITIES.md) before enabling `run_as`. It requires a pinned non-built-in local account SID, a per-server credential stored as the daemon account, service token privileges and suitable ACLs. The existing service installer does not provision those requirements. Use the [credential lifecycle tools](CREDENTIAL-LIFECYCLE.md) for exact-target inspection, deliberate rotation and removal; they do not create/delete Windows users or reset passwords. Default profiles retain the daemon account. Full isolation and live separate-account deployment remain unverified.
 
 ## Egg process settings and live limits
 

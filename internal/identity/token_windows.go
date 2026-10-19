@@ -60,15 +60,14 @@ func readCredential(target string) (*uint16, []uint16, error) {
 	if ok, _, err := credRead.Call(uintptr(unsafe.Pointer(name)), 1, 0, uintptr(unsafe.Pointer(&stored))); ok == 0 {
 		return nil, nil, fmt.Errorf("read game credential: %w", err)
 	}
-	defer credFree.Call(uintptr(unsafe.Pointer(stored)))
 	if stored == nil {
 		return nil, nil, errors.New("game credential was empty")
 	}
+	defer releaseCredential(stored)
 	if stored.BlobSize > 5120 || stored.BlobSize == 0 || stored.BlobSize%2 != 0 || stored.Blob == nil {
 		return nil, nil, errors.New("game credential must contain a UTF-16 password")
 	}
 	blob := unsafe.Slice(stored.Blob, int(stored.BlobSize))
-	defer clear(blob)
 	username := windows.UTF16PtrToString(stored.UserName)
 	if !strings.HasPrefix(username, `.\`) || len(username) <= 2 || strings.ContainsAny(username[2:], `\/@`) {
 		return nil, nil, errors.New("game credential username must use .\\local-account")

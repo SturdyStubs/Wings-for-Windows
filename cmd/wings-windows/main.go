@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -14,6 +15,7 @@ import (
 	"time"
 	"wings-windows/internal/api"
 	"wings-windows/internal/config"
+	"wings-windows/internal/identity"
 	"wings-windows/internal/node"
 	"wings-windows/internal/provision"
 )
@@ -76,7 +78,47 @@ func main() {
 	checkProfiles := flag.Bool("check-profiles", false, "Check local profile executables, Windows requirements and dependency files without contacting the panel")
 	version := flag.Bool("version", false, "Print version")
 	installed := flag.String("mark-installed", "", "Explicitly acknowledge manually provisioned server UUID to the panel")
+	credentialStatus := flag.String("credential-status", "", "Report credential metadata for one full server UUID without account logon")
+	removeCredential := flag.String("remove-credential", "", "Remove the current account's exact per-server credential; does not stop games or delete users")
 	flag.Parse()
+	if flag.NArg() != 0 {
+		log.Fatal("unexpected positional arguments")
+	}
+	flag.Visit(func(f *flag.Flag) {
+		if (f.Name == "credential-status" || f.Name == "remove-credential") && f.Value.String() == "" {
+			log.Fatal("credential operation requires a full server UUID")
+		}
+	})
+	operations := 0
+	for _, selected := range []bool{*version, *check, *checkProfiles, *installed != "", *credentialStatus != "", *removeCredential != ""} {
+		if selected {
+			operations++
+		}
+	}
+	if operations > 1 {
+		log.Fatal("choose only one CLI operation")
+	}
+	if *credentialStatus != "" {
+		metadata, err := identity.CredentialStatus(*credentialStatus)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err := json.NewEncoder(os.Stdout).Encode(metadata); err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
+	if *removeCredential != "" {
+		removed, err := identity.RemoveCredential(*removeCredential)
+		if err != nil {
+			log.Fatal(err)
+		}
+		target, _ := identity.CredentialTarget(*removeCredential)
+		if err := json.NewEncoder(os.Stdout).Encode(map[string]any{"target": target, "removed": removed}); err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
 	if *version {
 		fmt.Println(config.Version)
 		return
