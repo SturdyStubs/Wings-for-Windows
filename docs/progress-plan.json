@@ -13,8 +13,8 @@
         {"title":"Add independent upstream and panel contract fixtures", "verified_in":"0.1.0-alpha.2"},
         {"title":"Support opted-in Windows egg readiness and stop configuration", "verified_in":"0.1.0-alpha.3", "notes":"Supported scope: multiple literal/regex readiness matchers, ANSI stripping, stdin commands and explicit SIGKILL. Unsupported signals/native Docker stop and config rewrites fail explicitly; they are not silently emulated."},
         {"title":"Apply live job resource limits during panel sync", "verified_in":"0.1.0-alpha.3", "notes":"Verify applied Windows Job Object CPU/memory limits, removal of caps, local cap retention and no process restart. Reject failed updates without claiming new enforcement."},
-        {"title":"Match power wait_seconds and remaining operation locking"},
-        {"title":"Complete system information, HTTP preflight and request errors"},
+        {"title":"Match power wait_seconds and remaining operation locking", "verified_in":"0.1.0-alpha.4"},
+        {"title":"Complete system information, HTTP preflight and request errors", "verified_in":"0.1.0-alpha.4"},
         {"title":"Verify real panel TLS, console, subuser revocation and file workflows", "notes":"Live verification gate: record actual panel/Windows versions and results; do not close using mock-panel tests."}
       ]
     },

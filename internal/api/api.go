@@ -6,7 +6,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -35,25 +35,38 @@ func respond(w http.ResponseWriter, status int, v any) {
 	}
 }
 func failure(w http.ResponseWriter, status int, message string) {
-	respond(w, status, map[string]string{"error": message})
+	respond(w, status, map[string]string{"error": message, "request_id": w.Header().Get("X-Request-Id")})
 }
 func decode(w http.ResponseWriter, r *http.Request, v any) bool {
 	r.Body = http.MaxBytesReader(w, r.Body, 64*1024)
 	d := json.NewDecoder(r.Body)
-	if d.Decode(v) != nil {
-		failure(w, 422, "Invalid request body")
+	if err := d.Decode(v); err != nil {
+		var tooLarge *http.MaxBytesError
+		if errors.As(err, &tooLarge) {
+			failure(w, 413, "Request body exceeds 64 KiB")
+			return false
+		}
+		failure(w, 400, "Invalid request body")
 		return false
 	}
 	var extra any
-	if d.Decode(&extra) != io.EOF {
-		failure(w, 422, "Expected one JSON object")
+	if err := d.Decode(&extra); err != io.EOF {
+		var tooLarge *http.MaxBytesError
+		if errors.As(err, &tooLarge) {
+			failure(w, 413, "Request body exceeds 64 KiB")
+			return false
+		}
+		failure(w, 400, "Expected one JSON object")
 		return false
 	}
 	return true
 }
 func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	w.Header().Set("Cache-Control", "no-store")
+	a.headers(w, r)
+	if r.Method == http.MethodOptions {
+		respond(w, 204, nil)
+		return
+	}
 	parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
 	if len(parts) == 4 && parts[0] == "api" && parts[1] == "servers" && parts[3] == "ws" && r.Method == "GET" {
 		s := a.Manager.Get(parts[2])
@@ -66,17 +79,12 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	expected := "Bearer " + a.Manager.Config.Token
 	if subtle.ConstantTimeCompare([]byte(r.Header.Get("Authorization")), []byte(expected)) != 1 {
+		w.Header().Set("WWW-Authenticate", "Bearer")
 		failure(w, 401, "Unauthorized")
 		return
 	}
 	if r.URL.Path == "/api/system" && r.Method == "GET" {
-		system := map[string]any{"architecture": runtime.GOARCH, "cpu_threads": runtime.NumCPU(), "kernel_version": "Windows NT", "os": "windows", "type": "windows"}
-		v := map[string]any{"architecture": runtime.GOARCH, "cpu_count": runtime.NumCPU(), "kernel_version": "Windows NT", "os": "windows", "version": config.Version, "capabilities": []string{"native_executable", "job_objects", "console", "power", "files_read_write"}}
-		if r.URL.Query().Get("v") == "2" {
-			v["system"] = system
-			v["docker"] = map[string]any{"version": "unavailable: native Windows runtime", "containers": map[string]int{"total": len(a.Manager.All()), "running": 0, "paused": 0, "stopped": 0}, "cgroups": map[string]string{"driver": "none", "version": "none"}, "storage": map[string]string{"driver": "native", "filesystem": "NTFS"}, "runc": map[string]string{"version": "none"}}
-		}
-		respond(w, 200, v)
+		a.system(w, r)
 		return
 	}
 	if r.URL.Path == "/api/servers" && r.Method == "GET" {
@@ -125,7 +133,8 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		respond(w, 200, s.Response())
 	case action == "power" && r.Method == "POST":
 		var v struct {
-			Action string `json:"action"`
+			Action      string `json:"action"`
+			WaitSeconds int    `json:"wait_seconds"`
 		}
 		if !decode(w, r, &v) {
 			return
@@ -136,9 +145,13 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			failure(w, 422, "Invalid power action")
 			return
 		}
-		if err := s.Power(v.Action); err != nil {
+		if err := s.EnqueuePower(v.Action, v.WaitSeconds); err != nil {
 			if errors.Is(err, node.ErrSuspended) {
 				failure(w, 400, err.Error())
+				return
+			}
+			if errors.Is(err, node.ErrPowerQueueFull) {
+				failure(w, 429, err.Error())
 				return
 			}
 			failure(w, 409, err.Error())
@@ -146,6 +159,10 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		respond(w, 202, nil)
 	case action == "commands" && r.Method == "POST":
+		if !s.HasProcess() {
+			failure(w, 502, "Cannot send commands to a stopped server instance")
+			return
+		}
 		var v struct {
 			Commands []string `json:"commands"`
 		}
@@ -164,7 +181,14 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		respond(w, 204, nil)
 	case action == "logs" && r.Method == "GET":
-		respond(w, 200, map[string]any{"data": s.Logs(100)})
+		size, _ := strconv.Atoi(r.URL.Query().Get("size"))
+		if size <= 0 {
+			size = 100
+		}
+		if size > 100 {
+			size = 100
+		}
+		respond(w, 200, map[string]any{"data": s.Logs(size)})
 	case action == "sync" && r.Method == "POST":
 		if err := s.Sync(r.Context()); err != nil {
 			failure(w, 502, "Panel synchronization failed")

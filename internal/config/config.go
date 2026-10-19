@@ -15,7 +15,7 @@ import (
 	_ "time/tzdata"
 )
 
-const Version = "0.1.0-alpha.3"
+const Version = "0.1.0-alpha.4"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -34,17 +34,18 @@ type Profile struct {
 	MemoryMB                   int      `json:"memory_mb"`
 }
 type Config struct {
-	Listen                string             `json:"listen"`
-	PanelURL              string             `json:"panel_url"`
-	NodeUUID              string             `json:"node_uuid"`
-	TokenID               string             `json:"token_id"`
-	Token                 string             `json:"token"`
-	DataDirectory         string             `json:"data_directory"`
-	Timezone              string             `json:"timezone,omitempty"`
-	TLS                   TLS                `json:"tls"`
-	AllowInsecureLoopback bool               `json:"allow_insecure_loopback"`
-	Origins               []string           `json:"allowed_origins"`
-	Profiles              map[string]Profile `json:"profiles"`
+	Listen                  string             `json:"listen"`
+	PanelURL                string             `json:"panel_url"`
+	NodeUUID                string             `json:"node_uuid"`
+	TokenID                 string             `json:"token_id"`
+	Token                   string             `json:"token"`
+	DataDirectory           string             `json:"data_directory"`
+	Timezone                string             `json:"timezone,omitempty"`
+	TLS                     TLS                `json:"tls"`
+	AllowInsecureLoopback   bool               `json:"allow_insecure_loopback"`
+	Origins                 []string           `json:"allowed_origins"`
+	AllowCORSPrivateNetwork bool               `json:"allow_cors_private_network,omitempty"`
+	Profiles                map[string]Profile `json:"profiles"`
 }
 
 func Load(path string) (Config, error) {
@@ -141,7 +142,7 @@ func (c *Config) Validate() error {
 		if p.StopTimeoutSeconds < 1 || p.StopTimeoutSeconds > 300 {
 			return errors.New("stop_timeout_seconds must be 1..300")
 		}
-		if len(p.StopCommand)>4096 || strings.ContainsAny(p.StopCommand, "\r\n\x00") {
+		if len(p.StopCommand) > 4096 || strings.ContainsAny(p.StopCommand, "\r\n\x00") {
 			return errors.New("stop_command must be a single console line")
 		}
 		for _, key := range p.AllowedEnvironment {

@@ -33,19 +33,23 @@ Windows Native ---------- node credentials -----> panel /api/remote
 
 Incoming panel-to-daemon requests use `Authorization: Bearer <node token>`. Outgoing daemon-to-panel requests use `Authorization: Bearer <token ID>.<node token>`. Redirects are rejected so credentials cannot follow an unexpected panel redirect.
 
-Except for the WebSocket upgrade, API endpoints require the incoming node bearer. There is no anonymous file endpoint. JSON request bodies, file content, log history and console queues have explicit size limits. The browser must present a valid scoped token through the WebSocket auth frame before receiving console data or issuing commands.
+Except for the WebSocket upgrade and non-mutating OPTIONS preflight, API endpoints require the incoming node bearer. There is no anonymous file endpoint. JSON request bodies, file content, log history and console queues have explicit size limits. The browser must present a valid scoped token through the WebSocket auth frame before receiving console data or issuing commands.
+
+Every REST response receives a generated UUID `X-Request-Id`; REST error JSON includes the same `request_id`. Malformed/trailing JSON returns 400, oversized JSON 413, and invalid action values 422. Missing/invalid bearer credentials return 401 with a Bearer challenge.
+
+OPTIONS returns 204 without credentials. CORS allows the exact panel origin and configured `allowed_origins`, includes credentials and exposes request IDs/file headers. Unknown origins are not reflected. Actual operations still require authentication. `allow_cors_private_network` defaults false; enable explicitly only when private-network browser preflight is needed. WebSocket upgrades carry response headers and still enforce their origin/token checks.
 
 ## Supported routes
 
 | Route | Behavior |
 | --- | --- |
-| `GET /api/system` | Basic Windows runtime information and capability list. |
-| `GET /api/system?v=2` | Nested system information with an explicitly unavailable Docker runtime descriptor. The Docker counters are compatibility placeholders, not native process counts. |
+| `GET /api/system` | Measured Windows architecture, active CPU count and kernel version, plus capability list. |
+| `GET /api/system?v=2` | Upstream-shaped system information with measured physical memory and Windows version. Docker is explicitly unavailable with zero container counters; separate `native` fields report server state counts, actual data filesystem and lack of container isolation. |
 | `GET /api/servers` | Locally registered, panel-assigned server state/configuration/utilization. |
 | `GET /api/servers/{uuid}` | One server's response. |
-| `POST /api/servers/{uuid}/power` | JSON `action`: `start`, `stop`, `restart`, `kill`. Returns 202 when queued; an active power action returns 409. Startup failures appear in console logs. `wait_seconds` is not implemented. |
-| `POST /api/servers/{uuid}/commands` | JSON `commands`: up to 32 single-line commands, each at most 4096 bytes. |
-| `GET /api/servers/{uuid}/logs` | Most recent 100 lines. Custom `size` is not implemented. |
+| `POST /api/servers/{uuid}/power` | JSON `action`: `start`, `stop`, `restart`, `kill`. Returns 202 when accepted asynchronously. `wait_seconds` bounds lock acquisition: omitted/zero tries once, 1–300 waits that many seconds, out-of-range values use 30. Failures/timeouts appear in console logs. At most 16 requests may await execution per server (429 when full). Kill bypasses the queue and invalidates queued actions. Suspended start/restart returns 400; shutdown rejects requests with 409. |
+| `POST /api/servers/{uuid}/commands` | JSON `commands`: up to 32 single-line commands, each at most 4096 bytes. Returns 502 without a live process, including an empty command list. |
+| `GET /api/servers/{uuid}/logs` | Most recent `size` lines, capped at 100; omitted, invalid or nonpositive values use 100. |
 | `POST /api/servers/{uuid}/sync` | Reload settings, file and process policies; apply active job limits without restart. Suspension stops the game even if another new egg setting is invalid. Failed limit updates do not change the reported applied cap. |
 | `GET /api/servers/{uuid}/ws` | Origin-checked WebSocket upgrade, followed by JWT auth. |
 | `POST /api/servers/{uuid}/ws/deny` | Revoke old tokens for supplied `jtis`. |
@@ -80,7 +84,7 @@ Output events: `auth success`, `status`, `stats`, `console output`, `jwt error`,
 
 Only a fixed `.exe` path in the local configuration can run. Panel `invocation`, Docker image and Linux install scripts are not executed. Approved `{{VARIABLE}}` placeholders are substituted separately in an argument array. Missing approved variables fail startup. Each game gets a minimal environment and its own working/temp directories.
 
-Power operations serialize per server; emergency kill cancels any active action and bypasses its lock. A cancelled restart cannot relaunch the game. Every start fetches the current panel settings before launching and checks suspension. Process creation uses `CREATE_SUSPENDED`, a restricted inherited pipe-handle list and Job Object assignment before resume. Assignment failure terminates the suspended process. The job uses kill-on-close and optional aggregate memory/CPU controls. Exiting the root also closes the job, so detached child processes do not remain as unmanaged servers.
+Power operations serialize per server; emergency kill cancels active and queued actions and bypasses the lock. Accepted HTTP actions survive request disconnection, but shutdown cancels them. Waiting actions are bounded and do not promise FIFO ordering; WebSocket power requests still attempt the lock immediately. A cancelled restart cannot relaunch the game. Every start fetches the current panel settings before launching and checks suspension. Process creation uses `CREATE_SUSPENDED`, a restricted inherited pipe-handle list and Job Object assignment before resume. Assignment failure terminates the suspended process. The job uses kill-on-close and optional aggregate memory/CPU controls. Exiting the root also closes the job, so detached child processes do not remain as unmanaged servers.
 
 State progresses `offline -> starting -> running -> stopping -> offline`. `running` requires the profile's output regex. Exit before readiness returns offline. There is no restart-on-crash loop and no adoption of external processes. Closing the daemon kills managed games and a later start fetches fresh panel configuration.
 

@@ -25,6 +25,8 @@ type Server struct {
 	configurationSync sync.Mutex
 	power             sync.Mutex
 	powerCancel       context.CancelFunc
+	powerEpoch        chan struct{}
+	pendingPower      int
 	filePolicy        *FilePolicy
 	processPolicy     *processPolicy
 	appliedLimits     native.Limits
@@ -86,7 +88,7 @@ func (m *Manager) Sync(ctx context.Context) error {
 			return err
 		}
 		r.Settings.UUID = id
-		m.servers[id] = &Server{settings: r.Settings, filePolicy: policy, processPolicy: processPolicy, Profile: profile, Root: root, panel: m.Panel, state: "offline", subscribers: make(map[chan Event]struct{})}
+		m.servers[id] = &Server{settings: r.Settings, filePolicy: policy, processPolicy: processPolicy, powerEpoch: make(chan struct{}), Profile: profile, Root: root, panel: m.Panel, state: "offline", subscribers: make(map[chan Event]struct{})}
 	}
 	return nil
 }
@@ -108,6 +110,10 @@ func (m *Manager) Close() {
 	for _, s := range m.All() {
 		s.mu.Lock()
 		s.closing = true
+		if s.powerEpoch != nil {
+			close(s.powerEpoch)
+			s.powerEpoch = nil
+		}
 		if s.powerCancel != nil {
 			s.powerCancel()
 		}
@@ -286,8 +292,15 @@ func (s *Server) spec() (native.Spec, error) {
 }
 
 var ErrSuspended = errors.New("cannot start or restart a suspended server")
+var ErrPowerBusy = errors.New("another power action is in progress")
+var ErrPowerCancelled = errors.New("power action cancelled")
+var ErrAlreadyRunning = errors.New("server is already started")
+var ErrPowerQueueFull = errors.New("power waiting queue is full")
 
 func (s *Server) Power(action string) error {
+	return s.powerWithEpoch(action, nil)
+}
+func (s *Server) powerWithEpoch(action string, epoch chan struct{}) error {
 	switch action {
 	case "start", "stop", "restart", "kill":
 	default:
@@ -298,7 +311,15 @@ func (s *Server) Power(action string) error {
 		s.mu.Unlock()
 		return errors.New("node is shutting down")
 	}
+	if epoch != nil && epoch != s.powerEpoch {
+		s.mu.Unlock()
+		return ErrPowerCancelled
+	}
 	if action == "kill" {
+		if s.powerEpoch != nil {
+			close(s.powerEpoch)
+		}
+		s.powerEpoch = make(chan struct{})
 		if s.powerCancel != nil {
 			s.powerCancel()
 		}
@@ -318,7 +339,7 @@ func (s *Server) Power(action string) error {
 	}
 	if !s.power.TryLock() {
 		s.mu.Unlock()
-		return errors.New("another power action is in progress")
+		return ErrPowerBusy
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	s.powerCancel = cancel
@@ -336,7 +357,7 @@ func (s *Server) Power(action string) error {
 				err = s.startWithContext(ctx)
 			}
 		}
-		if err != nil {
+		if err != nil && !errors.Is(err, ErrAlreadyRunning) && !errors.Is(err, context.Canceled) {
 			s.log("[Windows node] " + err.Error())
 		}
 	}()
@@ -349,7 +370,7 @@ func (s *Server) startWithContext(parent context.Context) error {
 	s.mu.Lock()
 	if s.process != nil {
 		s.mu.Unlock()
-		return errors.New("server is already started")
+		return ErrAlreadyRunning
 	}
 	s.mu.Unlock()
 	ctx, cancel := context.WithTimeout(parent, 20*time.Second)
@@ -481,6 +502,19 @@ func (s *Server) Command(command string) error {
 		return errors.New("server is offline")
 	}
 	return p.Command(command)
+}
+func (s *Server) HasProcess() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.process == nil {
+		return false
+	}
+	select {
+	case <-s.process.Done:
+		return false
+	default:
+		return true
+	}
 }
 func (s *Server) Response() map[string]any {
 	s.mu.Lock()

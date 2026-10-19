@@ -2,9 +2,9 @@
 
 Run native Windows game-server executables through a Pterodactyl panel. This is a separate Go daemon implementing a **subset of the Wings protocol**, with Windows Job Objects replacing the Docker process runtime.
 
-**Version: 0.1.0-alpha.3. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
+**Version: 0.1.0-alpha.4. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
 
-Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). Alpha 3 adds opt-in egg readiness/stopping and live CPU/memory limit updates. Full Wings parity remains in progress.
+Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). Alpha 4 adds asynchronous power lock waits, measured Windows host information, CORS preflight and consistent request/error handling. Full Wings parity remains in progress.
 
 <!-- progress:start -->
 
@@ -32,7 +32,7 @@ GitHub Issues are the source of truth; ROADMAP.md records implementation scope a
 | --- | --- |
 | Native executables | Locally approved `.exe` path and an argument array for each server UUID. No shell expansion. |
 | Panel discovery | Fetches this node's assigned servers with the node credentials; only registered local profiles can run. |
-| Power controls | Start, stop, restart and forced kill; kill cancels pending starts/restarts and interrupts graceful shutdown. Suspended start/restart requests return 400. |
+| Power controls | Start, stop, restart and forced kill; bounded asynchronous lock waits with `wait_seconds`. Kill cancels queued/active starts and restarts and interrupts graceful shutdown. Suspended start/restart requests return 400. |
 | Process trees | Creates the process suspended, assigns it to a Job Object, then resumes it. Killing/exiting the root or closing the daemon kills descendants. |
 | Resource limits | Job memory and panel CPU limits update on sync without a restart; local memory caps remain authoritative. CPU `100` means approximately one core. |
 | Console | Combined stdout/stderr, bounded recent logs, single-line stdin commands and authenticated WebSocket events. |
@@ -65,8 +65,8 @@ cd Wings-for-Windows
 If Go is not on PATH, pass `-GoExecutable C:\path\to\go.exe`. The script runs the Windows integration tests and `go vet`, then creates:
 
 ```text
-dist/wings-windows-native-0.1.0-alpha.3-windows-amd64.zip
-dist/wings-windows-native-0.1.0-alpha.3-windows-amd64.zip.sha256
+dist/wings-windows-native-0.1.0-alpha.4-windows-amd64.zip
+dist/wings-windows-native-0.1.0-alpha.4-windows-amd64.zip.sha256
 ```
 
 The archive includes the daemon, a harmless console demo executable, configuration example, documentation and service script. Docker, Node, PHP and a C compiler are not needed to build it. Native integration tests compile a temporary demo executable using Go.

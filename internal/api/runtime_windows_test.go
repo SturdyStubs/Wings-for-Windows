@@ -57,6 +57,13 @@ func TestNativeControlThroughHTTPAndWebsocket(t *testing.T) {
 			break
 		}
 	}
+	w := request(t, a, "GET", "/api/servers/"+serverID+"/logs?size=1", "", secret)
+	var logs struct {
+		Data []string `json:"data"`
+	}
+	if w.Code != 200 || json.Unmarshal(w.Body.Bytes(), &logs) != nil || len(logs.Data) != 1 || logs.Data[0] != "ECHO:hello through panel" {
+		t.Fatal("bounded recent logs", w.Code, w.Body)
+	}
 	if w := request(t, a, "POST", "/api/servers/"+serverID+"/power", `{"action":"stop"}`, secret); w.Code != 202 {
 		t.Fatal(w.Code, w.Body)
 	}

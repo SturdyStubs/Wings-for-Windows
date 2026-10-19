@@ -1,6 +1,6 @@
 # Progress toward Wings compatibility
 
-Last updated: October 18, 2026. Current version: **0.1.0-alpha.3**. Current milestone: **M1 — core protocol compatibility, in progress**.
+Last updated: October 18, 2026. Current version: **0.1.0-alpha.4**. Current milestone: **M1 — core protocol compatibility, in progress**.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
@@ -11,6 +11,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - Native Windows EXE runtime, Job Objects, basic power/console/status and root-process statistics: locally tested.
 - Alpha 2 fixes: canonical file listing and metadata, file MIME/length headers, egg file-denylist policy, standard derived variables, suspended power response and emergency kill cancellation: locally tested.
 - Alpha 3: opt-in supported Windows egg readiness/stopping, live job limit changes/removal, preservation of local caps and suspension despite invalid egg settings: locally tested.
+- Alpha 4: bounded asynchronous power waits, queued-action cancellation, measured Windows host/system schema, CORS preflight, request IDs, JSON errors and log sizing: locally tested.
 - HTTP inventory: handlers at **13 of upstream's 38 method/path combinations**, with partial behavior; **25 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
 - Automatic installation, full file manager/SFTP, backups/restores, transfers, strong isolation and live certification remain open.
 - Unchanged Linux eggs require a Linux execution backend. Native Windows profiles do not translate Linux images/binaries.
@@ -29,16 +30,16 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - [x] Return HTTP 400 for suspended start/restart requests.
 - [x] Add upstream/panel-derived file contract fixtures and Windows regression tests.
 - [x] Decode and use opted-in egg `process_configuration` for supported Windows command/SIGKILL stop and literal/regex/ANSI readiness behavior; reject unsupported strategies explicitly.
-- [ ] Match `wait_seconds`, remaining power errors and lifecycle locking.
+- [x] Match `wait_seconds`, remaining power errors and lifecycle locking; bound waiting requests and cancel them on kill/shutdown.
 - [x] Update active Job Object CPU/memory limits during sync, including removal and retained local caps; verify actual Windows job state.
-- [ ] Complete system information, HTTP CORS/preflight and consistent error/request-ID handling.
+- [x] Complete system information, HTTP CORS/preflight and consistent error/request-ID handling.
 - [ ] Verify node connectivity, console, subuser revocation and file browsing/editing through a real panel over trusted TLS.
 
-Next implementation target: power `wait_seconds`, remaining HTTP/system contracts and request handling. M1 remains open until the remaining implementation and real-panel checks pass.
+M1 implementation tasks are locally verified; the real-panel TLS/console/subuser/file gate remains open. Next development target: define the Windows isolation model in M2 and versioned provisioning profiles in M3. M1 cannot close until live validation passes.
 
 ## How to read progress
 
-[GitHub Milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones) provide the live completion bars. Six milestones contain 35 deliverable issues; the six original tracking issues remain summaries outside milestone counts. At alpha 3, M1 has 8 of 11 deliverables closed; the other stages remain open. This is issue completion, not an effort estimate or a claim that Wings is 73% ported.
+[GitHub Milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones) provide the live completion bars. Six milestones contain 35 deliverable issues; the six original tracking issues remain summaries outside milestone counts. At alpha 4, M1 has 10 of 11 deliverables closed; the other stages remain open. This is issue completion, not an effort estimate or a claim that Wings is 91% ported.
 
 README badges query milestone counts automatically. Close an implementation issue only with test evidence, and close a live gate only after actual host/panel/game validation. Close a milestone after every required deliverable is accepted. **Project completion requires all six milestones closed**, including the live gates. There is no declared completion date yet.
 

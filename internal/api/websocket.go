@@ -5,7 +5,6 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/websocket"
 	"net/http"
-	"net/url"
 	"slices"
 	"time"
 	"wings-windows/internal/node"
@@ -49,13 +48,10 @@ func (a *API) socket(w http.ResponseWriter, r *http.Request, s *node.Server) {
 		failure(w, 503, "Websocket capacity reached")
 		return
 	}
-	u, _ := url.Parse(a.Manager.Config.PanelURL)
-	panelOrigin := u.Scheme + "://" + u.Host
 	upgrader := websocket.Upgrader{CheckOrigin: func(r *http.Request) bool {
-		o := r.Header.Get("Origin")
-		return o == panelOrigin || slices.Contains(a.Manager.Config.Origins, o)
+		return a.originAllowed(r.Header.Get("Origin"))
 	}}
-	conn, err := upgrader.Upgrade(w, r, nil)
+	conn, err := upgrader.Upgrade(w, r, w.Header())
 	if err != nil {
 		return
 	}

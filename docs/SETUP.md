@@ -22,6 +22,7 @@ The JSON file is deliberately separate from upstream Wings' YAML. Copy its `uuid
 | `timezone` | Optional IANA timezone for derived `TZ`; defaults to `UTC`. Games may interpret timezone environment settings differently on Windows. |
 | `tls.cert`, `tls.key` | Absolute PEM certificate-chain and private-key paths. Both are required for a public listener. |
 | `allow_insecure_loopback` | Development exception for literal `127.0.0.1` or `::1` HTTP. Does not permit remote HTTP or arbitrary hostnames. |
+| `allow_cors_private_network` | Optional boolean, default false. Enables the private-network CORS response header for browser access to a private node. Actual requests still require authentication. |
 | `allowed_origins` | Additional exact browser origins, without trailing slashes. The panel origin is already allowed. No wildcard. |
 | `profiles` | Map of full server UUID to locally approved execution profile. Restart the daemon after editing. |
 

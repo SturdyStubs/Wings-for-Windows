@@ -1,0 +1,11 @@
+{
+  "version": "reference",
+  "system": {"architecture":"amd64","cpu_threads":1,"memory_bytes":1,"kernel_version":"reference","os":"reference","os_type":"reference"},
+  "docker": {
+    "version":"reference",
+    "cgroups":{"driver":"reference","version":"reference"},
+    "containers":{"total":0,"running":0,"paused":0,"stopped":0},
+    "storage":{"driver":"reference","filesystem":"reference"},
+    "runc":{"version":"reference"}
+  }
+}
