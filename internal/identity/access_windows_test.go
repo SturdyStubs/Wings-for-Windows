@@ -69,3 +69,22 @@ func TestProtectedPathAuditFailsOnExposureAndMissingPaths(t *testing.T) {
 		t.Fatal("empty path policy accepted")
 	}
 }
+
+func TestRawGenericFilePermissionIsRejected(t *testing.T) {
+	sd, err := windows.SecurityDescriptorFromString("O:SYG:SYD:P(A;;GR;;;WD)")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var original, token windows.Token
+	if err := windows.OpenProcessToken(windows.CurrentProcess(), windows.TOKEN_QUERY|windows.TOKEN_DUPLICATE, &original); err != nil {
+		t.Fatal(err)
+	}
+	defer original.Close()
+	if err := windows.DuplicateTokenEx(original, windows.TOKEN_QUERY, nil, windows.SecurityImpersonation, windows.TokenImpersonation, &token); err != nil {
+		t.Fatal(err)
+	}
+	defer token.Close()
+	if _, err := grantedAccess(token, sd); err == nil || !strings.Contains(err.Error(), "unsupported") {
+		t.Fatal("raw generic permission was silently ignored", err)
+	}
+}

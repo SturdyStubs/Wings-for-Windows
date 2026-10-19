@@ -1,6 +1,6 @@
 # Progress toward Wings compatibility
 
-Last updated: October 18, 2026. Current version: **0.1.0-alpha.7**. Current milestone: **M1 — core protocol compatibility, in progress**.
+Last updated: October 18, 2026. Current version: **0.1.0-alpha.8**. Active development: **M2 — isolation and supported threat model**. M1 remains open for its live panel gate.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
@@ -15,6 +15,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - Alpha 5: profile schema v1 with legacy migration, executable/OS/dependency checks before start and installation acknowledgement, and an offline profile-check CLI: locally tested. The native isolation model is documented; alpha 6 adds an initial opt-in launch path, while full enforcement remains open.
 - Alpha 6: opt-in local identity references, pinned/distinct SIDs, per-server Credential Manager lookup, restricted-token launch and protected-path DACL rejection checks. Restricted-token/process and ACL fixtures pass locally; successful separate-account Windows Server deployment remains unverified.
 - Alpha 7: handle-based ACL/metadata checks, full ancestor audit, bounded recursive other-server scans, observed reparse-point and multi-hardlink rejection. A real restricting-token fixture proves exposed children are detected even when root access is denied. These are snapshots, not complete race/network confinement.
+- Alpha 8: daemon process/primary-token DACL guards, configured executable/dependency write audits, deterministic merged rules and explicit rejection of unsupported permission ACEs. A restricted-token OS test verifies actual denial of daemon memory reads and token duplication; separate-account deployment remains unverified.
 - HTTP inventory: handlers at **13 of upstream's 38 method/path combinations**, with partial behavior; **25 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
 - Automatic installation, full file manager/SFTP, backups/restores, transfers, strong isolation and live certification remain open.
 - Unchanged Linux eggs require a Linux execution backend. Native Windows profiles do not translate Linux images/binaries.
@@ -58,6 +59,7 @@ The seed definitions are in `docs/progress-plan.json`. `scripts/Update-Progress.
   - [x] Add restricted-token suspended launch and a read-only protected-path DACL guard; verify real restricted child privileges, console and job cleanup.
   - [x] Add a secure-input credential helper and temporary fake-credential round-trip tests with cleanup.
   - [x] Audit ancestor replacement rights and existing children recursively using handle-derived descriptors; reject observed reparse points/multi-hardlinks, cap scan size/depth and honor startup cancellation.
+  - [x] Audit the daemon process/primary token and declared executable/dependency files; test actual process memory/token access denial and reject unsupported applicable ACL entries.
   - [ ] Verify successful distinct-account batch logon/launch under the intended Windows Server service identity.
   - [ ] Complete account/credential lifecycle, recursive/ancestor/link/race policy, shared executable/mount rules, daemon process-handle and network enforcement.
 - [ ] Test cross-server/account access, credentials, hardlinks, reparse points, case aliases and filesystem races. Local fixtures now cover a denied root with an exposed child, real NTFS hardlinks/junctions, ambiguous paths, handle-pinned rename rejection and scan bounds/cancellation; live identity and adversarial race gates remain open.

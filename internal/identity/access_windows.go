@@ -48,6 +48,30 @@ func CheckAccessContext(ctx context.Context, token windows.Token, rules []PathRu
 
 func grantedAccess(token windows.Token, sd *windows.SECURITY_DESCRIPTOR) (uint32, error) {
 	mapping := genericMapping{windows.FILE_GENERIC_READ, windows.FILE_GENERIC_WRITE, windows.FILE_GENERIC_EXECUTE, 0x1f01ff}
+	return grantedAccessWithMapping(token, sd, mapping)
+}
+
+func grantedAccessWithMapping(token windows.Token, sd *windows.SECURITY_DESCRIPTOR, mapping genericMapping) (uint32, error) {
+	// AccessCheck does not expand generic bits stored in ACE masks. Complex
+	// ACE evaluation needs additional semantics; reject unsupported forms.
+	dacl, _, err := sd.DACL()
+	if err != nil {
+		return 0, fmt.Errorf("read object DACL: %w", err)
+	}
+	if dacl != nil {
+		for i := uint32(0); i < uint32(dacl.AceCount); i++ {
+			var ace *windows.ACCESS_ALLOWED_ACE
+			if err := windows.GetAce(dacl, i, &ace); err != nil {
+				return 0, fmt.Errorf("read object ACE: %w", err)
+			}
+			if ace.Header.AceFlags&windows.INHERIT_ONLY_ACE != 0 {
+				continue
+			}
+			if ace.Header.AceType > 1 || ace.Mask&0xf0000000 != 0 {
+				return 0, fmt.Errorf("unsupported generic or complex permission ACE")
+			}
+		}
+	}
 	// Privilege sets are small here: restricted tokens retain at most traverse.
 	privileges := make([]byte, 4096)
 	size := uint32(len(privileges))

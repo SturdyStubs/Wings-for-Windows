@@ -27,6 +27,9 @@ func startPlatform(spec Spec) (result *Process, err error) {
 			return nil, err
 		}
 		defer token.Close()
+		if err = identity.CheckDaemonAccess(token); err != nil {
+			return nil, err
+		}
 		if err = identity.CheckAccessContext(spec.Context, token, spec.AccessRules); err != nil {
 			return nil, err
 		}

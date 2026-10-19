@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0-alpha.8 — October 18, 2026
+
+- Continue M2 with read-only daemon process and primary-token DACL guards before identity launches. Reject dangerous memory, injection, duplication, termination, token adjustment and ownership/security grants.
+- Protect all configured game executables and declared dependency files against game-account writes/replacement. Merge duplicate path rules deterministically without weakening stricter secret policy; retain case-distinct declarations.
+- Reject unsupported applicable generic/complex permission ACEs instead of allowing AccessCheck to silently ignore raw generic masks. Ignore inheritance-only entries when evaluating the current object.
+- Add actual Windows restricted-token impersonation checks proving daemon memory reads and primary-token duplication are denied, plus process/token rights and generated code-rule regressions.
+- Keep previously acquired handles, transitive loader/mount rules, permission races, network enforcement and successful separate-account Windows Server deployment open. M2 is not complete.
+
 ## 0.1.0-alpha.7 — October 18, 2026
 
 - Continue M2 with handle-derived ACL/metadata checks and ancestor deletion/ownership/DACL checks up to the local drive root.

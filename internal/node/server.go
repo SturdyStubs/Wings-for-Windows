@@ -13,7 +13,6 @@ import (
 	"sync"
 	"time"
 	"wings-windows/internal/config"
-	"wings-windows/internal/identity"
 	"wings-windows/internal/native"
 	"wings-windows/internal/provision"
 )
@@ -290,23 +289,9 @@ func (s *Server) spec() (native.Spec, error) {
 		clean = append(clean, k+"="+v)
 	}
 	limits := effectiveLimits(settings, s.Profile)
-	var accessRules []identity.PathRule
-	if s.Profile.RunAs != nil {
-		binary, err := os.Executable()
-		if err != nil {
-			return native.Spec{}, err
-		}
-		accessRules = append(accessRules, identity.PathRule{Path: binary, Forbidden: identity.WriteAccess}, identity.PathRule{Path: filepath.Dir(binary), Forbidden: identity.ReplaceChildAccess})
-		for _, secret := range []string{s.panel.Config.SourcePath, s.panel.Config.TLS.Key} {
-			if secret != "" {
-				accessRules = append(accessRules, identity.PathRule{Path: secret, Forbidden: identity.ReadWriteAccess}, identity.PathRule{Path: filepath.Dir(secret), Forbidden: identity.ReplaceChildAccess})
-			}
-		}
-		for id := range s.panel.Config.Profiles {
-			if !strings.EqualFold(id, s.ID()) {
-				accessRules = append(accessRules, identity.PathRule{Path: filepath.Join(s.panel.Config.DataDirectory, id), Forbidden: identity.ReadWriteAccess, Recursive: true})
-			}
-		}
+	accessRules, err := s.identityAccessRules()
+	if err != nil {
+		return native.Spec{}, err
 	}
 	return native.Spec{RunAs: s.Profile.RunAs, AccessRules: accessRules, Executable: s.Profile.Executable, Arguments: args, Environment: clean, Directory: s.Root, MemoryMB: limits.MemoryMB, CPUPercent: limits.CPUPercent}, nil
 }
