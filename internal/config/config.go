@@ -16,7 +16,7 @@ import (
 	"wings-windows/internal/identity"
 )
 
-const Version = "0.1.0-alpha.9"
+const Version = "0.1.0-alpha.10"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 

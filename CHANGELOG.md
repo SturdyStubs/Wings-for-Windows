@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0-alpha.10 — October 18, 2026
+
+- Add `--check-identity <UUID>` with ordered JSON profile, file, credential-presence, batch-logon/token, daemon-access, filesystem and service-privilege checks. Stop on the first failure and mark later checks not_run.
+- Reuse startup's protected-path rule builder without manager initialization, panel sync, root creation or process launch. The command explicitly attempts account logon when earlier stages pass.
+- Record unperformed game/panel/network checks as false even on diagnostic success. Check expected service privileges conservatively without enabling or granting rights.
+- Add missing-credential, invalid/shared/unknown-profile, missing-file and cancellation regressions; document deployment workflow, synchronous-logon limits and the remaining Windows Server/service validation gate.
+- No successfully provisioned second account or live deployment is certified by local diagnostic tests. Full M2 enforcement/recovery remains open.
+
 ## 0.1.0-alpha.9 — October 18, 2026
 
 - Continue M2 with local `--credential-status <UUID>` JSON metadata and `--remove-credential <UUID>` exact-target removal. Missing entries are handled idempotently; neither operation loads node config, logs on an account or changes running processes.

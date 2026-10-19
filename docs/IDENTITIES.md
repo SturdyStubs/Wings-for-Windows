@@ -69,4 +69,6 @@ Local tests cover actual restricted-token process launch, child privilege querie
 
 Successful separate-account batch logon and process launch have **not** been validated with a provisioned game account on Windows Server. Only disposable fixture ACLs and a temporary fake generic credential were changed by development verification; no existing user accounts, host ACLs, service rights or firewall rules were changed. Before relying on this path, record the host/service account configuration, successful distinct-SID child launch and attempted credential/cross-server/process access under that identity. Keep issues #19–21 open until their full enforcement and live acceptance checks pass.
 
+`--check-identity <UUID>` runs the [explicit identity deployment diagnostic](IDENTITY-DIAGNOSTICS.md), including one batch logon and the launch-time access guards without creating a game. It emits stage-by-stage JSON and reports unperformed game/panel/network validation explicitly.
+
 `--check` validates reference syntax and per-server uniqueness. `--check-profiles` checks executable/dependency requirements; it does not read credentials, attempt account logon, test launch privileges or run the token ACL guard. Those checks happen on actual start. Manual `--mark-installed` still acknowledges provisioned files only and does not certify identity readiness.

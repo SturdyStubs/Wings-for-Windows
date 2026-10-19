@@ -73,6 +73,8 @@ The smaller positive value of `memory_mb` and the panel memory limit becomes the
 
 See [experimental identity setup](IDENTITIES.md) before enabling `run_as`. It requires a pinned non-built-in local account SID, a per-server credential stored as the daemon account, service token privileges and suitable ACLs. The existing service installer does not provision those requirements. Use the [credential lifecycle tools](CREDENTIAL-LIFECYCLE.md) for exact-target inspection, deliberate rotation and removal; they do not create/delete Windows users or reset passwords. Default profiles retain the daemon account. Full isolation and live separate-account deployment remain unverified.
 
+Use [`--check-identity <UUID>`](IDENTITY-DIAGNOSTICS.md) as the eventual daemon identity for an explicit logon/token/ACL diagnostic after provisioning. It does not launch a game or contact the panel, and successful preflight does not replace actual service/game validation.
+
 ## Egg process settings and live limits
 
 Set `use_egg_process_configuration: true` on a local Windows profile to use the panel's `process_configuration`. The locally approved executable, argument array and environment allowlist remain authoritative. Omit `ready_pattern` and `stop_command` in this mode; they are replaced by the egg's process settings. Existing profiles default to `false` and keep their local settings.

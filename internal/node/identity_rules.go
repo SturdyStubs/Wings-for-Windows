@@ -10,7 +10,11 @@ import (
 )
 
 func (s *Server) identityAccessRules() ([]identity.PathRule, error) {
-	if s.Profile.RunAs == nil {
+	return buildIdentityRules(s.panel.Config, s.ID(), s.Profile)
+}
+
+func buildIdentityRules(c config.Config, serverID string, profile config.Profile) ([]identity.PathRule, error) {
+	if profile.RunAs == nil {
 		return nil, nil
 	}
 	combined := map[string]identity.PathRule{}
@@ -38,18 +42,18 @@ func (s *Server) identityAccessRules() ([]identity.PathRule, error) {
 		return nil, err
 	}
 	protect(binary, identity.WriteAccess)
-	protect(s.panel.Config.SourcePath, identity.ReadWriteAccess)
-	protect(s.panel.Config.TLS.Key, identity.ReadWriteAccess)
+	protect(c.SourcePath, identity.ReadWriteAccess)
+	protect(c.TLS.Key, identity.ReadWriteAccess)
 	protectProfile := func(profile config.Profile) {
 		protect(profile.Executable, identity.WriteAccess)
 		for _, file := range profile.Requirements.RequiredFiles {
 			protect(file, identity.WriteAccess)
 		}
 	}
-	protectProfile(s.Profile)
-	for id, profile := range s.panel.Config.Profiles {
-		if !strings.EqualFold(id, s.ID()) {
-			add(filepath.Join(s.panel.Config.DataDirectory, id), identity.ReadWriteAccess, true)
+	protectProfile(profile)
+	for id, profile := range c.Profiles {
+		if !strings.EqualFold(id, serverID) {
+			add(filepath.Join(c.DataDirectory, id), identity.ReadWriteAccess, true)
 			protectProfile(profile)
 		}
 	}

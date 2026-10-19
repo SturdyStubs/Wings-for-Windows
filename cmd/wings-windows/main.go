@@ -80,17 +80,18 @@ func main() {
 	installed := flag.String("mark-installed", "", "Explicitly acknowledge manually provisioned server UUID to the panel")
 	credentialStatus := flag.String("credential-status", "", "Report credential metadata for one full server UUID without account logon")
 	removeCredential := flag.String("remove-credential", "", "Remove the current account's exact per-server credential; does not stop games or delete users")
+	checkIdentity := flag.String("check-identity", "", "Diagnose one configured identity with a batch logon and access checks, without starting a game")
 	flag.Parse()
 	if flag.NArg() != 0 {
 		log.Fatal("unexpected positional arguments")
 	}
 	flag.Visit(func(f *flag.Flag) {
-		if (f.Name == "credential-status" || f.Name == "remove-credential") && f.Value.String() == "" {
+		if (f.Name == "credential-status" || f.Name == "remove-credential" || f.Name == "check-identity") && f.Value.String() == "" {
 			log.Fatal("credential operation requires a full server UUID")
 		}
 	})
 	operations := 0
-	for _, selected := range []bool{*version, *check, *checkProfiles, *installed != "", *credentialStatus != "", *removeCredential != ""} {
+	for _, selected := range []bool{*version, *check, *checkProfiles, *installed != "", *credentialStatus != "", *removeCredential != "", *checkIdentity != ""} {
 		if selected {
 			operations++
 		}
@@ -121,6 +122,22 @@ func main() {
 	}
 	if *version {
 		fmt.Println(config.Version)
+		return
+	}
+	if *checkIdentity != "" {
+		c, err := config.Load(*path)
+		if err != nil {
+			log.Fatal(err)
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+		defer cancel()
+		report := node.CheckIdentity(ctx, c, *checkIdentity)
+		if err := json.NewEncoder(os.Stdout).Encode(report); err != nil {
+			log.Fatal(err)
+		}
+		if !report.Passed {
+			os.Exit(1)
+		}
 		return
 	}
 	if *check {
