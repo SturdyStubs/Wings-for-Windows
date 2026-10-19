@@ -1,6 +1,6 @@
 # Progress toward Wings compatibility
 
-Last updated: October 18, 2026. Current version: **0.1.0-alpha.12**. Active development: **M2 — isolation and supported threat model**. M1 remains open for its live panel gate.
+Last updated: October 18, 2026. Current version: **0.1.0-alpha.13**. Active development: **M2 — isolation and supported threat model**. M1 remains open for its live panel gate.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
@@ -20,6 +20,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - Alpha 10: `--check-identity <UUID>` emits ordered JSON readiness checks without panel access, game launch or root creation. It can explicitly attempt batch logon and run the launch-time guards; missing-credential/cancellation/failure reports are locally tested. No successful second-account Windows Server deployment is claimed.
 - Alpha 11: optional account-scoped WFP connection-blocking path before process creation, dynamic session rollback and job-aware cleanup. Contract/injected-backend and real-job/fake-lease tests pass; actual filter installation/traffic behavior is not live verified.
 - Alpha 12: explicit `--check-network-policy <UUID>` diagnostic with identity gating, owned-rule readback and independent cleanup inspection. Injected-backend success/failure/cancellation checks pass; no real filter installation or traffic result is claimed.
+- Alpha 13: read-sharing-only startup handles retain declared protected paths, executable, working directory and ancestors across ACL audit, WFP setup and suspended process creation/resume. Audit handles now request data/list access for effective no-delete sharing. Real write/rename/rollback/bound/link and pinned process-launch tests pass; runtime/ACL/mapping/loader races remain open.
 - HTTP inventory: handlers at **13 of upstream's 38 method/path combinations**, with partial behavior; **25 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
 - Automatic installation, full file manager/SFTP, backups/restores, transfers, strong isolation and live certification remain open.
 - Unchanged Linux eggs require a Linux execution backend. Native Windows profiles do not translate Linux images/binaries.
@@ -68,10 +69,11 @@ The seed definitions are in `docs/progress-plan.json`. `scripts/Update-Progress.
   - [x] Add an explicit per-server deployment diagnostic with stage failures/not-run states and clear game/panel/network verification exclusions.
   - [x] Add opt-in SID-scoped WFP block installation/lifecycle paths with partial-install rollback and job-aware cleanup; verify injected-backend contracts and real-job/fake-lease ordering.
   - [x] Add explicit mutating WFP installation/readback/independent-cleanup diagnostic, gated by identity preflight and tested with an injected backend.
+  - [x] Retain bounded startup handles for nonrecursive protected paths, executable, working directory and ancestors; reject conflicting writers and test rollback, link rejection and guarded image creation.
   - [ ] Verify actual WFP installation, traffic blocking, crash/restart behavior and allocation/outbound policy on a disposable host.
   - [ ] Verify successful distinct-account batch logon/launch under the intended Windows Server service identity.
   - [ ] Complete account/credential lifecycle, recursive/ancestor/link/race policy, shared executable/mount rules, daemon process-handle and network enforcement.
-- [ ] Test cross-server/account access, credentials, hardlinks, reparse points, case aliases and filesystem races. Local fixtures now cover a denied root with an exposed child, real NTFS hardlinks/junctions, ambiguous paths, handle-pinned rename rejection and scan bounds/cancellation; live identity and adversarial race gates remain open.
+- [ ] Test cross-server/account access, credentials, hardlinks, reparse points, case aliases and filesystem races. Local fixtures now cover a denied root with an exposed child, real NTFS hardlinks/junctions, ambiguous paths, handle-pinned rename/write rejection, retained startup handles with rollback and scan/handle bounds/cancellation; live identity and adversarial race gates remain open.
 - [ ] Publish the supported Windows host/runtime/game matrix and remaining restrictions.
 
 Current scope remains a trusted private node. File denylist/path checks are not process isolation.

@@ -60,7 +60,9 @@ func (a *pathAudit) withPath(path string, forbidden uint32, check pathCheck, vis
 			return err
 		}
 		name, _ := windows.UTF16PtrFromString(component)
-		handle, err := windows.CreateFile(name, windows.READ_CONTROL|windows.FILE_READ_ATTRIBUTES, windows.FILE_SHARE_READ|windows.FILE_SHARE_WRITE, nil, windows.OPEN_EXISTING, windows.FILE_FLAG_BACKUP_SEMANTICS|windows.FILE_FLAG_OPEN_REPARSE_POINT, 0)
+		// Read data/list access makes the no-delete sharing restriction effective;
+		// metadata-only opens do not reliably participate in sharing checks.
+		handle, err := windows.CreateFile(name, windows.GENERIC_READ, windows.FILE_SHARE_READ|windows.FILE_SHARE_WRITE, nil, windows.OPEN_EXISTING, windows.FILE_FLAG_BACKUP_SEMANTICS|windows.FILE_FLAG_OPEN_REPARSE_POINT, 0)
 		if err != nil {
 			return fmt.Errorf("open audit component %q: %w", component, err)
 		}

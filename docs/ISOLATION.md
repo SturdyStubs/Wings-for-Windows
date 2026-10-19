@@ -19,6 +19,10 @@ Native identities preserve direct Windows executable compatibility and avoid imp
 - Define allocation/firewall and outbound-network rules independently of file ACLs. Binding addresses in arguments is not network isolation. Define game port conflicts and shared-host policy.
 - Provide audit records and idempotent account/ACL cleanup across failed installation, delete, daemon restart and upgrades.
 
+## Startup path guard
+
+Alpha 13 adds a [bounded startup guard](LAUNCH-GUARD.md) for opt-in identities. Local Windows tests verify write/rename rejection after the snapshot audit returns, rollback after partial failure, and real image creation including a restricted-token child. It does not cover ACL mutation, existing writable mappings, recursive contents or runtime/transitive DLL loading; adversarial and live-host gates remain open.
+
 ## Acceptance gates
 
 M2 remains open until separate credentials/policies and adversarial tests exist. Test attempts to read node secrets, open daemon process handles, access another server, traverse links, exploit case/device aliases, modify shared executables and race filesystem operations. Test console/file permissions and allocation enforcement under actual game identities.

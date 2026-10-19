@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0-alpha.13 — October 18, 2026
+
+- Retain read-sharing-only launch handles before the identity ACL audit until network setup, suspended process creation, job assignment and resume finish. Cover nonrecursive protected paths, executable, working directory and ancestors; release on success or failure.
+- Reject conflicting writers, observed reparse points, non-single-link files and more than 1,024 distinct path components. Preserve case variants, cancellation and rollback after partial acquisition. No silent fallback to unguarded identity startup.
+- Correct audit opens to request data/list access, making their no-delete sharing effective independently of an existing writer. Daemon read/list access is now required on audited paths.
+- Add actual Windows sharing/rename, partial rollback, bound, link and pinned-image creation tests, including a restricted-token child. The full suite passes 175 cases/subtests with zero skipped.
+- Document updater conflicts, diagnostic exclusions and startup-only scope. ACL changes, writable mappings, recursive/runtime/loader races and separate-account/live-host validation remain open; M2 is incomplete.
+
 ## 0.1.0-alpha.12 — October 18, 2026
 
 - Add explicit --check-network-policy <UUID> operator diagnostic, requiring configured block_connections and successful identity preflight before any temporary WFP installation.

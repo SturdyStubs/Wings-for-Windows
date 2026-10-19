@@ -5,12 +5,43 @@ import (
 	"errors"
 	"golang.org/x/sys/windows"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 	"unsafe"
 	"wings-windows/internal/identity"
 )
+
+func TestPinnedLaunchAllowsWindowsImageCreation(t *testing.T) {
+	directory := t.TempDir()
+	dependency := filepath.Join(directory, "declared.dll")
+	if err := os.WriteFile(dependency, []byte("fixture"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	guard, err := identity.PinLaunchPaths(context.Background(), []string{fixture, directory, dependency})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer guard.Close()
+	p, err := startWithToken(Spec{Executable: fixture, Directory: directory, Environment: []string{"SystemRoot=" + os.Getenv("SystemRoot")}}, 0)
+	if err != nil {
+		t.Fatal("Windows image creation failed with startup guard", err)
+	}
+	t.Cleanup(func() { p.Kill(); <-p.Done; p.Stdout.Close() })
+	if got := line(t, lines(p)); got != "SERVER_READY" {
+		t.Fatal(got)
+	}
+	if err := os.WriteFile(dependency, []byte("changed during start"), 0600); err == nil {
+		t.Fatal("declared dependency was writable before guard release")
+	}
+	if err := guard.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(dependency, []byte("changed after startup"), 0600); err != nil {
+		t.Fatal("guard not released after startup", err)
+	}
+}
 
 func TestRestrictedTokenLaunchPreservesConsoleAndJob(t *testing.T) {
 	var original windows.Token
@@ -23,7 +54,13 @@ func TestRestrictedTokenLaunchPreservesConsoleAndJob(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer token.Close()
-	p, err := startWithToken(Spec{Executable: fixture, Directory: t.TempDir(), Environment: []string{"SystemRoot=" + os.Getenv("SystemRoot")}}, token)
+	directory := t.TempDir()
+	guard, err := identity.PinLaunchPaths(nil, []string{fixture, directory})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer guard.Close()
+	p, err := startWithToken(Spec{Executable: fixture, Directory: directory, Environment: []string{"SystemRoot=" + os.Getenv("SystemRoot")}}, token)
 	if err != nil {
 		t.Fatal(err)
 	}

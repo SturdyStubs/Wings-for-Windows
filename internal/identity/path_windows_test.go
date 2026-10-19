@@ -109,6 +109,25 @@ func TestAuditAllowsExistingWriterAndPinsRenameDuringCheck(t *testing.T) {
 	}
 }
 
+func TestAuditPinsRenameWithoutExistingWriter(t *testing.T) {
+	_, path := launchFixture(t)
+	audit := pathAudit{ctx: context.Background(), limit: 10}
+	err := audit.walk(PathRule{Path: path}, func(current string, _ *windows.SECURITY_DESCRIPTOR, _ uint32) error {
+		if current == path {
+			if err := os.Rename(path, path+".moved"); !errors.Is(err, windows.ERROR_SHARING_VIOLATION) {
+				t.Fatal("audit did not itself pin the file", err)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Rename(path, path+".moved"); err != nil {
+		t.Fatal("audit did not release its handle", err)
+	}
+}
+
 func TestRecursiveAuditFindsExposedChildBehindDeniedRoot(t *testing.T) {
 	// A restricting SID supplies a second access-check pass without creating or
 	// logging on any user. The daemon's original token retains fixture access.

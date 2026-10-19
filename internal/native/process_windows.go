@@ -36,6 +36,19 @@ func startPlatform(spec Spec) (result *Process, err error) {
 		if err = identity.CheckDaemonAccess(token); err != nil {
 			return nil, err
 		}
+		paths := []string{spec.Executable, spec.Directory}
+		for _, rule := range spec.AccessRules {
+			// Recursive other-server data stays a bounded snapshot audit;
+			// retaining one handle per data file would exhaust node resources.
+			if !rule.Recursive {
+				paths = append(paths, rule.Path)
+			}
+		}
+		guard, guardErr := identity.PinLaunchPaths(spec.Context, paths)
+		if guardErr != nil {
+			return nil, guardErr
+		}
+		defer guard.Close()
 		if err = identity.CheckAccessContext(spec.Context, token, spec.AccessRules); err != nil {
 			return nil, err
 		}

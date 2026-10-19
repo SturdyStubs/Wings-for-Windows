@@ -2,9 +2,9 @@
 
 Run native Windows game-server executables through a Pterodactyl panel. This is a separate Go daemon implementing a **subset of the Wings protocol**, with Windows Job Objects replacing the Docker process runtime.
 
-**Version: 0.1.0-alpha.12. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
+**Version: 0.1.0-alpha.13. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
 
-Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). Alpha 12 adds an explicit network-policy diagnostic that temporarily installs the account block, checks its rules and independently verifies cleanup after identity preflight. WFP installation and live traffic blocking remain unverified; no allocation allowlist is implemented. Account provisioning/recovery, full isolation and live host certification remain open. M2 remains in progress; separate-account deployment and full filesystem/network isolation are unverified. Full Wings parity remains in progress.
+Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). Alpha 13 pins launch paths from before the ACL audit through process creation and resume, and corrects audit handles so their delete-sharing restriction takes effect. See the [startup guard](docs/LAUNCH-GUARD.md) for scope and restrictions. WFP installation and live traffic blocking remain unverified; no allocation allowlist is implemented. Account provisioning/recovery, full isolation and live host certification remain open. M2 remains in progress; separate-account deployment and full filesystem/network isolation are unverified. Full Wings parity remains in progress.
 
 <!-- progress:start -->
 
@@ -31,7 +31,7 @@ GitHub Issues are the source of truth; ROADMAP.md records implementation scope a
 | Feature | Implementation |
 | --- | --- |
 | Native executables | Versioned local profiles, PE architecture checks, optional minimum Windows build and dependency-file requirements before startup or installation acknowledgement. Argument arrays without shell expansion. |
-| Game identities | Optional per-server credential reference and pinned local SID, restricted-token launch, daemon process/token checks and bounded recursive/ancestor ACL audit with code/dependency protection and link rejection. Experimental; live separate-account validation remains open. |
+| Game identities | Optional per-server credential reference and pinned local SID, restricted-token launch, daemon process/token checks and bounded recursive/ancestor ACL audit with code/dependency protection, link rejection and a bounded startup path guard. Experimental; live separate-account validation remains open. |
 | Network policy | Optional account-scoped WFP connection blocking, requiring `run_as`; installation/rollback paths tested with an injected backend. Live filtering is unverified. Default is unmanaged. |
 | Panel discovery | Fetches this node's assigned servers with the node credentials; only registered local profiles can run. |
 | Power controls | Start, stop, restart and forced kill; bounded asynchronous lock waits with `wait_seconds`. Kill cancels queued/active starts and restarts and interrupts graceful shutdown. Suspended start/restart requests return 400. |
@@ -67,8 +67,8 @@ cd Wings-for-Windows
 If Go is not on PATH, pass `-GoExecutable C:\path\to\go.exe`. The script runs the Windows integration tests and `go vet`, then creates:
 
 ```text
-dist/wings-windows-native-0.1.0-alpha.12-windows-amd64.zip
-dist/wings-windows-native-0.1.0-alpha.12-windows-amd64.zip.sha256
+dist/wings-windows-native-0.1.0-alpha.13-windows-amd64.zip
+dist/wings-windows-native-0.1.0-alpha.13-windows-amd64.zip.sha256
 ```
 
 The archive includes the daemon, a harmless console demo executable, configuration example, documentation and service script. Docker, Node, PHP and a C compiler are not needed to build it. Native integration tests compile a temporary demo executable using Go.
