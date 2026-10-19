@@ -14,9 +14,10 @@ import (
 	"time"
 	_ "time/tzdata"
 	"wings-windows/internal/identity"
+	"wings-windows/internal/networkpolicy"
 )
 
-const Version = "0.1.0-alpha.10"
+const Version = "0.1.0-alpha.11"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -25,17 +26,18 @@ type TLS struct {
 	Key  string `json:"key"`
 }
 type Profile struct {
-	RunAs                      *identity.Reference `json:"run_as,omitempty"`
-	SchemaVersion              int                 `json:"schema_version,omitempty"`
-	Requirements               Requirements        `json:"requirements,omitempty"`
-	UseEggProcessConfiguration bool                `json:"use_egg_process_configuration,omitempty"`
-	Executable                 string              `json:"executable"`
-	Arguments                  []string            `json:"arguments"`
-	AllowedEnvironment         []string            `json:"allowed_environment"`
-	StopCommand                string              `json:"stop_command"`
-	ReadyPattern               string              `json:"ready_pattern"`
-	StopTimeoutSeconds         int                 `json:"stop_timeout_seconds"`
-	MemoryMB                   int                 `json:"memory_mb"`
+	NetworkPolicy              networkpolicy.Policy `json:"network_policy,omitempty"`
+	RunAs                      *identity.Reference  `json:"run_as,omitempty"`
+	SchemaVersion              int                  `json:"schema_version,omitempty"`
+	Requirements               Requirements         `json:"requirements,omitempty"`
+	UseEggProcessConfiguration bool                 `json:"use_egg_process_configuration,omitempty"`
+	Executable                 string               `json:"executable"`
+	Arguments                  []string             `json:"arguments"`
+	AllowedEnvironment         []string             `json:"allowed_environment"`
+	StopCommand                string               `json:"stop_command"`
+	ReadyPattern               string               `json:"ready_pattern"`
+	StopTimeoutSeconds         int                  `json:"stop_timeout_seconds"`
+	MemoryMB                   int                  `json:"memory_mb"`
 }
 type Config struct {
 	SourcePath              string             `json:"-"`
@@ -130,6 +132,9 @@ func (c *Config) Validate() error {
 	normalized := make(map[string]Profile, len(c.Profiles))
 	identities := make(map[string]bool)
 	for id, p := range c.Profiles {
+		if err := p.NetworkPolicy.Validate(p.RunAs); err != nil {
+			return fmt.Errorf("%s: %w", id, err)
+		}
 		if err := p.NormalizeRequirements(); err != nil {
 			return fmt.Errorf("%s: %w", id, err)
 		}

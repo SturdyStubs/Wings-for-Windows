@@ -293,7 +293,7 @@ func (s *Server) spec() (native.Spec, error) {
 	if err != nil {
 		return native.Spec{}, err
 	}
-	return native.Spec{RunAs: s.Profile.RunAs, AccessRules: accessRules, Executable: s.Profile.Executable, Arguments: args, Environment: clean, Directory: s.Root, MemoryMB: limits.MemoryMB, CPUPercent: limits.CPUPercent}, nil
+	return native.Spec{NetworkPolicy: s.Profile.NetworkPolicy, RunAs: s.Profile.RunAs, AccessRules: accessRules, Executable: s.Profile.Executable, Arguments: args, Environment: clean, Directory: s.Root, MemoryMB: limits.MemoryMB, CPUPercent: limits.CPUPercent}, nil
 }
 
 var ErrSuspended = errors.New("cannot start or restart a suspended server")
@@ -462,6 +462,9 @@ func (s *Server) startWithContext(parent context.Context) error {
 	go func() {
 		<-p.Done
 		s.mu.Lock()
+		if p.CleanupError != nil {
+			s.emitLocked("console output", "[Windows node] cleanup warning: "+p.CleanupError.Error())
+		}
 		if s.process == p {
 			s.process = nil
 			s.setStateLocked("offline")

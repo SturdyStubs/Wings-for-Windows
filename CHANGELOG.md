@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0-alpha.11 — October 18, 2026
+
+- Start network enforcement plumbing with optional network_policy.mode block_connections for dedicated run_as identities. Prepare four hard SID-scoped IPv4/IPv6 connect/receive-accept block rules before creating the process; default remains unmanaged.
+- Use dynamic WFP sessions with partial-install rollback, cancellation checks and no unmanaged fallback. Pin tailscale/wf bindings and include its/netipx runtime notices.
+- Retain the session through job shutdown, bounded active-process and captured-handle waits; retain blocks until daemon exit and warn if cleanup cannot establish completion.
+- Test rule contracts and install/rollback errors with an injected engine; test descendant-before-lease-release ordering using an actual job and fake policy lease. No real firewall/filter change occurs in local tests.
+- Actual WFP installation/traffic behavior, allocation allowlists, crash/restart cleanup and full network isolation remain unverified/open. M2 is not complete.
+
 ## 0.1.0-alpha.10 — October 18, 2026
 
 - Add `--check-identity <UUID>` with ordered JSON profile, file, credential-presence, batch-logon/token, daemon-access, filesystem and service-privilege checks. Stop on the first failure and mark later checks not_run.

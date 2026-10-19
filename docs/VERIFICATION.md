@@ -1,6 +1,6 @@
 # Verification and release status
 
-Version `0.1.0-alpha.10`, verified locally October 18, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). No production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration was changed. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
+Version `0.1.0-alpha.11`, verified locally October 18, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). No production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration was changed. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
 
 The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed by the original tests. Alpha 2 adds upstream/panel-derived metadata fixtures and canonical route assertions, plus regression checks for the fixes below. Passing these tests is still not proof that a complete live panel/game deployment works. Current outstanding work is tracked in [ROADMAP.md](../ROADMAP.md).
 
@@ -46,6 +46,8 @@ Coverage includes:
 - Configured game executable/dependency write guards, shared-file rule deduplication, retained case variants and preservation of stricter secret bans when paths overlap.
 - Exact-UUID credential lifecycle: missing status/removal, metadata without password fields, explicit same-account rotation, refused accidental overwrite/identity change, removal/repeated removal and invalid namespace/wildcard rejection. All credential values are fake fixtures and cleaned up; no Windows account password is changed.
 - Identity diagnostic failure contracts for invalid/shared/unknown profiles, missing executables/credentials, cancellation and later-stage `not_run` states. Reports explicitly retain false game/panel/network verification flags. Random missing credential targets avoid account logon; diagnostic tests create no server data roots.
+- Network mode/reference validation and independent four-layer WFP contract; injected-engine install failures at each stage, cancellation, rollback errors and idempotent session close. No real filters are installed by these tests.
+- Actual Windows Job Object child exit with a fake network lease verifies captured descendants finish before release. Actual WFP access, packet blocking and crash/restart behavior remain unverified.
 - GitHub milestones and README badge endpoints are checked against actual repository counts. Progress initialization is idempotent; closing/reopening issues remains authoritative.
 
 The build script produces the Windows amd64 daemon, demo executable, documentation, dependency licenses and a ZIP checksum. Go race-detector testing is not included; no compatible C toolchain is configured on this host.
@@ -54,6 +56,7 @@ The build script produces the Windows amd64 daemon, demo executable, documentati
 
 These remain open and limit the release to an experimental private node:
 
+- [ ] Verify optional WFP filter installation/readback, IPv4/IPv6 TCP/UDP/loopback behavior, unrelated-account preservation, children, rollback and daemon/filter-engine crash/restart cleanup.
 - [ ] Provision a distinct non-administrator game account and verify batch logon, pinned SID, service privileges, ACL rejection, process-handle protection and game launch under that identity.
 - [ ] Install on a disposable Windows Server 2022/2025 host and confirm job limits under that host's policy.
 - [ ] Connect a real test panel using trusted TLS from both the panel backend and browser.

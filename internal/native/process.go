@@ -7,9 +7,11 @@ import (
 	"os"
 	"time"
 	"wings-windows/internal/identity"
+	"wings-windows/internal/networkpolicy"
 )
 
 type Spec struct {
+	NetworkPolicy          networkpolicy.Policy
 	Context                context.Context
 	RunAs                  *identity.Reference
 	AccessRules            []identity.PathRule
@@ -34,6 +36,7 @@ func (p *Process) UpdateLimits(limits Limits) error {
 }
 
 type Process struct {
+	CleanupError   error // Read only after Done closes.
 	implementation platformProcess
 	Stdin          io.WriteCloser
 	Stdout         io.ReadCloser

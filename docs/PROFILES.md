@@ -35,6 +35,10 @@ The executable must be a readable Windows PE application, with an executable hea
 
 Dependency files are checked for readable regular-file presence. Their extensions, versions, exports, hashes, signatures and transitive dependencies are not inspected. Preflight never loads a DLL or executes a helper to discover dependencies. Optional frameworks, registry-installed runtimes, licenses, drivers, networking and headless game behavior need separate checks and live validation.
 
+## Optional network policy
+
+`network_policy: {"mode": "block_connections"}` selects an experimental SID-scoped WFP block path and requires `run_as`. Omitted/empty mode or `unmanaged` preserves existing behavior. Unknown modes fail validation. See [network policy limits and verification](NETWORK-POLICY.md); no allocation allowlist or live filtering certification is supplied.
+
 ## Running preflight
 
 ```powershell

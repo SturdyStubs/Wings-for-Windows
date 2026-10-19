@@ -61,7 +61,7 @@ The guard evaluates handle-derived security descriptors and rejects unreadable d
 
 This is a launch-time descriptor check, not a system-wide handle audit. Previously acquired handles, other privileged helper processes, subsequent permission changes and a complete inter-process threat model still need validation. No untrusted-hosting guarantee follows from it.
 
-There is no network namespace, allocation firewall enforcement, complete mount/loader policy, account provisioning/password-change recovery or virtualization backend. Mixing legacy shared-account games with `run_as` profiles does not protect credentials from the legacy games. The [isolation plan](ISOLATION.md) and all remaining M2 gates still apply.
+There is no network namespace, allocation allowlist, complete mount/loader policy, account provisioning/password-change recovery or virtualization backend. The optional [WFP connection-blocking path](NETWORK-POLICY.md) is experimental; live filtering and complete network policy remain unverified. Mixing legacy shared-account games with `run_as` profiles does not protect credentials from the legacy games. The [isolation plan](ISOLATION.md) and all remaining M2 gates still apply.
 
 ## Verification and rollout gate
 

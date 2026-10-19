@@ -30,7 +30,7 @@ The report contains the server UUID, daemon version, host OS/architecture, `pass
 
 The service-privilege check is deliberately conservative. Windows can waive some privilege requirements for particular assignable/restricted tokens; absence here means this tool cannot certify the intended separate-account service setup. Presence is not proof that Windows process creation will succeed. Actual launch still depends on token/session policy, image/working-directory access, dependencies and Job Object creation/assignment. See Microsoft's [CreateProcessAsUser requirements](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessasusera).
 
-Every report includes `game_launched: false`, `panel_tested: false` and `network_policy_tested: false`. These remain false even when `passed` is true. A successful report establishes only the checks above at that moment; it does not certify the game, Windows Server, account recovery or complete isolation. In particular, working-directory writes, transitive DLL loading, live filesystem races and network enforcement require additional verification.
+Every report includes `game_launched: false`, `panel_tested: false` and `network_policy_tested: false`. These remain false even when `passed` is true. A successful report establishes only the checks above at that moment; it does not certify the game, Windows Server, account recovery or complete isolation. The optional network_policy mode is not installed by this command; WFP access/filtering still needs separate validation. In particular, working-directory writes, transitive DLL loading, live filesystem races and network enforcement require additional verification.
 
 ## Deployment workflow
 

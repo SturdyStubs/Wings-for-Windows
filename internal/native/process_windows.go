@@ -3,14 +3,17 @@ package native
 import (
 	"fmt"
 	"golang.org/x/sys/windows"
+	"io"
 	"os"
 	"runtime"
 	"sort"
 	"strings"
 	"sync"
 	"syscall"
+	"time"
 	"unsafe"
 	"wings-windows/internal/identity"
+	"wings-windows/internal/networkpolicy"
 )
 
 type processState struct {
@@ -20,6 +23,9 @@ type processState struct {
 type platformProcess struct{ state *processState }
 
 func startPlatform(spec Spec) (result *Process, err error) {
+	if err := spec.NetworkPolicy.Validate(spec.RunAs); err != nil {
+		return nil, err
+	}
 	var token windows.Token
 	if spec.RunAs != nil {
 		token, err = identity.Open(*spec.RunAs)
@@ -34,10 +40,24 @@ func startPlatform(spec Spec) (result *Process, err error) {
 			return nil, err
 		}
 	}
-	return startWithToken(spec, token)
+	policy, err := networkpolicy.Install(spec.Context, spec.NetworkPolicy, spec.RunAs)
+	if err != nil {
+		return nil, err
+	}
+	p, err := startWithTokenAndPolicy(spec, token, policy)
+	if err != nil && policy != nil {
+		if cleanupErr := policy.Close(); cleanupErr != nil {
+			return nil, fmt.Errorf("launch failed (%v); network rollback failed: %w", err, cleanupErr)
+		}
+	}
+	return p, err
 }
 
 func startWithToken(spec Spec, token windows.Token) (result *Process, err error) {
+	return startWithTokenAndPolicy(spec, token, nil)
+}
+
+func startWithTokenAndPolicy(spec Spec, token windows.Token, policy io.Closer) (result *Process, err error) {
 	if err := spec.contextError(); err != nil {
 		return nil, err
 	}
@@ -154,7 +174,7 @@ func startWithToken(spec Spec, token windows.Token) (result *Process, err error)
 		windows.WaitForSingleObject(pi.Process, windows.INFINITE)
 		state.Lock()
 		windows.GetExitCodeProcess(pi.Process, &p.ExitCode)
-		windows.CloseHandle(job)
+		p.CleanupError = finishJobPolicy(job, policy)
 		windows.CloseHandle(pi.Process)
 		state.job = 0
 		state.process = 0
@@ -163,6 +183,93 @@ func startWithToken(spec Spec, token windows.Token) (result *Process, err error)
 		close(p.Done)
 	}()
 	return p, nil
+}
+
+var retainedPolicies struct {
+	sync.Mutex
+	policies []io.Closer
+}
+
+func finishJobPolicy(job windows.Handle, policy io.Closer) error {
+	if policy == nil {
+		return windows.CloseHandle(job)
+	}
+	// Keep the block active until all descendants, not just the root, exit.
+	handles, err := jobProcessHandles(job)
+	defer func() {
+		for _, handle := range handles {
+			windows.CloseHandle(handle)
+		}
+	}()
+	if killErr := windows.TerminateJobObject(job, 1); err == nil {
+		err = killErr
+	}
+	deadline := time.Now().Add(5 * time.Second)
+	for err == nil {
+		var info struct {
+			User, Kernel, PeriodUser, PeriodKernel int64
+			PageFaults, Total, Active, Terminated  uint32
+		}
+		err = windows.QueryInformationJobObject(job, windows.JobObjectBasicAccountingInformation, uintptr(unsafe.Pointer(&info)), uint32(unsafe.Sizeof(info)), nil)
+		if err != nil || info.Active == 0 {
+			break
+		}
+		if time.Now().After(deadline) {
+			err = fmt.Errorf("job descendants did not drain before network cleanup deadline")
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	if err == nil {
+		for _, handle := range handles {
+			remaining := time.Until(deadline).Milliseconds()
+			if remaining < 0 {
+				remaining = 0
+			}
+			status, waitErr := windows.WaitForSingleObject(handle, uint32(remaining))
+			if waitErr != nil {
+				err = waitErr
+				break
+			}
+			if status != windows.WAIT_OBJECT_0 {
+				err = fmt.Errorf("job process did not finish terminating before network cleanup deadline")
+				break
+			}
+		}
+	}
+	windows.CloseHandle(job)
+	if err != nil {
+		retainedPolicies.Lock()
+		retainedPolicies.policies = append(retainedPolicies.policies, policy)
+		retainedPolicies.Unlock()
+		return fmt.Errorf("network block retained until daemon exit because job cleanup failed: %w", err)
+	}
+	return policy.Close()
+}
+
+func jobProcessHandles(job windows.Handle) ([]windows.Handle, error) {
+	var list struct {
+		Assigned, Count uint32
+		IDs             [4096]uintptr
+	}
+	if err := windows.QueryInformationJobObject(job, windows.JobObjectBasicProcessIdList, uintptr(unsafe.Pointer(&list)), uint32(unsafe.Sizeof(list)), nil); err != nil {
+		return nil, err
+	}
+	if list.Count > uint32(len(list.IDs)) || list.Assigned > uint32(len(list.IDs)) {
+		return nil, fmt.Errorf("job exceeds network cleanup process audit bound")
+	}
+	var handles []windows.Handle
+	for _, pid := range list.IDs[:list.Count] {
+		handle, err := windows.OpenProcess(windows.SYNCHRONIZE, false, uint32(pid))
+		if err == windows.ERROR_INVALID_PARAMETER {
+			continue
+		}
+		if err != nil {
+			return handles, err
+		}
+		handles = append(handles, handle)
+	}
+	return handles, nil
 }
 
 type jobCPU struct{ Flags, Rate uint32 }

@@ -1,6 +1,6 @@
 # Windows isolation design
 
-Status: architecture decision for M2; implementation and security validation remain open. Alpha 6 adds an opt-in identity/token launch path; alpha 7 adds handle-based ancestor/recursive ACL auditing and observed link rejection; legacy profiles still run as the daemon account. Alpha 8 adds daemon process/primary-token and declared code/dependency DACL guards. Full policy enforcement and separate-account deployment validation remain open.
+Status: architecture decision for M2; implementation and security validation remain open. Alpha 6 adds an opt-in identity/token launch path; alpha 7 adds handle-based ancestor/recursive ACL auditing and observed link rejection; legacy profiles still run as the daemon account. Alpha 8 adds daemon process/primary-token and declared code/dependency DACL guards. Alpha 11 adds an optional SID-scoped WFP connection-blocking path whose live installation/traffic behavior is unverified. Full policy enforcement and separate-account deployment validation remain open.
 
 ## Decision
 
