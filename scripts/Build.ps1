@@ -26,7 +26,7 @@ try {
     Write-Output "Tests passed: $passedTests (including subtests); skipped: $skippedTests"
     & $GoExecutable vet ./...
     if ($LASTEXITCODE -ne 0) { throw 'Go vet failed.' }
-    $version = '0.1.0-alpha.5'
+    $version = '0.1.0-alpha.6'
     $stage = Join-Path $projectRoot ('dist\stage-' + [guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $stage -Force | Out-Null
     $revision = 'unavailable'
@@ -46,6 +46,7 @@ try {
     New-Item -ItemType Directory -Path (Join-Path $stage 'scripts') -Force | Out-Null
     Copy-Item -LiteralPath 'scripts\Install-Service.ps1' -Destination (Join-Path $stage 'scripts')
     Copy-Item -LiteralPath 'scripts\Update-Progress.ps1' -Destination (Join-Path $stage 'scripts')
+    Copy-Item -LiteralPath 'scripts\Store-GameCredential.ps1' -Destination (Join-Path $stage 'scripts')
     $archive = Join-Path $projectRoot "dist\wings-windows-native-$version-windows-amd64.zip"
     Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $archive -Force
     $hash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()

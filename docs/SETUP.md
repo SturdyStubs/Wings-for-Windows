@@ -69,6 +69,10 @@ Stopping sends one configured stdin line, waits the configured number of seconds
 
 The smaller positive value of `memory_mb` and the panel memory limit becomes the job memory cap; zero means no local cap. The panel CPU limit uses one core as 100. CPU and memory statistics cover the root process, while limits apply to the job. There is no disk or network quota. Binding the panel's allocated IP/ports is the executable's responsibility through its arguments/configuration; games sharing a host can conflict if misconfigured.
 
+## Optional game identities
+
+See [experimental identity setup](IDENTITIES.md) before enabling `run_as`. It requires a pinned non-built-in local account SID, a per-server credential stored as the daemon account, service token privileges and suitable ACLs. The existing service installer does not provision those requirements. Default profiles retain the daemon account. Full isolation and live separate-account deployment remain unverified.
+
 ## Egg process settings and live limits
 
 Set `use_egg_process_configuration: true` on a local Windows profile to use the panel's `process_configuration`. The locally approved executable, argument array and environment allowlist remain authoritative. Omit `ready_pattern` and `stop_command` in this mode; they are replaced by the egg's process settings. Existing profiles default to `false` and keep their local settings.

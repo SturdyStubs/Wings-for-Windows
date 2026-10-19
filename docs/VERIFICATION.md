@@ -1,6 +1,6 @@
 # Verification and release status
 
-Version `0.1.0-alpha.5`, verified locally October 18, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). No production panel, game server, service registration or firewall configuration was changed.
+Version `0.1.0-alpha.6`, verified locally October 18, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). No production panel, game server, service registration, local user account, ACL, logon right or firewall configuration was changed. Identity tests write/read/delete one unique temporary fake generic credential without account logon.
 
 The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed by the original tests. Alpha 2 adds upstream/panel-derived metadata fixtures and canonical route assertions, plus regression checks for the fixes below. Passing these tests is still not proof that a complete live panel/game deployment works. Current outstanding work is tracked in [ROADMAP.md](../ROADMAP.md).
 
@@ -35,6 +35,10 @@ Coverage includes:
 - Profile schema migration and future-version rejection, requirement bounds, unsupported architectures and absolute dependency path validation.
 - Real PE inspection rejects text, DLL and ARM64 fixtures; checks declared architecture, missing/non-file dependencies, minimum Windows build and cancellation.
 - Node start remains offline with an unmet dependency; requirements are checked again after a successful start/stop. Manual installation acknowledgement sends no callback on failed preflight and exactly one after requirements pass.
+- Identity reference/SID bounds, UUID binding and per-server account uniqueness; daemon-account and pinned-SID mismatch rejection.
+- Actual restricted-token launch via CreateProcessAsUser, child token privilege queries, stdin/stdout and Job Object kill. This uses a restricted token derived from the existing test identity, not a provisioned second account.
+- Effective DACL grants for read-only, explicit denial, world access and no grants; protected-path exposure/missing-path rejection and generated secret/daemon/other-root rules.
+- Credential helper write/read/delete round-trip with a unique fake credential and absent-reference failure. No real game account is authenticated.
 - GitHub milestones and README badge endpoints are checked against actual repository counts. Progress initialization is idempotent; closing/reopening issues remains authoritative.
 
 The build script produces the Windows amd64 daemon, demo executable, documentation, dependency licenses and a ZIP checksum. Go race-detector testing is not included; no compatible C toolchain is configured on this host.
@@ -43,6 +47,7 @@ The build script produces the Windows amd64 daemon, demo executable, documentati
 
 These remain open and limit the release to an experimental private node:
 
+- [ ] Provision a distinct non-administrator game account and verify batch logon, pinned SID, service privileges, ACL rejection, process-handle protection and game launch under that identity.
 - [ ] Install on a disposable Windows Server 2022/2025 host and confirm job limits under that host's policy.
 - [ ] Connect a real test panel using trusted TLS from both the panel backend and browser.
 - [ ] Verify the server-creation/manual-provisioning workflow and installation callback in that panel version.

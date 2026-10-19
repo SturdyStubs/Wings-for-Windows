@@ -1,6 +1,6 @@
 # Windows isolation design
 
-Status: architecture decision for M2; implementation and security validation remain open. Alpha 5 still launches games as the daemon account on a trusted private node.
+Status: architecture decision for M2; implementation and security validation remain open. Alpha 6 adds an opt-in identity/token launch path and protected-path ACL guard; legacy profiles still run as the daemon account. Full policy enforcement and separate-account deployment validation remain open.
 
 ## Decision
 
@@ -8,7 +8,7 @@ Continue the native EXE backend for trusted Windows game workloads. The next har
 
 For mutually untrusted hosting, require a separate virtualization-backed execution backend and its own deployment verification. Hyper-V isolated Windows containers or per-tenant VMs are candidates; neither is implemented or selected for release yet. Microsoft describes Hyper-V isolation as a separate optimized VM/kernel, whereas process isolation shares the host kernel. See [isolation modes](https://learn.microsoft.com/en-us/virtualization/windowscontainers/manage-containers/hyperv-container) and [Windows security boundaries](https://www.microsoft.com/en-us/msrc/windows-security-servicing-criteria).
 
-Native identities preserve direct Windows executable compatibility and avoid imposing container image provisioning on the current backend. A restricted token can remove privileges and restrict access to securable objects; it is only one part of that design. See [restricted tokens](https://learn.microsoft.com/en-us/windows/win32/secauthz/restricted-tokens). No profile field enables restricted identities in the current release.
+Native identities preserve direct Windows executable compatibility and avoid imposing container image provisioning on the current backend. A restricted token can remove privileges and restrict access to securable objects; it is only one part of that design. See [restricted tokens](https://learn.microsoft.com/en-us/windows/win32/secauthz/restricted-tokens). The experimental `run_as` profile field selects a pinned local account and credential reference. See [identity setup and limits](IDENTITIES.md). It does not establish the complete isolation model.
 
 ## Required native implementation
 
@@ -29,8 +29,8 @@ Verify supported host/service configurations on disposable Windows Server instal
 
 | Model | Decision |
 | --- | --- |
-| Shared daemon/game identity | Current experimental implementation; trusted code and users only. |
-| Per-server identity, restricted token, ACLs | Planned next native stage; requires implementation and tests above. |
+| Shared daemon/game identity | Default for profiles without `run_as`; trusted code and users only. |
+| Per-server identity, restricted token, ACLs | Initial opt-in launch and ACL rejection guard in alpha 6. Successful separate-account deployment and complete policy/testing gates remain open. |
 | Process-isolated Windows containers | Not selected as the hostile multi-tenant boundary. Adds an image/runtime/host compatibility matrix. |
 | Hyper-V isolated containers or VMs | Required direction for stronger separation; backend selection and implementation remain open. |
 | Linux VM with upstream Wings | Separate option for unchanged Linux eggs; native profiles do not translate Linux binaries/images. |

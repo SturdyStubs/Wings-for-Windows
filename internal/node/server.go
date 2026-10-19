@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 	"wings-windows/internal/config"
+	"wings-windows/internal/identity"
 	"wings-windows/internal/native"
 	"wings-windows/internal/provision"
 )
@@ -289,7 +290,25 @@ func (s *Server) spec() (native.Spec, error) {
 		clean = append(clean, k+"="+v)
 	}
 	limits := effectiveLimits(settings, s.Profile)
-	return native.Spec{Executable: s.Profile.Executable, Arguments: args, Environment: clean, Directory: s.Root, MemoryMB: limits.MemoryMB, CPUPercent: limits.CPUPercent}, nil
+	var accessRules []identity.PathRule
+	if s.Profile.RunAs != nil {
+		binary, err := os.Executable()
+		if err != nil {
+			return native.Spec{}, err
+		}
+		accessRules = append(accessRules, identity.PathRule{Path: binary, Forbidden: identity.WriteAccess}, identity.PathRule{Path: filepath.Dir(binary), Forbidden: identity.ReplaceChildAccess})
+		for _, secret := range []string{s.panel.Config.SourcePath, s.panel.Config.TLS.Key} {
+			if secret != "" {
+				accessRules = append(accessRules, identity.PathRule{Path: secret, Forbidden: identity.ReadWriteAccess}, identity.PathRule{Path: filepath.Dir(secret), Forbidden: identity.ReplaceChildAccess})
+			}
+		}
+		for id := range s.panel.Config.Profiles {
+			if !strings.EqualFold(id, s.ID()) {
+				accessRules = append(accessRules, identity.PathRule{Path: filepath.Join(s.panel.Config.DataDirectory, id), Forbidden: identity.ReadWriteAccess})
+			}
+		}
+	}
+	return native.Spec{RunAs: s.Profile.RunAs, AccessRules: accessRules, Executable: s.Profile.Executable, Arguments: args, Environment: clean, Directory: s.Root, MemoryMB: limits.MemoryMB, CPUPercent: limits.CPUPercent}, nil
 }
 
 var ErrSuspended = errors.New("cannot start or restart a suspended server")
@@ -409,16 +428,31 @@ func (s *Server) startWithContext(parent context.Context) error {
 		return err
 	}
 	s.mu.Lock()
-	defer s.mu.Unlock()
 	if s.closing {
+		s.mu.Unlock()
 		return errors.New("node is shutting down")
 	}
 	if err := ctx.Err(); err != nil {
+		s.mu.Unlock()
 		return err
 	}
+	s.mu.Unlock()
+	// Credential lookup/logon and ACL queries may block. Keep kill/shutdown able
+	// to cancel the launch; native creation rechecks cancellation before resume.
+	spec.Context = ctx
 	p, err := native.Start(spec)
 	if err != nil {
 		return fmt.Errorf("start native process: %w", err)
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.closing || ctx.Err() != nil {
+		p.Kill()
+		p.Stdout.Close()
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		return errors.New("node is shutting down")
 	}
 	s.process = p
 	s.appliedLimits = native.Limits{MemoryMB: spec.MemoryMB, CPUPercent: spec.CPUPercent}

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.0-alpha.6 — October 18, 2026
+
+- Start M2 enforcement with optional local `run_as` references: pinned non-built-in SID, UUID-bound Credential Manager target and distinct account per configured server.
+- Read credentials from the daemon account's credential set, perform local batch logon, reject SID mismatch, daemon identity and selected privileged groups, then remove privileges with CreateRestrictedToken. Clear temporary password buffers on return.
+- Launch through CreateProcessAsUser while retaining suspended creation, explicit inherited handles, Job Object assignment before resume and termination on failure. Identity failures never fall back to the daemon account.
+- Add read-only AccessCheck rejection for exposed configuration/TLS keys, writable daemon binary/parent directories and accessible other server roots. This is a DACL snapshot, not recursive/link/race/network confinement.
+- Include a secure-input credential storage helper; do not create accounts, grant rights, alter ACLs or modify firewall policy automatically.
+- Test real restricted child privileges/console/job termination, credential round-trip cleanup, reference bounds and DACL grants. Successful separate-account Windows Server/service deployment remains unverified; M2 issues #19–21 stay open.
+
 ## 0.1.0-alpha.5 — October 18, 2026
 
 - Add local profile schema v1. Normalize existing omitted/zero versions to v1 and reject unsupported future versions.

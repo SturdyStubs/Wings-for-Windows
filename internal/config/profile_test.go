@@ -2,6 +2,7 @@ package config
 
 import (
 	"testing"
+	"wings-windows/internal/identity"
 )
 
 func TestProfileRequirementsValidation(t *testing.T) {
@@ -36,5 +37,30 @@ func TestProfileRequirementsValidation(t *testing.T) {
 	c.Profiles[id] = p
 	if c.Validate() == nil {
 		t.Fatal("configuration accepted a future profile version")
+	}
+}
+
+func TestRunAsBindingAndUniqueAccounts(t *testing.T) {
+	c := valid(t)
+	p := c.Profiles[id]
+	p.RunAs = &identity.Reference{SID: "S-1-5-21-1-2-3-1001", CredentialTarget: "WingsWindows/" + id}
+	c.Profiles[id] = p
+	if err := c.Validate(); err != nil {
+		t.Fatal(err)
+	}
+	const second = "22222222-2222-4222-8222-222222222222"
+	c.Profiles[second] = p
+	if c.Validate() == nil {
+		t.Fatal("cross-server credential target accepted")
+	}
+	p.RunAs = &identity.Reference{SID: p.RunAs.SID, CredentialTarget: "WingsWindows/" + second}
+	c.Profiles[second] = p
+	if c.Validate() == nil {
+		t.Fatal("shared game identity accepted")
+	}
+	p.RunAs.SID = "S-1-5-21-1-2-3-1002"
+	c.Profiles[second] = p
+	if err := c.Validate(); err != nil {
+		t.Fatal(err)
 	}
 }

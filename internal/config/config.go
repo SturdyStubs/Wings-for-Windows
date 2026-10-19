@@ -13,9 +13,10 @@ import (
 	"strings"
 	"time"
 	_ "time/tzdata"
+	"wings-windows/internal/identity"
 )
 
-const Version = "0.1.0-alpha.5"
+const Version = "0.1.0-alpha.6"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -24,18 +25,20 @@ type TLS struct {
 	Key  string `json:"key"`
 }
 type Profile struct {
-	SchemaVersion              int          `json:"schema_version,omitempty"`
-	Requirements               Requirements `json:"requirements,omitempty"`
-	UseEggProcessConfiguration bool         `json:"use_egg_process_configuration,omitempty"`
-	Executable                 string       `json:"executable"`
-	Arguments                  []string     `json:"arguments"`
-	AllowedEnvironment         []string     `json:"allowed_environment"`
-	StopCommand                string       `json:"stop_command"`
-	ReadyPattern               string       `json:"ready_pattern"`
-	StopTimeoutSeconds         int          `json:"stop_timeout_seconds"`
-	MemoryMB                   int          `json:"memory_mb"`
+	RunAs                      *identity.Reference `json:"run_as,omitempty"`
+	SchemaVersion              int                 `json:"schema_version,omitempty"`
+	Requirements               Requirements        `json:"requirements,omitempty"`
+	UseEggProcessConfiguration bool                `json:"use_egg_process_configuration,omitempty"`
+	Executable                 string              `json:"executable"`
+	Arguments                  []string            `json:"arguments"`
+	AllowedEnvironment         []string            `json:"allowed_environment"`
+	StopCommand                string              `json:"stop_command"`
+	ReadyPattern               string              `json:"ready_pattern"`
+	StopTimeoutSeconds         int                 `json:"stop_timeout_seconds"`
+	MemoryMB                   int                 `json:"memory_mb"`
 }
 type Config struct {
+	SourcePath              string             `json:"-"`
 	Listen                  string             `json:"listen"`
 	PanelURL                string             `json:"panel_url"`
 	NodeUUID                string             `json:"node_uuid"`
@@ -75,6 +78,9 @@ func Load(path string) (Config, error) {
 		c.Token = value
 	}
 	err = c.Validate()
+	if err == nil {
+		c.SourcePath, err = filepath.Abs(path)
+	}
 	return c, err
 }
 func (c *Config) Validate() error {
@@ -122,12 +128,25 @@ func (c *Config) Validate() error {
 		return errors.New("at least one local executable profile is required")
 	}
 	normalized := make(map[string]Profile, len(c.Profiles))
+	identities := make(map[string]bool)
 	for id, p := range c.Profiles {
 		if err := p.NormalizeRequirements(); err != nil {
 			return fmt.Errorf("%s: %w", id, err)
 		}
 		if !UUID.MatchString(id) {
 			return fmt.Errorf("profile key %q is not a server UUID", id)
+		}
+		if p.RunAs != nil {
+			if err := p.RunAs.Validate(); err != nil {
+				return fmt.Errorf("%s: %w", id, err)
+			}
+			if !p.RunAs.MatchesServer(id) {
+				return fmt.Errorf("%s: credential target must match this server UUID", id)
+			}
+			if identities[p.RunAs.SID] {
+				return errors.New("each run_as server must use a distinct account SID")
+			}
+			identities[p.RunAs.SID] = true
 		}
 		if !filepath.IsAbs(p.Executable) || !strings.EqualFold(filepath.Ext(p.Executable), ".exe") {
 			return fmt.Errorf("%s: executable must be an absolute .exe path", id)

@@ -1,6 +1,6 @@
 # Progress toward Wings compatibility
 
-Last updated: October 18, 2026. Current version: **0.1.0-alpha.5**. Current milestone: **M1 — core protocol compatibility, in progress**.
+Last updated: October 18, 2026. Current version: **0.1.0-alpha.6**. Current milestone: **M1 — core protocol compatibility, in progress**.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
@@ -12,7 +12,8 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - Alpha 2 fixes: canonical file listing and metadata, file MIME/length headers, egg file-denylist policy, standard derived variables, suspended power response and emergency kill cancellation: locally tested.
 - Alpha 3: opt-in supported Windows egg readiness/stopping, live job limit changes/removal, preservation of local caps and suspension despite invalid egg settings: locally tested.
 - Alpha 4: bounded asynchronous power waits, queued-action cancellation, measured Windows host/system schema, CORS preflight, request IDs, JSON errors and log sizing: locally tested.
-- Alpha 5: profile schema v1 with legacy migration, executable/OS/dependency checks before start and installation acknowledgement, and an offline profile-check CLI: locally tested. The next native isolation model is documented but not implemented.
+- Alpha 5: profile schema v1 with legacy migration, executable/OS/dependency checks before start and installation acknowledgement, and an offline profile-check CLI: locally tested. The native isolation model is documented; alpha 6 adds an initial opt-in launch path, while full enforcement remains open.
+- Alpha 6: opt-in local identity references, pinned/distinct SIDs, per-server Credential Manager lookup, restricted-token launch and protected-path DACL rejection checks. Restricted-token/process and ACL fixtures pass locally; successful separate-account Windows Server deployment remains unverified.
 - HTTP inventory: handlers at **13 of upstream's 38 method/path combinations**, with partial behavior; **25 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
 - Automatic installation, full file manager/SFTP, backups/restores, transfers, strong isolation and live certification remain open.
 - Unchanged Linux eggs require a Linux execution backend. Native Windows profiles do not translate Linux images/binaries.
@@ -52,6 +53,11 @@ The seed definitions are in `docs/progress-plan.json`. `scripts/Update-Progress.
 
 - [x] Record the next native per-server identity/restricted-token/ACL model and separate virtualization direction for untrusted hosting in [the isolation decision](docs/ISOLATION.md); neither backend isolation stage is implemented.
 - [ ] Separate daemon credentials and game identities; define filesystem, network and mount policies.
+  - [x] Add optional per-server SID/credential references, config binding/uniqueness, daemon/admin-group rejection and no shared-account fallback.
+  - [x] Add restricted-token suspended launch and a read-only protected-path DACL guard; verify real restricted child privileges, console and job cleanup.
+  - [x] Add a secure-input credential helper and temporary fake-credential round-trip tests with cleanup.
+  - [ ] Verify successful distinct-account batch logon/launch under the intended Windows Server service identity.
+  - [ ] Complete account/credential lifecycle, recursive/ancestor/link/race policy, shared executable/mount rules, daemon process-handle and network enforcement.
 - [ ] Test cross-server/account access, credentials, hardlinks, reparse points, case aliases and filesystem races.
 - [ ] Publish the supported Windows host/runtime/game matrix and remaining restrictions.
 

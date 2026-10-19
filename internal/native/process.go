@@ -1,13 +1,18 @@
 package native
 
 import (
+	"context"
 	"errors"
 	"io"
 	"os"
 	"time"
+	"wings-windows/internal/identity"
 )
 
 type Spec struct {
+	Context                context.Context
+	RunAs                  *identity.Reference
+	AccessRules            []identity.PathRule
 	Executable             string
 	Arguments, Environment []string
 	Directory              string
@@ -42,6 +47,9 @@ type inputRequest struct {
 }
 
 func Start(spec Spec) (*Process, error) {
+	if err := spec.contextError(); err != nil {
+		return nil, err
+	}
 	if spec.Executable == "" || spec.Directory == "" {
 		return nil, errors.New("executable and directory required")
 	}
@@ -67,6 +75,13 @@ func Start(spec Spec) (*Process, error) {
 		}
 	}()
 	return p, nil
+}
+
+func (s Spec) contextError() error {
+	if s.Context != nil {
+		return s.Context.Err()
+	}
+	return nil
 }
 func (p *Process) Command(text string) error {
 	request := inputRequest{text, make(chan error, 1)}

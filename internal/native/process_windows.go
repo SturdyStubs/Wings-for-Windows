@@ -10,6 +10,7 @@ import (
 	"sync"
 	"syscall"
 	"unsafe"
+	"wings-windows/internal/identity"
 )
 
 type processState struct {
@@ -19,6 +20,24 @@ type processState struct {
 type platformProcess struct{ state *processState }
 
 func startPlatform(spec Spec) (result *Process, err error) {
+	var token windows.Token
+	if spec.RunAs != nil {
+		token, err = identity.Open(*spec.RunAs)
+		if err != nil {
+			return nil, err
+		}
+		defer token.Close()
+		if err = identity.CheckAccess(token, spec.AccessRules); err != nil {
+			return nil, err
+		}
+	}
+	return startWithToken(spec, token)
+}
+
+func startWithToken(spec Spec, token windows.Token) (result *Process, err error) {
+	if err := spec.contextError(); err != nil {
+		return nil, err
+	}
 	job, err := windows.CreateJobObject(nil, nil)
 	if err != nil {
 		return nil, err
@@ -98,12 +117,26 @@ func startPlatform(spec Spec) (result *Process, err error) {
 		block = append(block, 0)
 	}
 	var pi windows.ProcessInformation
-	if err = windows.CreateProcess(app, line, nil, nil, true, windows.CREATE_SUSPENDED|windows.CREATE_UNICODE_ENVIRONMENT|windows.EXTENDED_STARTUPINFO_PRESENT|windows.CREATE_NO_WINDOW, &block[0], dir, &si.StartupInfo, &pi); err != nil {
+	if err = spec.contextError(); err != nil {
+		return nil, err
+	}
+	flags := uint32(windows.CREATE_SUSPENDED | windows.CREATE_UNICODE_ENVIRONMENT | windows.EXTENDED_STARTUPINFO_PRESENT | windows.CREATE_NO_WINDOW)
+	if token != 0 {
+		err = windows.CreateProcessAsUser(token, app, line, nil, nil, true, flags, &block[0], dir, &si.StartupInfo, &pi)
+	} else {
+		err = windows.CreateProcess(app, line, nil, nil, true, flags, &block[0], dir, &si.StartupInfo, &pi)
+	}
+	if err != nil {
 		return nil, err
 	}
 	defer windows.CloseHandle(pi.Thread)
 	if err = windows.AssignProcessToJobObject(job, pi.Process); err != nil {
 		windows.TerminateProcess(pi.Process, 1)
+		windows.CloseHandle(pi.Process)
+		return nil, err
+	}
+	if err = spec.contextError(); err != nil {
+		windows.TerminateJobObject(job, 1)
 		windows.CloseHandle(pi.Process)
 		return nil, err
 	}
