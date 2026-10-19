@@ -2,9 +2,9 @@
 
 Run native Windows game-server executables through a Pterodactyl panel. This is a separate Go daemon implementing a **subset of the Wings protocol**, with Windows Job Objects replacing the Docker process runtime.
 
-**Version: 0.1.0-alpha.4. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
+**Version: 0.1.0-alpha.5. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
 
-Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). Alpha 4 adds asynchronous power lock waits, measured Windows host information, CORS preflight and consistent request/error handling. Full Wings parity remains in progress.
+Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). Alpha 5 adds versioned Windows profiles and local executable, OS and dependency preflight checks. The next isolation stage is documented; account separation is not implemented yet. Full Wings parity remains in progress.
 
 <!-- progress:start -->
 
@@ -30,7 +30,7 @@ GitHub Issues are the source of truth; ROADMAP.md records implementation scope a
 
 | Feature | Implementation |
 | --- | --- |
-| Native executables | Locally approved `.exe` path and an argument array for each server UUID. No shell expansion. |
+| Native executables | Versioned local profiles, PE architecture checks, optional minimum Windows build and dependency-file requirements before startup or installation acknowledgement. Argument arrays without shell expansion. |
 | Panel discovery | Fetches this node's assigned servers with the node credentials; only registered local profiles can run. |
 | Power controls | Start, stop, restart and forced kill; bounded asynchronous lock waits with `wait_seconds`. Kill cancels queued/active starts and restarts and interrupts graceful shutdown. Suspended start/restart requests return 400. |
 | Process trees | Creates the process suspended, assigns it to a Job Object, then resumes it. Killing/exiting the root or closing the daemon kills descendants. |
@@ -65,8 +65,8 @@ cd Wings-for-Windows
 If Go is not on PATH, pass `-GoExecutable C:\path\to\go.exe`. The script runs the Windows integration tests and `go vet`, then creates:
 
 ```text
-dist/wings-windows-native-0.1.0-alpha.4-windows-amd64.zip
-dist/wings-windows-native-0.1.0-alpha.4-windows-amd64.zip.sha256
+dist/wings-windows-native-0.1.0-alpha.5-windows-amd64.zip
+dist/wings-windows-native-0.1.0-alpha.5-windows-amd64.zip.sha256
 ```
 
 The archive includes the daemon, a harmless console demo executable, configuration example, documentation and service script. Docker, Node, PHP and a C compiler are not needed to build it. Native integration tests compile a temporary demo executable using Go.
@@ -78,7 +78,7 @@ Follow the [setup guide](docs/SETUP.md) for the full procedure. The first test s
 1. Extract the archive into `C:\WingsWindows`. Create a dedicated Windows node in your test panel and copy its UUID, token ID and token from its configuration page.
 2. Create a test server assigned to that node. Its initial Linux installation request will fail with an unsupported-operation response; this alpha uses manual provisioning. Record the **full server UUID**, not its short identifier.
 3. Copy `configs\config.example.json` to `config.json`. Set the panel URL, credentials, TLS paths, data directory and profile key to the real values. Keep the demo executable profile for the first test.
-4. Run the commands below. Acknowledge installation only after the profile and executable are provisioned. Run `--mark-installed` with the daemon stopped; it makes an explicit panel installation-success callback without running an installer.
+4. Run the commands below. Acknowledge installation only after the profile and executable are provisioned. Run `--check-profiles` to check local requirements, then run `--mark-installed` with the daemon stopped; it repeats preflight and makes an explicit panel installation-success callback without running an installer.
 
 ```powershell
 cd C:\WingsWindows
@@ -98,6 +98,8 @@ To add a real server, install its Windows files yourself, add a profile using th
 - [Roadmap and current milestone](ROADMAP.md)
 - [Version history](CHANGELOG.md)
 - [Setup, profiles, TLS and Windows service](docs/SETUP.md)
+- [Profile schema and preflight checks](docs/PROFILES.md)
+- [Isolation design and acceptance gates](docs/ISOLATION.md)
 - [Supported API and architecture](docs/PROTOCOL.md)
 - [Verification results and live test checklist](docs/VERIFICATION.md)
 - [Wings parity audit and implementation priorities](docs/WINGS-PARITY-AUDIT.md)

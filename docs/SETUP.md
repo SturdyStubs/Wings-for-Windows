@@ -37,15 +37,18 @@ Restrict the configuration, service executable and TLS private key ACLs to admin
 1. Create a server in the panel assigned to this node. The alpha deliberately rejects automatic egg installation. The panel can show an installation failure until the manual acknowledgement below.
 2. Record the full server UUID from its admin page/API. Create a corresponding profile in `config.json` and provision the executable and its dependencies on disk. Server data belongs under `C:\WingsWindows\data\<UUID>` if using the example data directory.
 3. Set panel egg variables needed by your argument template. Add only those names to `allowed_environment` in the local profile.
-4. Stop any running daemon, run `--check`, then `--mark-installed <UUID>`. This fetches the node's assigned servers, verifies the configured executable exists and explicitly reports manual installation success. It never runs a Linux installer or downloads game files.
+4. Stop any running daemon, run `--check` and `--check-profiles`, then `--mark-installed <UUID>`. This fetches the node's assigned servers, runs local executable/OS/dependency preflight and explicitly reports manual installation success. It never runs a Linux installer or downloads game files.
 5. Start the daemon and verify the server from the panel console.
 
-The acknowledgement is an operator statement, not a completeness check on game files. Repeating it sends another installation-success callback. If your panel's server-creation transaction rolls back after the rejected installation request, create/retain the server through that panel's supported administrative workflow first; there is no automatic panel database patch.
+The acknowledgement checks the executable and explicitly declared requirements. It remains an operator statement, not an automatic dependency resolver or a completeness check on all game files. Repeating it sends another installation-success callback. If your panel's server-creation transaction rolls back after the rejected installation request, create/retain the server through that panel's supported administrative workflow first; there is no automatic panel database patch.
 
 ## Profiles
 
+See [profile schema v1 and preflight](PROFILES.md) for migration, requirement fields and limits. Existing profiles without `schema_version` use v1 automatically. `--check` validates configuration only; `--check-profiles` additionally inspects local files and the Windows host, without panel requests or process execution.
+
 ```json
 {
+  "schema_version": 1,
   "executable": "C:\\WingsWindows\\games\\ExampleDedicated.exe",
   "arguments": ["--port", "{{SERVER_PORT}}", "--name", "{{SERVER_NAME}}"],
   "allowed_environment": ["SERVER_PORT", "SERVER_NAME"],

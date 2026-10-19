@@ -1,6 +1,6 @@
 # Verification and release status
 
-Version `0.1.0-alpha.4`, verified locally October 18, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). No production panel, game server, service registration or firewall configuration was changed.
+Version `0.1.0-alpha.5`, verified locally October 18, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). No production panel, game server, service registration or firewall configuration was changed.
 
 The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed by the original tests. Alpha 2 adds upstream/panel-derived metadata fixtures and canonical route assertions, plus regression checks for the fixes below. Passing these tests is still not proof that a complete live panel/game deployment works. Current outstanding work is tracked in [ROADMAP.md](../ROADMAP.md).
 
@@ -32,6 +32,9 @@ Coverage includes:
 - Upstream system-v2 field/type fixture, real Windows physical memory/CPU/version, native server counts and separate zero Docker counters.
 - Anonymous OPTIONS preflight, exact origins, authenticated operations, explicit private-network opt-in, generated request IDs, 400/413/422 JSON errors and Bearer challenges.
 - HTTP 502 for commands without a process and requested recent-log sizing in the API/native/WebSocket integration flow.
+- Profile schema migration and future-version rejection, requirement bounds, unsupported architectures and absolute dependency path validation.
+- Real PE inspection rejects text, DLL and ARM64 fixtures; checks declared architecture, missing/non-file dependencies, minimum Windows build and cancellation.
+- Node start remains offline with an unmet dependency; requirements are checked again after a successful start/stop. Manual installation acknowledgement sends no callback on failed preflight and exactly one after requirements pass.
 - GitHub milestones and README badge endpoints are checked against actual repository counts. Progress initialization is idempotent; closing/reopening issues remains authoritative.
 
 The build script produces the Windows amd64 daemon, demo executable, documentation, dependency licenses and a ZIP checksum. Go race-detector testing is not included; no compatible C toolchain is configured on this host.

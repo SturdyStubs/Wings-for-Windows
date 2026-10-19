@@ -24,6 +24,7 @@ Windows Native ---------- node credentials -----> panel /api/remote
 | --- | --- |
 | `internal/config` | Strict JSON configuration, UUID/profile rules, TLS/loopback requirements and exact origins. |
 | `internal/native` | Windows process creation, restricted handle inheritance, Job Objects, CPU/memory limits, console pipes and process counters. Other platforms fail explicitly. |
+| `internal/provision` | Read-only Windows executable, architecture, OS build and declared dependency checks. |
 | `internal/node` | Panel API client, local server registry, templates, lifecycle, readiness, bounded console queues and log history. |
 | `internal/api` | Node bearer API, confined text-file access, JWT/permission enforcement, revocation and WebSocket events. |
 | `cmd/wings-windows` | CLI, HTTP lifecycle and Windows SCM integration. |
@@ -81,6 +82,8 @@ Input events: `auth`, `send logs`, `send stats`, `send command`, `set state`.
 Output events: `auth success`, `status`, `stats`, `console output`, `jwt error`, `daemon error`, `token expiring`, `token expired`. Expiry/revocation is checked every second and on each command. Authentication must arrive within ten seconds. There is a node-wide cap of 256 WebSocket connections; slow output consumers are disconnected instead of blocking a game process.
 
 ## Lifecycle and data
+
+Profiles use [schema v1](PROFILES.md), with legacy profiles normalized to v1. Before each start and manual installation acknowledgement, local preflight validates the Windows PE executable and declared host/dependency requirements. `--check-profiles` runs the same checks without contacting the panel or launching a process. These checks are not installation or isolation; see the [isolation design](ISOLATION.md).
 
 Only a fixed `.exe` path in the local configuration can run. Panel `invocation`, Docker image and Linux install scripts are not executed. Approved `{{VARIABLE}}` placeholders are substituted separately in an argument array. Missing approved variables fail startup. Each game gets a minimal environment and its own working/temp directories.
 

@@ -9,11 +9,13 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"sort"
 	"syscall"
 	"time"
 	"wings-windows/internal/api"
 	"wings-windows/internal/config"
 	"wings-windows/internal/node"
+	"wings-windows/internal/provision"
 )
 
 func run(ctx context.Context, path, markInstalled string) error {
@@ -34,12 +36,8 @@ func run(ctx context.Context, path, markInstalled string) error {
 		if s == nil {
 			return fmt.Errorf("server must belong to this node and have a local profile")
 		}
-		if info, statErr := os.Stat(s.Profile.Executable); statErr != nil || !info.Mode().IsRegular() {
-			err = statErr
-			if err == nil {
-				err = fmt.Errorf("not a regular file")
-			}
-			return fmt.Errorf("executable must be provisioned: %w", err)
+		if err := provision.Check(ctx, s.Profile); err != nil {
+			return fmt.Errorf("profile preflight before installation acknowledgement: %w", err)
 		}
 		return m.Panel.Installed(ctx, s.ID())
 	}
@@ -75,6 +73,7 @@ func run(ctx context.Context, path, markInstalled string) error {
 func main() {
 	path := flag.String("config", "config.json", "Path to node configuration")
 	check := flag.Bool("check", false, "Validate configuration without contacting the panel")
+	checkProfiles := flag.Bool("check-profiles", false, "Check local profile executables, Windows requirements and dependency files without contacting the panel")
 	version := flag.Bool("version", false, "Print version")
 	installed := flag.String("mark-installed", "", "Explicitly acknowledge manually provisioned server UUID to the panel")
 	flag.Parse()
@@ -87,6 +86,30 @@ func main() {
 			log.Fatal(err)
 		}
 		fmt.Println("Configuration valid")
+		return
+	}
+	if *checkProfiles {
+		c, err := config.Load(*path)
+		if err != nil {
+			log.Fatal(err)
+		}
+		ids := make([]string, 0, len(c.Profiles))
+		for id := range c.Profiles {
+			ids = append(ids, id)
+		}
+		sort.Strings(ids)
+		failed := false
+		for _, id := range ids {
+			if err := provision.Check(context.Background(), c.Profiles[id]); err != nil {
+				fmt.Fprintf(os.Stderr, "%s: FAILED: %v\n", id, err)
+				failed = true
+			} else {
+				fmt.Printf("%s: profile preflight passed\n", id)
+			}
+		}
+		if failed {
+			os.Exit(1)
+		}
 		return
 	}
 	if serviceMain(*path, *installed) {

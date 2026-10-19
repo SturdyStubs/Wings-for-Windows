@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.0-alpha.5 — October 18, 2026
+
+- Add local profile schema v1. Normalize existing omitted/zero versions to v1 and reject unsupported future versions.
+- Add read-only preflight for Windows PE applications, declared amd64/386 architecture, optional minimum Windows build and up to 64 explicitly declared absolute dependency files. Text files, DLL/object applications and unsupported architectures fail before launch.
+- Recheck requirements before every start and manual installation acknowledgement. Add `--check-profiles` to inspect all local profiles without panel requests, process execution or filesystem writes.
+- Document migration, supported checks and their limits. Preflight does not resolve/load dependencies, run installers, certify games or isolate executable code.
+- Record the planned per-server native identity/token/ACL stage and separate virtualization direction for untrusted hosting. No identity/isolation configuration is enabled by this release.
+- Add profile/PE/OS/dependency regressions, start recheck coverage and guarded installation-callback tests. Real panel/game/Windows Server validation remains open.
+
 ## 0.1.0-alpha.4 — October 18, 2026
 
 - Accept HTTP power actions asynchronously with bounded `wait_seconds` lock acquisition. Limit pending requests to 16; kill and shutdown invalidate queued starts/restarts as well as active work. WebSocket power remains immediate.

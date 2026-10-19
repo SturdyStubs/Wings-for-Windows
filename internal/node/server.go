@@ -14,6 +14,7 @@ import (
 	"time"
 	"wings-windows/internal/config"
 	"wings-windows/internal/native"
+	"wings-windows/internal/provision"
 )
 
 type Event struct {
@@ -399,6 +400,9 @@ func (s *Server) startWithContext(parent context.Context) error {
 	}
 	if settings.Suspended {
 		return errors.New("server is suspended")
+	}
+	if err := provision.Check(ctx, s.Profile); err != nil {
+		return fmt.Errorf("profile preflight: %w", err)
 	}
 	spec, err := s.spec()
 	if err != nil {

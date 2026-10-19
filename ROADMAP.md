@@ -1,6 +1,6 @@
 # Progress toward Wings compatibility
 
-Last updated: October 18, 2026. Current version: **0.1.0-alpha.4**. Current milestone: **M1 — core protocol compatibility, in progress**.
+Last updated: October 18, 2026. Current version: **0.1.0-alpha.5**. Current milestone: **M1 — core protocol compatibility, in progress**.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
@@ -12,6 +12,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - Alpha 2 fixes: canonical file listing and metadata, file MIME/length headers, egg file-denylist policy, standard derived variables, suspended power response and emergency kill cancellation: locally tested.
 - Alpha 3: opt-in supported Windows egg readiness/stopping, live job limit changes/removal, preservation of local caps and suspension despite invalid egg settings: locally tested.
 - Alpha 4: bounded asynchronous power waits, queued-action cancellation, measured Windows host/system schema, CORS preflight, request IDs, JSON errors and log sizing: locally tested.
+- Alpha 5: profile schema v1 with legacy migration, executable/OS/dependency checks before start and installation acknowledgement, and an offline profile-check CLI: locally tested. The next native isolation model is documented but not implemented.
 - HTTP inventory: handlers at **13 of upstream's 38 method/path combinations**, with partial behavior; **25 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
 - Automatic installation, full file manager/SFTP, backups/restores, transfers, strong isolation and live certification remain open.
 - Unchanged Linux eggs require a Linux execution backend. Native Windows profiles do not translate Linux images/binaries.
@@ -35,32 +36,32 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - [x] Complete system information, HTTP CORS/preflight and consistent error/request-ID handling.
 - [ ] Verify node connectivity, console, subuser revocation and file browsing/editing through a real panel over trusted TLS.
 
-M1 implementation tasks are locally verified; the real-panel TLS/console/subuser/file gate remains open. Next development target: define the Windows isolation model in M2 and versioned provisioning profiles in M3. M1 cannot close until live validation passes.
+M1 implementation tasks are locally verified; the real-panel TLS/console/subuser/file gate remains open. Next development target: implement the documented native identity policies in M2 and cancellation-aware Windows provisioning in M3. M1 cannot close until live validation passes.
 
 ## How to read progress
 
-[GitHub Milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones) provide the live completion bars. Six milestones contain 35 deliverable issues; the six original tracking issues remain summaries outside milestone counts. At alpha 4, M1 has 10 of 11 deliverables closed; the other stages remain open. This is issue completion, not an effort estimate or a claim that Wings is 91% ported.
+[GitHub Milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones) provide the live completion bars. Six milestones contain 35 deliverable issues; the six original tracking issues remain summaries outside milestone counts. At alpha 4, M1 has 10 of 11 deliverables closed; M2 has 1 of 4 decision/implementation deliverables closed and M3 has 1 of 6; all milestones remain open. This is issue completion, not an effort estimate or a claim that Wings is 91% ported.
 
 README badges query milestone counts automatically. Close an implementation issue only with test evidence, and close a live gate only after actual host/panel/game validation. Close a milestone after every required deliverable is accepted. **Project completion requires all six milestones closed**, including the live gates. There is no declared completion date yet.
 
 The seed definitions are in `docs/progress-plan.json`. `scripts/Update-Progress.ps1 -Initialize` adds missing planned milestones/issues and records seeded historical work; it does not re-close existing issues. Run without the switch to refresh README links. Reopened issues lower the live counts automatically, subject to badge caching. Issue state in GitHub is authoritative over historical seed metadata.
 
-## M2: Isolation and supported threat model — planned, required before untrusted hosting
+## M2: Isolation and supported threat model — in progress, required before untrusted hosting
 
 [Tracking issue #2](https://github.com/SturdyStubs/Wings-for-Windows/issues/2)
 
-- [ ] Decide the supported native account/restricted-token model versus a Windows container/VM backend.
+- [x] Record the next native per-server identity/restricted-token/ACL model and separate virtualization direction for untrusted hosting in [the isolation decision](docs/ISOLATION.md); neither backend isolation stage is implemented.
 - [ ] Separate daemon credentials and game identities; define filesystem, network and mount policies.
 - [ ] Test cross-server/account access, credentials, hardlinks, reparse points, case aliases and filesystem races.
 - [ ] Publish the supported Windows host/runtime/game matrix and remaining restrictions.
 
 Current scope remains a trusted private node. File denylist/path checks are not process isolation.
 
-## M3: Windows provisioning and lifecycle recovery — planned
+## M3: Windows provisioning and lifecycle recovery — in progress
 
 [Tracking issue #3](https://github.com/SturdyStubs/Wings-for-Windows/issues/3)
 
-- [ ] Versioned Windows profiles and dependency/OS checks.
+- [x] Versioned Windows profiles and dependency/OS checks; read-only CLI preflight and enforcement before start/manual installation acknowledgement. See [profile v1](docs/PROFILES.md).
 - [ ] Create/delete, native install/reinstall, output/progress, cancellation, timeouts and panel callbacks.
 - [ ] Egg configuration parsers for text, JSON, YAML, INI, properties and XML.
 - [ ] Crash detection/restart policy, persistent state/logs, reboot and interrupted-operation recovery.

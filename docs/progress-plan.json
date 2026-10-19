@@ -22,7 +22,7 @@
       "key":"M2", "title":"M2: Isolation and threat model", "tracking_issue":2,
       "description":"Required before public or mutually untrusted hosting claims. Define and verify the supported Windows isolation model.",
       "tasks":[
-        {"title":"Choose Windows native identities versus container or VM isolation"},
+        {"title":"Choose Windows native identities versus container or VM isolation", "verified_in":"0.1.0-alpha.5", "notes":"Architecture decision in docs/ISOLATION.md only. Native identity enforcement and virtualization are not implemented; other M2 gates remain open."},
         {"title":"Separate daemon credentials and enforce filesystem and network policies"},
         {"title":"Test cross-server access, hardlinks, aliases, reparse points and races"},
         {"title":"Publish and verify supported host, runtime and game matrix"}
@@ -32,7 +32,7 @@
       "key":"M3", "title":"M3: Provisioning and recovery", "tracking_issue":3,
       "description":"Complete a real supported Windows game's entire panel-managed lifecycle, including installation and recovery.",
       "tasks":[
-        {"title":"Version Windows profiles and validate dependencies and OS requirements"},
+        {"title":"Version Windows profiles and validate dependencies and OS requirements", "verified_in":"0.1.0-alpha.5", "notes":"Schema v1, legacy migration, PE/architecture/OS-build and explicitly declared file checks before start/installation acknowledgement; offline CLI. Not automatic dependency resolution or game certification."},
         {"title":"Implement create, delete, install and reinstall with cancellation and callbacks"},
         {"title":"Implement egg text, JSON, YAML, INI, properties and XML config parsers"},
         {"title":"Add crash recovery, persistent logs and interrupted-operation recovery"},

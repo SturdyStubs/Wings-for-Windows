@@ -15,7 +15,7 @@ import (
 	_ "time/tzdata"
 )
 
-const Version = "0.1.0-alpha.4"
+const Version = "0.1.0-alpha.5"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -24,14 +24,16 @@ type TLS struct {
 	Key  string `json:"key"`
 }
 type Profile struct {
-	UseEggProcessConfiguration bool     `json:"use_egg_process_configuration,omitempty"`
-	Executable                 string   `json:"executable"`
-	Arguments                  []string `json:"arguments"`
-	AllowedEnvironment         []string `json:"allowed_environment"`
-	StopCommand                string   `json:"stop_command"`
-	ReadyPattern               string   `json:"ready_pattern"`
-	StopTimeoutSeconds         int      `json:"stop_timeout_seconds"`
-	MemoryMB                   int      `json:"memory_mb"`
+	SchemaVersion              int          `json:"schema_version,omitempty"`
+	Requirements               Requirements `json:"requirements,omitempty"`
+	UseEggProcessConfiguration bool         `json:"use_egg_process_configuration,omitempty"`
+	Executable                 string       `json:"executable"`
+	Arguments                  []string     `json:"arguments"`
+	AllowedEnvironment         []string     `json:"allowed_environment"`
+	StopCommand                string       `json:"stop_command"`
+	ReadyPattern               string       `json:"ready_pattern"`
+	StopTimeoutSeconds         int          `json:"stop_timeout_seconds"`
+	MemoryMB                   int          `json:"memory_mb"`
 }
 type Config struct {
 	Listen                  string             `json:"listen"`
@@ -121,6 +123,9 @@ func (c *Config) Validate() error {
 	}
 	normalized := make(map[string]Profile, len(c.Profiles))
 	for id, p := range c.Profiles {
+		if err := p.NormalizeRequirements(); err != nil {
+			return fmt.Errorf("%s: %w", id, err)
+		}
 		if !UUID.MatchString(id) {
 			return fmt.Errorf("profile key %q is not a server UUID", id)
 		}
