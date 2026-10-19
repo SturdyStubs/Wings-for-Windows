@@ -11,11 +11,15 @@ import (
 	"wings-windows/internal/config"
 )
 
+type EggSettings struct {
+	ID           string   `json:"id"`
+	FileDenylist []string `json:"file_denylist"`
+}
 type Settings struct {
 	Meta           map[string]any  `json:"meta,omitempty"`
 	Invocation     string          `json:"invocation,omitempty"`
 	Allocations    json.RawMessage `json:"allocations,omitempty"`
-	Egg            json.RawMessage `json:"egg,omitempty"`
+	Egg            EggSettings     `json:"egg"`
 	Container      json.RawMessage `json:"container,omitempty"`
 	SkipEggScripts bool            `json:"skip_egg_scripts"`
 	UUID           string          `json:"uuid"`
@@ -86,6 +90,9 @@ func (p *Panel) Server(ctx context.Context, id string) (Settings, error) {
 	err := p.request(ctx, "GET", "/servers/"+id, nil, &result)
 	if err == nil && !strings.EqualFold(result.Settings.UUID, id) {
 		err = fmt.Errorf("panel returned a different server UUID")
+	}
+	if err == nil {
+		result.Settings.UUID = strings.ToLower(id)
 	}
 	return result.Settings, err
 }

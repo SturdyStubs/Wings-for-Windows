@@ -23,6 +23,8 @@ type Event struct {
 type Server struct {
 	mu             sync.Mutex
 	power          sync.Mutex
+	powerCancel    context.CancelFunc
+	filePolicy     *FilePolicy
 	write          sync.Mutex
 	settings       Settings
 	Profile        config.Profile
@@ -69,10 +71,15 @@ func (m *Manager) Sync(ctx context.Context) error {
 			continue
 		}
 		root := filepath.Join(m.Config.DataDirectory, id)
+		policy, err := NewFilePolicy(r.Settings.Egg.FileDenylist)
+		if err != nil {
+			return err
+		}
 		if err = os.MkdirAll(root, 0700); err != nil {
 			return err
 		}
-		m.servers[id] = &Server{settings: r.Settings, Profile: profile, Root: root, panel: m.Panel, state: "offline", subscribers: make(map[chan Event]struct{})}
+		r.Settings.UUID = id
+		m.servers[id] = &Server{settings: r.Settings, filePolicy: policy, Profile: profile, Root: root, panel: m.Panel, state: "offline", subscribers: make(map[chan Event]struct{})}
 	}
 	return nil
 }
@@ -94,6 +101,9 @@ func (m *Manager) Close() {
 	for _, s := range m.All() {
 		s.mu.Lock()
 		s.closing = true
+		if s.powerCancel != nil {
+			s.powerCancel()
+		}
 		p := s.process
 		s.mu.Unlock()
 		if p != nil {
@@ -158,8 +168,13 @@ func (s *Server) Sync(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	policy, err := NewFilePolicy(settings.Egg.FileDenylist)
+	if err != nil {
+		return err
+	}
 	s.mu.Lock()
 	s.settings = settings
+	s.filePolicy = policy
 	s.mu.Unlock()
 	if settings.Suspended && s.State() != "offline" {
 		return s.Power("kill")
@@ -178,6 +193,27 @@ func (s *Server) spec() (native.Spec, error) {
 		if value, ok := settings.Environment[key]; ok {
 			env[key] = fmt.Sprint(value)
 		}
+	}
+	// Wings-derived values take precedence over egg-provided environment values.
+	var allocations struct {
+		Default struct {
+			IP   string `json:"ip"`
+			Port int    `json:"port"`
+		} `json:"default"`
+	}
+	if len(settings.Allocations) > 0 {
+		if err := json.Unmarshal(settings.Allocations, &allocations); err != nil {
+			return native.Spec{}, errors.New("invalid panel allocations")
+		}
+	}
+	env["SERVER_MEMORY"] = fmt.Sprint(settings.Build.Memory)
+	env["STARTUP"] = settings.Invocation
+	env["SERVER_IP"] = allocations.Default.IP
+	env["SERVER_PORT"] = fmt.Sprint(allocations.Default.Port)
+	if timezone := s.panel.Config.Timezone; timezone != "" {
+		env["TZ"] = timezone
+	} else {
+		env["TZ"] = "UTC"
 	}
 	args := make([]string, len(s.Profile.Arguments))
 	var missing string
@@ -215,35 +251,56 @@ func (s *Server) spec() (native.Spec, error) {
 	}
 	return native.Spec{Executable: s.Profile.Executable, Arguments: args, Environment: clean, Directory: s.Root, MemoryMB: memory, CPUPercent: settings.Build.CPU}, nil
 }
+
+var ErrSuspended = errors.New("cannot start or restart a suspended server")
+
 func (s *Server) Power(action string) error {
 	switch action {
 	case "start", "stop", "restart", "kill":
 	default:
 		return errors.New("unknown power action")
 	}
-	if !s.power.TryLock() {
-		return errors.New("another power action is in progress")
-	}
 	s.mu.Lock()
-	closing := s.closing
-	s.mu.Unlock()
-	if closing {
-		s.power.Unlock()
+	if s.closing {
+		s.mu.Unlock()
 		return errors.New("node is shutting down")
 	}
+	if action == "kill" {
+		if s.powerCancel != nil {
+			s.powerCancel()
+		}
+		p := s.process
+		if p != nil {
+			s.setStateLocked("stopping")
+		}
+		s.mu.Unlock()
+		if p != nil {
+			return p.Kill()
+		}
+		return nil
+	}
+	if (action == "start" || action == "restart") && s.settings.Suspended {
+		s.mu.Unlock()
+		return ErrSuspended
+	}
+	if !s.power.TryLock() {
+		s.mu.Unlock()
+		return errors.New("another power action is in progress")
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	s.powerCancel = cancel
+	s.mu.Unlock()
 	go func() {
-		defer s.power.Unlock()
+		defer func() { cancel(); s.mu.Lock(); s.powerCancel = nil; s.mu.Unlock(); s.power.Unlock() }()
 		var err error
 		switch action {
 		case "start":
-			err = s.start()
+			err = s.startWithContext(ctx)
 		case "stop":
-			err = s.stop(false)
-		case "kill":
-			err = s.stop(true)
+			err = s.stopWithContext(ctx, false)
 		case "restart":
-			if err = s.stop(false); err == nil {
-				err = s.start()
+			if err = s.stopWithContext(ctx, false); err == nil && ctx.Err() == nil {
+				err = s.startWithContext(ctx)
 			}
 		}
 		if err != nil {
@@ -252,21 +309,27 @@ func (s *Server) Power(action string) error {
 	}()
 	return nil
 }
-func (s *Server) start() error {
+func (s *Server) start() error { return s.startWithContext(context.Background()) }
+func (s *Server) startWithContext(parent context.Context) error {
 	s.mu.Lock()
 	if s.process != nil {
 		s.mu.Unlock()
 		return errors.New("server is already started")
 	}
 	s.mu.Unlock()
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	ctx, cancel := context.WithTimeout(parent, 20*time.Second)
 	defer cancel()
 	settings, err := s.panel.Server(ctx, s.ID())
 	if err != nil {
 		return err
 	}
+	policy, err := NewFilePolicy(settings.Egg.FileDenylist)
+	if err != nil {
+		return err
+	}
 	s.mu.Lock()
 	s.settings = settings
+	s.filePolicy = policy
 	closing := s.closing
 	s.mu.Unlock()
 	if closing {
@@ -283,6 +346,9 @@ func (s *Server) start() error {
 	defer s.mu.Unlock()
 	if s.closing {
 		return errors.New("node is shutting down")
+	}
+	if err := ctx.Err(); err != nil {
+		return err
 	}
 	p, err := native.Start(spec)
 	if err != nil {
@@ -319,7 +385,8 @@ func (s *Server) start() error {
 	}()
 	return nil
 }
-func (s *Server) stop(kill bool) error {
+func (s *Server) stop(kill bool) error { return s.stopWithContext(context.Background(), kill) }
+func (s *Server) stopWithContext(ctx context.Context, kill bool) error {
 	s.mu.Lock()
 	p := s.process
 	if p == nil {
@@ -338,6 +405,11 @@ func (s *Server) stop(kill bool) error {
 	timer := time.NewTimer(time.Duration(s.Profile.StopTimeoutSeconds) * time.Second)
 	defer timer.Stop()
 	select {
+	case <-ctx.Done():
+		if err := p.Kill(); err != nil {
+			return err
+		}
+		<-p.Done
 	case <-p.Done:
 	case <-timer.C:
 		if err := p.Kill(); err != nil {

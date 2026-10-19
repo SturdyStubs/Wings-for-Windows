@@ -1,0 +1,27 @@
+# Changelog
+
+## 0.1.0-alpha.2 — October 18, 2026
+
+First compatibility-fix batch after auditing upstream Wings `747bc43`.
+
+- Correct the panel directory-listing route and upstream file metadata keys; retain `/files/list` as an alias.
+- Report actual Windows creation time, MIME type, Content-Length and authenticated attachment headers.
+- Apply bounded, case-insensitive egg file restrictions to listing/read/write and refresh them on sync/start. Check resolved handles before returning content or truncating files; retain `os.Root` confinement.
+- Derive allocation/startup/memory/timezone environment values with authoritative precedence over egg variables. Add an optional IANA `timezone` setting, default UTC.
+- Make emergency kill interrupt a graceful stop/restart and cancel pending panel synchronization/startup. Cancelled restarts cannot relaunch the game.
+- Match the upstream HTTP 400 response for suspended start/restart requests.
+- Add independent metadata contract fixtures and tests for file restrictions, sync, derived variables, junction rejection and cancellation races.
+- Pin MIME detection to unretracted v1.4.16 rather than upstream's retracted v1.4.15 dependency.
+- Establish the standalone GitHub repository, progress tracker and six tracking issues.
+
+Live panel/game/service validation remains pending. Existing Linux eggs are unsupported by the native Windows backend. There is no automatic installer, full file manager/SFTP, backup/restore/transfer support or container-equivalent isolation yet.
+
+## 0.1.0-alpha.1 — October 18, 2026
+
+- Initial native EXE runtime with suspended process creation, Windows Job Objects and optional job resource limits.
+- Basic node bearer API, panel synchronization, power, stdout/stderr/stdin console, status, readiness and root-process statistics.
+- JWT-authenticated console WebSockets with permissions, expiry and revocation.
+- Initial confined file helpers, configuration, manual installation acknowledgement and Windows SCM entry point.
+- Local Windows process/console/child-cleanup tests, packaging and source parity audit.
+
+The original file-list route/schema and power locking defects were identified by the audit and corrected in alpha 2.

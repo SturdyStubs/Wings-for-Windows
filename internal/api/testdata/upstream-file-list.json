@@ -1,0 +1,14 @@
+[
+  {
+    "name": "server.cfg",
+    "created": "2026-10-18T12:00:00Z",
+    "modified": "2026-10-18T12:00:00Z",
+    "mode": "-rw-------",
+    "mode_bits": "600",
+    "size": 12,
+    "directory": false,
+    "file": true,
+    "symlink": false,
+    "mime": "text/plain; charset=utf-8"
+  }
+]

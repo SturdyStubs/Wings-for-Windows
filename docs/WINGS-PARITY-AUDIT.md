@@ -1,5 +1,7 @@
 # Wings parity audit
 
+Historical baseline: this document reviews alpha 1. Alpha 2 corrects several findings; see [current progress](../ROADMAP.md) and [changelog](../CHANGELOG.md). The original route counts/findings below are preserved for traceability, not presented as current status.
+
 Source review: October 18, 2026. Compared Windows Native `0.1.0-alpha.1` with upstream Wings commit [`747bc4393daf5d95fdf61d76382f5e23749cffe9`](https://github.com/pterodactyl/wings/tree/747bc4393daf5d95fdf61d76382f5e23749cffe9). A remote `git ls-remote` check confirmed that this was upstream HEAD at review time. Also inspected the local Pterodactyl 2.0.0-beta.1 panel's daemon file client to check the actual request/response contract.
 
 This is a source-level feature and compatibility review, not a live certification or an exhaustive security assessment. It identifies required work; the runtime fixes and features below have not been implemented by this review.

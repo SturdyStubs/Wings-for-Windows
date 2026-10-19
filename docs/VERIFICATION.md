@@ -1,8 +1,8 @@
 # Verification and release status
 
-Version `0.1.0-alpha.1`, verified locally October 18, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). No production panel, game server, service registration or firewall configuration was changed.
+Version `0.1.0-alpha.2`, verified locally October 18, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). No production panel, game server, service registration or firewall configuration was changed.
 
-The subsequent [source parity audit](WINGS-PARITY-AUDIT.md) identified real contract mismatches that these tests do not catch, including directory-listing URL/schema differences. Passing the current suite is not proof that the panel's file browser or other complete workflows work. Upstream/panel-derived contract fixtures are required next.
+The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed by the original tests. Alpha 2 adds upstream/panel-derived metadata fixtures and canonical route assertions, plus regression checks for the fixes below. Passing these tests is still not proof that a complete live panel/game deployment works. Current outstanding work is tracked in [ROADMAP.md](../ROADMAP.md).
 
 ## Automated checks
 
@@ -20,6 +20,11 @@ Coverage includes:
 - Allowed environment/template substitution, missing-variable failures, and excluding the daemon token/unapproved variables from child environments.
 - File listing/read/write, Windows traversal/device/ADS path rejection, and attempted read/write through an escaping Windows junction. This test uses a real reparse-point junction without enabling Developer Mode or requiring symbolic-link privileges.
 - Combined API-to-native-process-to-WebSocket flow: start, running status, console command/response and stop.
+- Upstream file-list URL and metadata field/type contract; MIME/content length/attachment headers.
+- Egg denylist case folding, glob/negation/bounds, filtering, blocked reads/writes, policy refresh and unchanged contents after denied writes.
+- Rejected reads/writes/new-file creation through a junction to a denied directory. `os.Root` rejects absolute junctions before access; resolved-handle policy checks also run on successfully opened targets.
+- Emergency kill interrupting stop/restart, cancelling an in-flight panel configuration fetch, releasing the operation lock and preventing restart after cancellation.
+- Standard allocation/memory/startup/timezone values overriding untrusted egg variables, IANA timezone validation/defaults and HTTP 400 for suspended starts/restarts.
 
 The build script produces the Windows amd64 daemon, demo executable, documentation, dependency licenses and a ZIP checksum. Go race-detector testing is not included; no compatible C toolchain is configured on this host.
 

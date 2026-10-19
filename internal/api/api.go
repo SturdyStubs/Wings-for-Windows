@@ -3,6 +3,7 @@ package api
 import (
 	"crypto/subtle"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"runtime"
@@ -136,6 +137,10 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if err := s.Power(v.Action); err != nil {
+			if errors.Is(err, node.ErrSuspended) {
+				failure(w, 400, err.Error())
+				return
+			}
 			failure(w, 409, err.Error())
 			return
 		}

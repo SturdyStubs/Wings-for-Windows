@@ -11,9 +11,11 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
+	_ "time/tzdata"
 )
 
-const Version = "0.1.0-alpha.1"
+const Version = "0.1.0-alpha.2"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -37,6 +39,7 @@ type Config struct {
 	TokenID               string             `json:"token_id"`
 	Token                 string             `json:"token"`
 	DataDirectory         string             `json:"data_directory"`
+	Timezone              string             `json:"timezone,omitempty"`
 	TLS                   TLS                `json:"tls"`
 	AllowInsecureLoopback bool               `json:"allow_insecure_loopback"`
 	Origins               []string           `json:"allowed_origins"`
@@ -96,6 +99,15 @@ func (c *Config) Validate() error {
 		return errors.New("panel_url must use HTTPS (explicit loopback development HTTP excepted)")
 	}
 	c.PanelURL = strings.TrimRight(c.PanelURL, "/")
+	if c.Timezone == "" {
+		c.Timezone = "UTC"
+	}
+	if strings.ContainsAny(c.Timezone, "\x00\r\n") {
+		return errors.New("invalid timezone")
+	}
+	if _, err := time.LoadLocation(c.Timezone); err != nil {
+		return fmt.Errorf("timezone must be a valid IANA name: %w", err)
+	}
 	if len(c.Token) < 32 || c.TokenID == "" || !UUID.MatchString(c.NodeUUID) {
 		return errors.New("node_uuid, token_id and a node token of at least 32 characters are required")
 	}

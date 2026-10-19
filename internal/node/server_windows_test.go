@@ -139,3 +139,96 @@ func TestUnapprovedServersAreNotRegistered(t *testing.T) {
 		t.Fatal("unknown action accepted")
 	}
 }
+func TestEmergencyKillInterruptsStopAndRestart(t *testing.T) {
+	for _, action := range []string{"stop", "restart"} {
+		t.Run(action, func(t *testing.T) {
+			_, s, _ := setup(t)
+			s.Profile.Arguments = []string{"noinput"}
+			s.Profile.StopTimeoutSeconds = 30
+			if err := s.start(); err != nil {
+				t.Fatal(err)
+			}
+			await(t, s, "running")
+			if err := s.Power(action); err != nil {
+				t.Fatal(err)
+			}
+			await(t, s, "stopping")
+			started := time.Now()
+			if err := s.Power("kill"); err != nil {
+				t.Fatal("kill was blocked by power lock", err)
+			}
+			await(t, s, "offline")
+			if time.Since(started) > 2*time.Second {
+				t.Fatal("kill waited for graceful timeout")
+			}
+			deadline := time.Now().Add(3 * time.Second)
+			released := false
+			for time.Now().Before(deadline) {
+				if s.power.TryLock() {
+					s.power.Unlock()
+					released = true
+					break
+				}
+				time.Sleep(10 * time.Millisecond)
+			}
+			if !released {
+				t.Fatal("interrupted power action did not release its lock")
+			}
+			if s.State() != "offline" {
+				t.Fatal("cancelled restart relaunched the game")
+			}
+		})
+	}
+}
+func TestEmergencyKillCancelsPendingStart(t *testing.T) {
+	_, s, _ := setup(t)
+	entered := make(chan struct{})
+	cancelled := make(chan struct{})
+	panel := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { close(entered); <-r.Context().Done(); close(cancelled) }))
+	defer panel.Close()
+	s.panel.Config.PanelURL = panel.URL
+	if err := s.Power("start"); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-entered:
+	case <-time.After(3 * time.Second):
+		t.Fatal("start did not fetch configuration")
+	}
+	if err := s.Power("kill"); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-cancelled:
+	case <-time.After(3 * time.Second):
+		t.Fatal("kill did not cancel pending panel fetch")
+	}
+	if s.State() != "offline" {
+		t.Fatal("cancelled start launched process")
+	}
+}
+func TestDerivedRuntimeEnvironment(t *testing.T) {
+	_, s, _ := setup(t)
+	s.mu.Lock()
+	s.settings.Allocations = json.RawMessage(`{"default":{"ip":"192.0.2.10","port":28015}}`)
+	s.settings.Build.Memory = 1024
+	s.settings.Invocation = "panel invocation retained as metadata"
+	s.settings.Environment["SERVER_PORT"] = "malicious override"
+	s.mu.Unlock()
+	s.Profile.AllowedEnvironment = append(s.Profile.AllowedEnvironment, "SERVER_PORT")
+	s.Profile.Arguments = []string{"--ip", "{{SERVER_IP}}", "--port", "{{SERVER_PORT}}", "--memory", "{{SERVER_MEMORY}}", "--zone", "{{TZ}}"}
+	s.panel.Config.Timezone = "America/Phoenix"
+	spec, err := s.spec()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !slices.Equal(spec.Arguments, []string{"--ip", "192.0.2.10", "--port", "28015", "--memory", "1024", "--zone", "America/Phoenix"}) {
+		t.Fatal("derived argument substitution", spec.Arguments)
+	}
+	if !slices.Contains(spec.Environment, "STARTUP=panel invocation retained as metadata") {
+		t.Fatal("missing startup environment")
+	}
+	if slices.Contains(spec.Environment, "SERVER_PORT=malicious override") {
+		t.Fatal("panel variable overrode allocation")
+	}
+}

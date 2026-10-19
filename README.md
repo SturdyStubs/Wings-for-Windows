@@ -1,10 +1,10 @@
-# Wings Windows Native
+# Wings for Windows
 
 Run native Windows game-server executables through a Pterodactyl panel. This is a separate Go daemon implementing a **subset of the Wings protocol**, with Windows Job Objects replacing the Docker process runtime.
 
-**Version: 0.1.0-alpha.1. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
+**Version: 0.1.0-alpha.2. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
 
-The [Wings parity audit](docs/WINGS-PARITY-AUDIT.md) found additional compatibility defects in this alpha, including the file-listing URL/schema, missing egg file restrictions and emergency-kill locking. The implemented helpers below do not establish complete panel compatibility; correct these defects before relying on those workflows.
+Follow the [progress tracker](ROADMAP.md), [GitHub issues](https://github.com/SturdyStubs/Wings-for-Windows/issues), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). Alpha 2 corrects the file-listing URL/schema, applies egg file restrictions, supplies derived startup variables and lets emergency kill interrupt power operations. Full Wings parity remains in progress.
 
 ## What works
 
@@ -12,13 +12,14 @@ The [Wings parity audit](docs/WINGS-PARITY-AUDIT.md) found additional compatibil
 | --- | --- |
 | Native executables | Locally approved `.exe` path and an argument array for each server UUID. No shell expansion. |
 | Panel discovery | Fetches this node's assigned servers with the node credentials; only registered local profiles can run. |
-| Power controls | Start, stop, restart and forced kill. Suspended servers cannot start. |
+| Power controls | Start, stop, restart and forced kill; kill cancels pending starts/restarts and interrupts graceful shutdown. Suspended start/restart requests return 400. |
 | Process trees | Creates the process suspended, assigns it to a Job Object, then resumes it. Killing/exiting the root or closing the daemon kills descendants. |
 | Resource limits | Optional job memory limit and panel CPU limit; CPU `100` means approximately one core. |
 | Console | Combined stdout/stderr, bounded recent logs, single-line stdin commands and authenticated WebSocket events. |
 | Status | Offline, starting, running after a configured readiness regex, and stopping. |
 | Statistics | Root-process CPU, working-set memory and uptime. Network and disk accounting are unavailable and identified as such in `native_metrics`. |
-| File API helpers | Confined listing, reading and writing of text files up to 8 MiB; listing URL/schema currently differ from Wings, so real panel file browsing is not supported yet. |
+| File API | Wings-compatible listing URL/metadata, MIME/length/download headers, confined reads/writes up to 8 MiB and case-insensitive egg denylist checks. Contract tests pass; live panel verification remains open. |
+| Startup variables | Derived `SERVER_IP`, `SERVER_PORT`, `SERVER_MEMORY`, `STARTUP` and `TZ`, alongside explicitly allowed egg variables. |
 | Windows service | SCM stop/shutdown support and a service registration script. |
 
 There is **no Docker dependency**. Windows runs the actual Windows executable. The panel itself still runs separately in its supported environment.
@@ -29,22 +30,23 @@ Job Objects manage processes; they **do not isolate files, credentials, accounts
 
 Linux egg installation scripts, automatic installs/updates, SFTP, signed upload/download URLs, backups, transfers, scheduled tasks that need unsupported endpoints, RCON, disk quotas and automatic crash restart are not implemented. Unsupported operations return HTTP 501. File editing works through the panel API, but its upload/download and SFTP features do not. Games that require RCON or a real interactive console instead of stdin/stdout need an additional adapter.
 
-The Rust Server Wiper extension in this repository is **not yet validated against this daemon**; required backup/delete/restore operations are currently unsupported. Keep existing Linux nodes on upstream Wings.
+The separate Rust Server Wiper extension is **not yet validated against this daemon**; required backup/delete/restore operations are currently unsupported. Keep existing Linux nodes on upstream Wings. Existing Linux eggs require a Linux execution backend; native Windows games need Windows-specific profiles and installers.
 
 ## Build or download
 
 Build from a Windows x64 terminal with **Go 1.26 or newer**:
 
 ```powershell
-cd wings-windows
+git clone https://github.com/SturdyStubs/Wings-for-Windows.git
+cd Wings-for-Windows
 .\scripts\Build.ps1
 ```
 
 If Go is not on PATH, pass `-GoExecutable C:\path\to\go.exe`. The script runs the Windows integration tests and `go vet`, then creates:
 
 ```text
-dist/wings-windows-native-0.1.0-alpha.1-windows-amd64.zip
-dist/wings-windows-native-0.1.0-alpha.1-windows-amd64.zip.sha256
+dist/wings-windows-native-0.1.0-alpha.2-windows-amd64.zip
+dist/wings-windows-native-0.1.0-alpha.2-windows-amd64.zip.sha256
 ```
 
 The archive includes the daemon, a harmless console demo executable, configuration example, documentation and service script. Docker, Node, PHP and a C compiler are not needed to build it. Native integration tests compile a temporary demo executable using Go.
@@ -73,6 +75,8 @@ To add a real server, install its Windows files yourself, add a profile using th
 
 ## Documentation
 
+- [Roadmap and current milestone](ROADMAP.md)
+- [Version history](CHANGELOG.md)
 - [Setup, profiles, TLS and Windows service](docs/SETUP.md)
 - [Supported API and architecture](docs/PROTOCOL.md)
 - [Verification results and live test checklist](docs/VERIFICATION.md)

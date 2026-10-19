@@ -21,6 +21,9 @@ const userID = "22222222-2222-4222-8222-222222222222"
 const secret = "local-testing-token-at-least-32-characters"
 
 func setup(t *testing.T) (*API, *httptest.Server) {
+	return setupWithSettings(t, nil)
+}
+func setupWithSettings(t *testing.T, configure func(*node.Settings)) (*API, *httptest.Server) {
 	t.Helper()
 	panel := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Authorization") != "Bearer node."+secret {
@@ -29,6 +32,9 @@ func setup(t *testing.T) (*API, *httptest.Server) {
 			return
 		}
 		settings := node.Settings{UUID: serverID, Environment: map[string]any{"PORT": "28015"}}
+		if configure != nil {
+			configure(&settings)
+		}
 		if strings.HasSuffix(r.URL.Path, "/servers") {
 			json.NewEncoder(w).Encode(map[string]any{"data": []node.RemoteServer{{UUID: serverID, Settings: settings}}, "meta": map[string]int{"last_page": 1}})
 		} else {
@@ -95,7 +101,7 @@ func TestConfinedFileReadWrite(t *testing.T) {
 	if w.Code != 200 || w.Body.String() != "server config" {
 		t.Fatal(w.Code, w.Body)
 	}
-	if w = request(t, a, "GET", base+"list?directory=/", "", secret); w.Code != 200 || !strings.Contains(w.Body.String(), "test.cfg") {
+	if w = request(t, a, "GET", base+"list-directory?directory=/", "", secret); w.Code != 200 || !strings.Contains(w.Body.String(), "test.cfg") {
 		t.Fatal(w.Code, w.Body)
 	}
 	if w = request(t, a, "POST", base+"write?file=../escape.txt", "bad", secret); w.Code != 422 {

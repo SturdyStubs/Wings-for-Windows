@@ -2,7 +2,7 @@
 
 This is an independent native Windows runtime, not a build of upstream Wings with Docker removed. The upstream tree depends extensively on Linux Docker behavior, filesystem primitives and Linux installation scripts. The implementation follows the public API conventions found in Wings `747bc43` and makes unsupported behavior explicit.
 
-See the [source parity audit](WINGS-PARITY-AUDIT.md) for defects in this subset. In particular, `/files/list` below is our nonstandard helper; Wings and the panel require `/files/list-directory` and a different metadata schema. The route table describes current implementation behavior, not verified panel compatibility.
+See the [original source parity audit](WINGS-PARITY-AUDIT.md) and [current progress](../ROADMAP.md). Alpha 2 fixes the listing URL/schema, file denylist, derived environment and emergency-kill defects. The route table describes implemented behavior; live panel compatibility remains unverified.
 
 ```text
 Pterodactyl panel backend -- node bearer / HTTPS --> Windows Native HTTP API
@@ -48,13 +48,15 @@ Except for the WebSocket upgrade, API endpoints require the incoming node bearer
 | `GET /api/servers/{uuid}/ws` | Origin-checked WebSocket upgrade, followed by JWT auth. |
 | `POST /api/servers/{uuid}/ws/deny` | Revoke old tokens for supplied `jtis`. |
 | `POST /api/deauthorize-user` | Revoke existing user tokens with JSON `user` and optional `servers`. An empty server list revokes access on all locally registered servers. |
-| `GET /api/servers/{uuid}/files/list?directory=/` | List a confined directory, up to 10,000 entries. |
+| `GET /api/servers/{uuid}/files/list-directory?directory=/` | List a confined directory, up to 10,000 entries; uses the upstream metadata schema and hides denied paths. Legacy `/files/list` remains an alias. |
 | `GET /api/servers/{uuid}/files/contents?file=/name` | Read a regular text file up to 8 MiB. |
 | `POST /api/servers/{uuid}/files/write?file=/name` | Write a confined text file up to 8 MiB. Parent directories must already exist. |
 
 Unknown/unsupported authenticated routes return 501, including server creation/deletion, automatic install/reinstall, file uploads/downloads, directory creation, file deletion/renaming, compression, pull, SFTP, backups and transfers. A profile that does not belong to this node is not registered and returns 404.
 
 Filesystem access uses Go `os.Root` for confinement across symlinks. The path parser also rejects Windows drive/UNC syntax, traversal, alternate data streams, device names and trailing-dot/space aliases. This protects HTTP file operations; it does not sandbox executable code running under the same Windows account.
+
+Egg `file_denylist` patterns are bounded, matched case-insensitively and refreshed on sync/start. Reads, writes and listing check requested and resolved handle paths before returning content or truncating a file. Absolute junctions may be rejected by `os.Root` itself, including links to locations inside the root. Hardlink identity policy and adversarial filesystem races remain part of the isolation work; pathname matching is not a security boundary against code running as the same account.
 
 ## WebSocket protocol
 
@@ -76,7 +78,7 @@ Output events: `auth success`, `status`, `stats`, `console output`, `jwt error`,
 
 Only a fixed `.exe` path in the local configuration can run. Panel `invocation`, Docker image and Linux install scripts are not executed. Approved `{{VARIABLE}}` placeholders are substituted separately in an argument array. Missing approved variables fail startup. Each game gets a minimal environment and its own working/temp directories.
 
-Power operations serialize per server. Every start fetches the current panel settings before launching and checks suspension. Process creation uses `CREATE_SUSPENDED`, a restricted inherited pipe-handle list and Job Object assignment before resume. Assignment failure terminates the suspended process. The job uses kill-on-close and optional aggregate memory/CPU controls. Exiting the root also closes the job, so detached child processes do not remain as unmanaged servers.
+Power operations serialize per server; emergency kill cancels any active action and bypasses its lock. A cancelled restart cannot relaunch the game. Every start fetches the current panel settings before launching and checks suspension. Process creation uses `CREATE_SUSPENDED`, a restricted inherited pipe-handle list and Job Object assignment before resume. Assignment failure terminates the suspended process. The job uses kill-on-close and optional aggregate memory/CPU controls. Exiting the root also closes the job, so detached child processes do not remain as unmanaged servers.
 
 State progresses `offline -> starting -> running -> stopping -> offline`. `running` requires the profile's output regex. Exit before readiness returns offline. There is no restart-on-crash loop and no adoption of external processes. Closing the daemon kills managed games and a later start fetches fresh panel configuration.
 

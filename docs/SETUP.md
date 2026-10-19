@@ -19,6 +19,7 @@ The JSON file is deliberately separate from upstream Wings' YAML. Copy its `uuid
 | `panel_url` | Canonical panel base URL, usually `https://panel.example.com`. Used for remote API requests and the JWT issuer. |
 | `node_uuid`, `token_id`, `token` | Node credentials from the panel; token must be at least 32 characters. Never use a client/application API key here. |
 | `data_directory` | Absolute path for per-server working directories. |
+| `timezone` | Optional IANA timezone for derived `TZ`; defaults to `UTC`. Games may interpret timezone environment settings differently on Windows. |
 | `tls.cert`, `tls.key` | Absolute PEM certificate-chain and private-key paths. Both are required for a public listener. |
 | `allow_insecure_loopback` | Development exception for literal `127.0.0.1` or `::1` HTTP. Does not permit remote HTTP or arbitrary hostnames. |
 | `allowed_origins` | Additional exact browser origins, without trailing slashes. The panel origin is already allowed. No wildcard. |
@@ -56,7 +57,7 @@ The acknowledgement is an operator statement, not a completeness check on game f
 
 This is a profile fragment for a hypothetical stdio server, not a verified game's command line. Use the executable vendor's actual arguments and console behavior.
 
-Each argument is substituted independently and escaped for Windows process creation. `{{NAME}}` requires an allowlisted panel environment variable; missing values fail startup. There is no `cmd.exe`, PowerShell, shell interpolation or executable-path substitution. Reserved environment names such as `PATH`, `TEMP` and `SystemRoot` cannot be overridden through the panel. SystemRoot/WINDIR, a minimal executable/System32 PATH and per-server TEMP/TMP are supplied locally. Some games need additional DLL locations or variables; profile support for those should be added explicitly rather than inheriting the daemon's entire environment.
+Each argument is substituted independently and escaped for Windows process creation. `{{NAME}}` can reference an allowlisted egg environment variable or a derived `SERVER_IP`, `SERVER_PORT`, `SERVER_MEMORY`, `STARTUP` or `TZ` value; missing values fail startup. Derived values take precedence over egg variables. There is no `cmd.exe`, PowerShell, shell interpolation or executable-path substitution. Reserved environment names such as `PATH`, `TEMP` and `SystemRoot` cannot be overridden through the panel. SystemRoot/WINDIR, a minimal executable/System32 PATH and per-server TEMP/TMP are supplied locally. Some games need additional DLL locations or variables; profile support for those should be added explicitly rather than inheriting the daemon's entire environment.
 
 Choose a readiness regex that appears only once the game can accept connections. A process that stays alive without matching remains `starting`; there is no automatic readiness timeout yet. Output is read from stdout/stderr, not from a game-specific log file. Very long lines are emitted in bounded chunks. ANSI color sequences may affect regex matching; account for them or disable colored game logs.
 

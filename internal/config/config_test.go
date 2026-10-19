@@ -59,3 +59,17 @@ func TestTokenEnvironmentOverride(t *testing.T) {
 		t.Fatal("validated defaults were not returned by Load")
 	}
 }
+func TestTimezoneValidationAndDefault(t *testing.T) {
+	c := valid(t)
+	if err := c.Validate(); err != nil || c.Timezone != "UTC" {
+		t.Fatal("default timezone", err)
+	}
+	c.Timezone = "America/Phoenix"
+	if err := c.Validate(); err != nil {
+		t.Fatal(err)
+	}
+	c.Timezone = "not-a-timezone"
+	if c.Validate() == nil {
+		t.Fatal("invalid timezone accepted")
+	}
+}
