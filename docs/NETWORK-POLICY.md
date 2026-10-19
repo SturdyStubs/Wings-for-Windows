@@ -33,6 +33,10 @@ Dynamic objects are removed when their session/owning process ends; no persisten
 
 The policy is local profile configuration; changing it requires restarting the daemon. Panel sync does not mutate it. `--check` validates the selected mode/reference. `--check-profiles` and `--check-identity` do not install filters or prove WFP access; the identity report continues to record `network_policy_tested: false`.
 
+## Installation diagnostic
+
+[`--check-network-policy <UUID>`](NETWORK-DIAGNOSTICS.md) explicitly installs the selected account block after identity preflight, verifies its owned objects, closes it and checks removal through an independent observer session. It can affect other processes using the dedicated account while active. Unlike the existing read-only checks, it mutates WFP state temporarily. It launches no game and makes no traffic probe. This tool has not itself been live-certified on Windows Server.
+
 ## Verification
 
 Local tests verify an independently pinned set of four WFP layer GUIDs, block action, account-condition descriptor and nonpersistent rules. An injected engine tests each partial-install failure, cancellation, rollback errors and idempotent session close. A real Windows Job Object/child fixture with a fake network lease verifies lease release after captured descendants exit. No test installs WFP filters, changes Windows Firewall rules or authenticates a new game account.

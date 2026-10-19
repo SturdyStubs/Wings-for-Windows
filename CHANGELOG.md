@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0-alpha.12 — October 18, 2026
+
+- Add explicit --check-network-policy <UUID> operator diagnostic, requiring configured block_connections and successful identity preflight before any temporary WFP installation.
+- Read back owned rule IDs/count/content, sublayer and exact SID matcher, close the session even on readback/cancellation failure, then independently inspect cleanup through a second session.
+- Report owned IDs, stage results and cleanup_verified; traffic_tested/game_launched remain false. Reject unknown cleanup state and preserve unrelated objects.
+- Add injected-backend altered/stale/inspection/close/observer/cancellation tests and node/CLI preflight gating. Automated tests install no real filters.
+- Document the command's temporary account-blocking effect, permissions, cleanup/time-limit semantics and separate live traffic/deployment gates. M2 remains incomplete.
+
 ## 0.1.0-alpha.11 — October 18, 2026
 
 - Start network enforcement plumbing with optional network_policy.mode block_connections for dedicated run_as identities. Prepare four hard SID-scoped IPv4/IPv6 connect/receive-accept block rules before creating the process; default remains unmanaged.

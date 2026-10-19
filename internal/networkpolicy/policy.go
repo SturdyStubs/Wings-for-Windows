@@ -9,6 +9,16 @@ type Policy struct {
 	Mode string `json:"mode,omitempty"`
 }
 
+type VerificationReport struct {
+	Passed          bool                       `json:"passed"`
+	CleanupVerified bool                       `json:"cleanup_verified"`
+	TrafficTested   bool                       `json:"traffic_tested"`
+	GameLaunched    bool                       `json:"game_launched"`
+	RuleIDs         []string                   `json:"rule_ids"`
+	SublayerID      string                     `json:"sublayer_id,omitempty"`
+	Checks          []identity.DiagnosticCheck `json:"checks"`
+}
+
 func (p Policy) Validate(ref *identity.Reference) error {
 	switch p.Mode {
 	case "", "unmanaged":

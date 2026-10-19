@@ -20,9 +20,11 @@ type engine interface {
 }
 type engineFactory func(*wf.Options) (engine, error)
 type lease struct {
-	once   sync.Once
-	engine engine
-	err    error
+	once     sync.Once
+	engine   engine
+	err      error
+	rules    []*wf.Rule
+	sublayer *wf.Sublayer
 }
 
 func (l *lease) Close() error { l.once.Do(func() { l.err = l.engine.Close() }); return l.err }
@@ -59,7 +61,7 @@ func install(ctx context.Context, p Policy, ref *identity.Reference, open engine
 	if err != nil {
 		return nil, fmt.Errorf("open WFP dynamic session: %w", err)
 	}
-	l := &lease{engine: session}
+	l := &lease{engine: session, rules: rules, sublayer: sub}
 	rollback := func(err error) (io.Closer, error) {
 		if closeErr := l.Close(); closeErr != nil {
 			err = errors.Join(err, fmt.Errorf("WFP rollback: %w", closeErr))

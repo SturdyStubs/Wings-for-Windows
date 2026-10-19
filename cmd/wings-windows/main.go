@@ -81,17 +81,18 @@ func main() {
 	credentialStatus := flag.String("credential-status", "", "Report credential metadata for one full server UUID without account logon")
 	removeCredential := flag.String("remove-credential", "", "Remove the current account's exact per-server credential; does not stop games or delete users")
 	checkIdentity := flag.String("check-identity", "", "Diagnose one configured identity with a batch logon and access checks, without starting a game")
+	checkNetwork := flag.String("check-network-policy", "", "Temporarily install/inspect/remove the configured account block after identity preflight; no traffic probe")
 	flag.Parse()
 	if flag.NArg() != 0 {
 		log.Fatal("unexpected positional arguments")
 	}
 	flag.Visit(func(f *flag.Flag) {
-		if (f.Name == "credential-status" || f.Name == "remove-credential" || f.Name == "check-identity") && f.Value.String() == "" {
+		if (f.Name == "credential-status" || f.Name == "remove-credential" || f.Name == "check-identity" || f.Name == "check-network-policy") && f.Value.String() == "" {
 			log.Fatal("credential operation requires a full server UUID")
 		}
 	})
 	operations := 0
-	for _, selected := range []bool{*version, *check, *checkProfiles, *installed != "", *credentialStatus != "", *removeCredential != "", *checkIdentity != ""} {
+	for _, selected := range []bool{*version, *check, *checkProfiles, *installed != "", *credentialStatus != "", *removeCredential != "", *checkIdentity != "", *checkNetwork != ""} {
 		if selected {
 			operations++
 		}
@@ -132,6 +133,22 @@ func main() {
 		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 		defer cancel()
 		report := node.CheckIdentity(ctx, c, *checkIdentity)
+		if err := json.NewEncoder(os.Stdout).Encode(report); err != nil {
+			log.Fatal(err)
+		}
+		if !report.Passed {
+			os.Exit(1)
+		}
+		return
+	}
+	if *checkNetwork != "" {
+		c, err := config.Load(*path)
+		if err != nil {
+			log.Fatal(err)
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		report := node.CheckNetworkPolicy(ctx, c, *checkNetwork)
 		if err := json.NewEncoder(os.Stdout).Encode(report); err != nil {
 			log.Fatal(err)
 		}
