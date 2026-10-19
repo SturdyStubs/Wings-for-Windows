@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0-alpha.7 — October 18, 2026
+
+- Continue M2 with handle-derived ACL/metadata checks and ancestor deletion/ownership/DACL checks up to the local drive root.
+- Recursively audit existing descendants of other configured server roots, including known child files behind a root that denies listing. Enforce 100,000 entry visits, 64 path components, batched enumeration and startup cancellation; incomplete scans abort launch.
+- Reject observed reparse-point components, regular files with multiple hardlinks, UNC/device paths and ambiguous ADS/trailing-dot/device aliases. Pin components against delete sharing during each check while retaining compatibility with existing writers.
+- Add actual NTFS hardlink/junction fixtures and a real restricting-token ACL fixture that demonstrates the root-only bypass and its recursive rejection. Test ancestor coverage, bounds/cancellation and rename rejection while pinned.
+- Keep scan atomicity, future file/ACL/reparse changes, complete mount/process/network policy and successful separate-account Windows Server validation open. M2 enforcement and adversarial/live gates are not complete.
+
 ## 0.1.0-alpha.6 — October 18, 2026
 
 - Start M2 enforcement with optional local `run_as` references: pinned non-built-in SID, UUID-bound Credential Manager target and distinct account per configured server.

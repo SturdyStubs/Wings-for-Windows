@@ -16,12 +16,14 @@ type Reference struct {
 type PathRule struct {
 	Path      string
 	Forbidden uint32
+	Recursive bool
 }
 
 // File/directory access bits used for a read-only protected-path DACL audit.
 const WriteAccess uint32 = 0x2 | 0x4 | 0x10 | 0x100 | 0x10000 | 0x40000 | 0x80000
 const ReadWriteAccess uint32 = WriteAccess | 0x1 | 0x40
 const ReplaceChildAccess uint32 = WriteAccess | 0x40
+const AncestorAccess uint32 = 0x40 | 0x10000 | 0x40000 | 0x80000
 
 var localAccount = regexp.MustCompile(`^S-1-5-21-([0-9]+)-([0-9]+)-([0-9]+)-([0-9]+)$`)
 var target = regexp.MustCompile(`^WingsWindows/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)

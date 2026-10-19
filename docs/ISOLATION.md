@@ -1,6 +1,6 @@
 # Windows isolation design
 
-Status: architecture decision for M2; implementation and security validation remain open. Alpha 6 adds an opt-in identity/token launch path and protected-path ACL guard; legacy profiles still run as the daemon account. Full policy enforcement and separate-account deployment validation remain open.
+Status: architecture decision for M2; implementation and security validation remain open. Alpha 6 adds an opt-in identity/token launch path; alpha 7 adds handle-based ancestor/recursive ACL auditing and observed link rejection; legacy profiles still run as the daemon account. Full policy enforcement and separate-account deployment validation remain open.
 
 ## Decision
 

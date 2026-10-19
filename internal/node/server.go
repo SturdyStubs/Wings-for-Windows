@@ -304,7 +304,7 @@ func (s *Server) spec() (native.Spec, error) {
 		}
 		for id := range s.panel.Config.Profiles {
 			if !strings.EqualFold(id, s.ID()) {
-				accessRules = append(accessRules, identity.PathRule{Path: filepath.Join(s.panel.Config.DataDirectory, id), Forbidden: identity.ReadWriteAccess})
+				accessRules = append(accessRules, identity.PathRule{Path: filepath.Join(s.panel.Config.DataDirectory, id), Forbidden: identity.ReadWriteAccess, Recursive: true})
 			}
 		}
 	}

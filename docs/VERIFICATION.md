@@ -1,6 +1,6 @@
 # Verification and release status
 
-Version `0.1.0-alpha.6`, verified locally October 18, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). No production panel, game server, service registration, local user account, ACL, logon right or firewall configuration was changed. Identity tests write/read/delete one unique temporary fake generic credential without account logon.
+Version `0.1.0-alpha.7`, verified locally October 18, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). No production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration was changed. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
 
 The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed by the original tests. Alpha 2 adds upstream/panel-derived metadata fixtures and canonical route assertions, plus regression checks for the fixes below. Passing these tests is still not proof that a complete live panel/game deployment works. Current outstanding work is tracked in [ROADMAP.md](../ROADMAP.md).
 
@@ -39,6 +39,8 @@ Coverage includes:
 - Actual restricted-token launch via CreateProcessAsUser, child token privilege queries, stdin/stdout and Job Object kill. This uses a restricted token derived from the existing test identity, not a provisioned second account.
 - Effective DACL grants for read-only, explicit denial, world access and no grants; protected-path exposure/missing-path rejection and generated secret/daemon/other-root rules.
 - Credential helper write/read/delete round-trip with a unique fake credential and absent-reference failure. No real game account is authenticated.
+- Recursive audit with a real restricting token and temporary file ACLs: denied root passes root-only checks, while its exposed child is rejected by recursive checks. No separate account is created or authenticated.
+- Actual NTFS hardlink and junction rejection (including a junction ancestor), every ancestor checked through the drive root, path alias/device/ADS rejection, entry bounds and cancellation. Existing writers remain compatible; rename fails while the checked file handle is pinned.
 - GitHub milestones and README badge endpoints are checked against actual repository counts. Progress initialization is idempotent; closing/reopening issues remains authoritative.
 
 The build script produces the Windows amd64 daemon, demo executable, documentation, dependency licenses and a ZIP checksum. Go race-detector testing is not included; no compatible C toolchain is configured on this host.

@@ -27,7 +27,7 @@ func startPlatform(spec Spec) (result *Process, err error) {
 			return nil, err
 		}
 		defer token.Close()
-		if err = identity.CheckAccess(token, spec.AccessRules); err != nil {
+		if err = identity.CheckAccessContext(spec.Context, token, spec.AccessRules); err != nil {
 			return nil, err
 		}
 	}

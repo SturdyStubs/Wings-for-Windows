@@ -1,6 +1,6 @@
 # Experimental Windows game identities
 
-Alpha 6 adds an opt-in identity launch path for M2. It is not a completed isolation implementation. The default continues using the daemon account; existing profiles do not change accounts automatically. Use disposable trusted-node deployments until the remaining isolation and live validation gates pass.
+Alpha 6 added an opt-in identity launch path for M2; alpha 7 strengthens its filesystem audit. It is not a completed isolation implementation. The default continues using the daemon account; existing profiles do not change accounts automatically. Use disposable trusted-node deployments until the remaining isolation and live validation gates pass.
 
 ## Profile configuration
 
@@ -41,18 +41,24 @@ Before launching with `run_as`, the daemon checks the restricted token's effecti
 - The loaded configuration file and configured TLS private key: content read, write, delete and ownership/DACL changes.
 - The daemon executable: write/delete and ownership/DACL changes.
 - The immediate parent directories of those paths: write, child replacement/deletion and ownership/DACL changes.
-- Other configured servers' root directories: listing/content access, write, delete and ownership/DACL changes.
+- Other configured servers' root directories **and existing descendants**: listing/content access, write, delete and ownership/DACL changes. Every existing child is checked even when the root denies access.
 
 An unreadable/missing security descriptor fails the check. The daemon records its configuration source path during loading; it does not serialize that path into exported config. The guard does not repair ACLs. Ensure the game account can read/execute its game files and write its own root/temp directory while the daemon can still manage those files.
 
-These checks inspect current descriptors on named paths. They do not recursively audit every existing child, every ancestor, shared executable/dependency tree, alternate stream, hardlink or reparse target. Preventing root listing does not prevent traversal to a known child whose ACL grants access. Path replacement, inheritance and TOCTOU races need further work. The guard is a rejection check for obvious exposure, not proof of cross-server filesystem confinement.
+The audit also checks every ancestor up to the local drive root for deletion, delete-child and ownership/DACL changes. It opens path components with `FILE_FLAG_OPEN_REPARSE_POINT`, reads metadata and security descriptors from handles, and rejects any observed reparse point or regular file whose hardlink count is not exactly one. Junctions, symlinks, mounted folders and existing deduplicated/hardlinked files in audited paths are intentionally unsupported. UNC/device namespaces, alternate-stream syntax, trailing-dot/space aliases and common reserved device names are rejected.
+
+Component handles deny delete sharing while that path is checked; existing write access remains shareable to avoid excluding active log writers. This reduces replacement opportunities but does not make the whole scan atomic. ACL/reparse edits, files created after enumeration, subsequent changes, alternate streams, shared executable/dependency trees and other filesystem race cases remain open. Handles close after each audit scope; the audit does not enforce a permanent filesystem boundary.
+
+The combined audit is capped at 100,000 protected entry visits and 64 path components, uses 128-entry directory batches and observes the startup context between filesystem operations. Exceeding a bound, cancellation, sharing conflicts, missing paths or unreadable metadata/descriptors aborts startup; the scan is never silently truncated. The current startup deadline is 20 seconds, shared with panel fetch and other preflight work. Large or rapidly changing trees may therefore need a future policy design before use.
+
+These checks are rejection checks of current local filesystem state, not proof of complete cross-server confinement. Microsoft's documentation describes [reparse-point opening](https://learn.microsoft.com/en-us/windows/win32/fileio/reparse-points-and-file-operations), [handle metadata](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfileinformationbyhandle) and [hardlink counts](https://learn.microsoft.com/en-us/windows/desktop/api/fileapi/ns-fileapi-by_handle_file_information).
 
 There is no network namespace, allocation firewall enforcement, mount policy, process-handle audit, account lifecycle recovery or virtualization backend. Mixing legacy shared-account games with `run_as` profiles does not protect credentials from the legacy games. The [isolation plan](ISOLATION.md) and all remaining M2 gates still apply.
 
 ## Verification and rollout gate
 
-Local tests cover actual restricted-token process launch, child privilege queries, stdin/stdout, Job Object termination, SID/daemon-account rejection, absent credentials, config binding/uniqueness and effective DACL grants. A helper round-trip uses a unique temporary fake generic credential, deletes it afterward and never calls account logon.
+Local tests cover actual restricted-token process launch, child privilege queries, stdin/stdout, Job Object termination, SID/daemon-account rejection, absent credentials, config binding/uniqueness and effective DACL grants. A helper round-trip uses a unique temporary fake generic credential, deletes it afterward and never calls account logon. A restricting-token fixture with temporary ACLs verifies that an exposed child behind a denied root fails recursive audit. Actual NTFS hardlinks/junctions, ancestor checks, cancellation, scan limits, existing writer compatibility and rename rejection while a handle is pinned are covered locally.
 
-Successful separate-account batch logon and process launch have **not** been validated with a provisioned game account on Windows Server. No existing user accounts, service rights, firewall rules or ACLs were changed by development verification. Before relying on this path, record the host/service account configuration, successful distinct-SID child launch and attempted credential/cross-server/process access under that identity. Keep issues #19–21 open until their full enforcement and live acceptance checks pass.
+Successful separate-account batch logon and process launch have **not** been validated with a provisioned game account on Windows Server. Only disposable fixture ACLs and a temporary fake generic credential were changed by development verification; no existing user accounts, host ACLs, service rights or firewall rules were changed. Before relying on this path, record the host/service account configuration, successful distinct-SID child launch and attempted credential/cross-server/process access under that identity. Keep issues #19–21 open until their full enforcement and live acceptance checks pass.
 
 `--check` validates reference syntax and per-server uniqueness. `--check-profiles` checks executable/dependency requirements; it does not read credentials, attempt account logon, test launch privileges or run the token ACL guard. Those checks happen on actual start. Manual `--mark-installed` still acknowledges provisioned files only and does not certify identity readiness.

@@ -30,6 +30,9 @@ func TestIdentitySpecProtectsSecretsDaemonAndOtherServers(t *testing.T) {
 	}
 	want := map[string]uint32{secret: identity.ReadWriteAccess, key: identity.ReadWriteAccess, binary: identity.WriteAccess, filepath.Dir(binary): identity.ReplaceChildAccess, filepath.Join(m.Config.DataDirectory, other): identity.ReadWriteAccess}
 	for _, rule := range spec.AccessRules {
+		if rule.Path == filepath.Join(m.Config.DataDirectory, other) && !rule.Recursive {
+			t.Fatal("other server root was not recursive")
+		}
 		if required, ok := want[rule.Path]; ok && rule.Forbidden == required {
 			delete(want, rule.Path)
 		}

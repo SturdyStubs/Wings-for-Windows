@@ -1,6 +1,7 @@
 package identity
 
 import (
+	"context"
 	"fmt"
 	"golang.org/x/sys/windows"
 	"unsafe"
@@ -11,6 +12,13 @@ type genericMapping struct{ Read, Write, Execute, All uint32 }
 // CheckAccess rejects any forbidden access present in the token's DACL grant.
 // This is a snapshot, not a filesystem race or network sandbox.
 func CheckAccess(token windows.Token, rules []PathRule) error {
+	return CheckAccessContext(context.Background(), token, rules)
+}
+
+func CheckAccessContext(ctx context.Context, token windows.Token, rules []PathRule) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	if len(rules) == 0 {
 		return fmt.Errorf("run_as requires protected path checks")
 	}
@@ -19,17 +27,20 @@ func CheckAccess(token windows.Token, rules []PathRule) error {
 		return fmt.Errorf("duplicate token for ACL checks: %w", err)
 	}
 	defer impersonation.Close()
-	for _, rule := range rules {
-		sd, err := windows.GetNamedSecurityInfo(rule.Path, windows.SE_FILE_OBJECT, windows.OWNER_SECURITY_INFORMATION|windows.GROUP_SECURITY_INFORMATION|windows.DACL_SECURITY_INFORMATION)
-		if err != nil {
-			return fmt.Errorf("read protected path ACL %q: %w", rule.Path, err)
-		}
+	audit := pathAudit{ctx: ctx, limit: 100000}
+	check := func(path string, sd *windows.SECURITY_DESCRIPTOR, forbidden uint32) error {
 		granted, err := grantedAccess(impersonation, sd)
 		if err != nil {
-			return fmt.Errorf("check protected path ACL %q: %w", rule.Path, err)
+			return fmt.Errorf("check protected path ACL %q: %w", path, err)
 		}
-		if granted&rule.Forbidden != 0 {
-			return fmt.Errorf("game identity has forbidden access to protected path %q", rule.Path)
+		if granted&forbidden != 0 {
+			return fmt.Errorf("game identity has forbidden access to protected path %q", path)
+		}
+		return nil
+	}
+	for _, rule := range rules {
+		if err := audit.walk(rule, check); err != nil {
+			return err
 		}
 	}
 	return nil
