@@ -10,6 +10,7 @@ Direct Go dependencies are pinned in `go.mod` and checksummed in `go.sum`:
 - [gorilla/websocket v1.5.3](https://github.com/gorilla/websocket/tree/v1.5.3), BSD-2-Clause.
 - [golang.org/x/sys v0.49.0](https://cs.opensource.google/go/x/sys/+/refs/tags/v0.49.0:), BSD-3-Clause.
 - [gabriel-vasile/mimetype v1.4.16](https://github.com/gabriel-vasile/mimetype/tree/v1.4.16), MIT. The retracted v1.4.15 release is not used.
+- [magiconair/properties v1.8.10](https://github.com/magiconair/properties/tree/v1.8.10), BSD-2-Clause, Frank Schroeder. Byte-buffer parsing with expansion disabled; the complete notice is packaged as licenses/properties-BSD.txt.
 - [sabhiram/go-gitignore 525f6e181f06](https://github.com/sabhiram/go-gitignore/tree/525f6e181f06), MIT.
 
 - [tailscale/wf 6fbb0a674ee6](https://github.com/tailscale/wf/tree/6fbb0a674ee6), BSD-3-Clause, The Inet.af AUTHORS. Windows Filtering Platform bindings.

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -27,6 +28,30 @@ func TestEggTextRewriteBeforeNativeLaunch(t *testing.T) {
 	data, _ := os.ReadFile(file)
 	if string(data) != "key=new\n" {
 		t.Fatal("rewrite missing before running", string(data))
+	}
+}
+
+func TestEggPropertiesRejectsMalformedThenLaunches(t *testing.T) {
+	_, s, _ := setupConfigured(t, func(remote *RemoteServer) {
+		remote.ProcessConfiguration = processFixture(t)
+		remote.ProcessConfiguration.Startup.Done = []string{"regex:^SERVER_READY$"}
+		remote.ProcessConfiguration.Configs = []json.RawMessage{json.RawMessage(`{"file":"server.properties","parser":"properties","replace":[{"match":"port","replace_with":28015}]}`)}
+	})
+	s.Profile.UseEggProcessConfiguration = true
+	s.Profile.EggConfigFiles = []string{"server.properties"}
+	path := filepath.Join(s.Root, "server.properties")
+	os.WriteFile(path, []byte(`bad=\u00xz`), 0600)
+	if err := s.start(); err == nil || s.HasProcess() {
+		t.Fatal("launched with malformed properties")
+	}
+	os.WriteFile(path, []byte("keep=yes\n"), 0600)
+	if err := s.start(); err != nil {
+		t.Fatal(err)
+	}
+	await(t, s, "running")
+	raw, _ := os.ReadFile(path)
+	if !strings.Contains(string(raw), "port=28015\n") || !strings.Contains(string(raw), "keep=yes\n") {
+		t.Fatal(string(raw))
 	}
 }
 

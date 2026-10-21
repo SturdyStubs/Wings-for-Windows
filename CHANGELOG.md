@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.25 - October 21, 2026
+
+- Add approved properties egg parsing with exact keys/literal conditions, scalar/legacy replacements, continuation/Unicode normalization and bounded Java-style escaping. Preserve initial comments, normalize duplicate declarations and keep environment/property expansion disabled.
+- Reuse three-parser preflight and guarded writes, reject malformed/oversize properties and retain native launch checks. Pin/checksum magiconair/properties v1.8.10 and package its BSD-2-Clause notice.
+- Add parsing/escaping/continuation/Unicode, literal environment/cycle, limits/cancellation, mixed-batch and actual native-launch tests; extend the disposable VM fixture for malformed-third-file refusal and actual properties edits with retained ACLs. Final package/VM evidence follows separately. Reboot tests remain deferred.
+
 ## 0.1.0-alpha.24 - October 21, 2026
 
 - Add approved JSON egg file parsing before launch: nested object keys, array indices, one wildcard level and literal conditions, with upstream-compatible scalar coercion and untouched number precision. Reuse exact target approval and guarded writes.

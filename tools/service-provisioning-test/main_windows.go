@@ -34,6 +34,9 @@ func main() {
 		if len(c.Profiles[id].EggConfigFiles) > 1 {
 			server.ProcessConfiguration.Configs = append(server.ProcessConfiguration.Configs, json.RawMessage(`{"file":"server.json","parser":"json","replace":[{"match":"network.port","replace_with":"28015"},{"match":"network.enabled","replace_with":true},{"match":"name","replace_with":"Café"},{"match":"worlds.*.mode","if_value":"old","replace_with":"new"}]}`))
 		}
+		if len(c.Profiles[id].EggConfigFiles) > 2 {
+			server.ProcessConfiguration.Configs = append(server.ProcessConfiguration.Configs, json.RawMessage(`{"file":"server.properties","parser":"properties","replace":[{"match":"server-port","replace_with":28015},{"match":"name","replace_with":"Windows Café 😀"},{"match":"mode","if_value":"old","replace_with":"new"},{"match":"absent","if_value":"old","replace_with":"no"},{"match":"added","replace_with":"${USERNAME}"},{"match":"enabled","replace_with":true}]}`))
+		}
 	}
 	if c.ConsoleLogs != nil {
 		server.Settings.Environment["LOG_PROBE_PATH"] = filepath.Join(c.ConsoleLogs.Directory, id, "console.jsonl")
