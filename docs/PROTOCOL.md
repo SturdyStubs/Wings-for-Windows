@@ -105,6 +105,10 @@ State progresses `offline -> starting -> running -> stopping -> offline`. `runni
 
 Console history is in memory and resets after daemon restart. Persistent logs, state recovery and service Event Log integration remain future work. Panel configuration remains authoritative for variables, limits and suspension; local profiles are authoritative for the executable, argument structure, readiness and stop behavior.
 
+## Portable host baseline
+
+The package includes compiled `internal/native` tests and `scripts/Test-Host.ps1` for offline VM evidence without Go or source files. This runs harmless processes under the invoking account, including a self-derived restricted token, and records exact suite coverage. It invokes no panel, SCM, real game-account logon or WFP filter installation. See [VM workflow](WINDOWS-SERVER-TESTING.md). No protocol route is added.
+
 ## Sources
 
 - [Wings router](https://github.com/pterodactyl/wings/blob/747bc43/router/router.go)

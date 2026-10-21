@@ -1,6 +1,6 @@
 # Progress toward Wings compatibility
 
-Last updated: October 20, 2026. Current version: **0.1.0-alpha.14**. Active development: **M2 — isolation and supported threat model**. M1 remains open for its live panel gate.
+Last updated: October 20, 2026. Current version: **0.1.0-alpha.15**. Active development: **M2 — isolation and supported threat model**. M1 remains open for its live panel gate.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
@@ -22,6 +22,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - Alpha 12: explicit `--check-network-policy <UUID>` diagnostic with identity gating, owned-rule readback and independent cleanup inspection. Injected-backend success/failure/cancellation checks pass; no real filter installation or traffic result is claimed.
 - Alpha 13: read-sharing-only startup handles retain declared protected paths, executable, working directory and ancestors across ACL audit, WFP setup and suspended process creation/resume. Audit handles now request data/list access for effective no-delete sharing. Real write/rename/rollback/bound/link and pinned process-launch tests pass; runtime/ACL/mapping/loader races remain open.
 - Alpha 14: required game-identity DACL grants for executable read/execute, declared dependency reads and working/temporary-directory list/traverse/create permissions, shared between startup and the new diagnostic `launch_access` stage. Actual restricted-token file opens and allowed/denied temporary-file creation match the checks. No second-account/live-host validation is claimed.
+- Alpha 15: portable compiled native tests plus a hash/revision-checked PowerShell host-report runner and staged Windows Server VM instructions. Local no-Go execution passes 14 runtime cases/subtests with zero skipped; host evidence explicitly excludes panel, distinct-account, service and network-filter verification. Server VM results remain pending.
 - HTTP inventory: handlers at **13 of upstream's 38 method/path combinations**, with partial behavior; **25 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
 - Automatic installation, full file manager/SFTP, backups/restores, transfers, strong isolation and live certification remain open.
 - Unchanged Linux eggs require a Linux execution backend. Native Windows profiles do not translate Linux images/binaries.
@@ -76,7 +77,7 @@ The seed definitions are in `docs/progress-plan.json`. `scripts/Update-Progress.
   - [ ] Verify successful distinct-account batch logon/launch under the intended Windows Server service identity.
   - [ ] Complete account/credential lifecycle, recursive/ancestor/link/race policy, shared executable/mount rules, daemon process-handle and network enforcement.
 - [ ] Test cross-server/account access, credentials, hardlinks, reparse points, case aliases and filesystem races. Local fixtures now cover a denied root with an exposed child, real NTFS hardlinks/junctions, ambiguous paths, handle-pinned rename/write rejection, retained startup handles with rollback and scan/handle bounds/cancellation; live identity and adversarial race gates remain open.
-- [ ] Publish the supported Windows host/runtime/game matrix and remaining restrictions.
+- [ ] Publish the supported Windows host/runtime/game matrix and remaining restrictions. A portable baseline/evidence workflow is available; no Windows Server deployment is certified yet.
 
 Current scope remains a trusted private node. File denylist/path checks are not process isolation.
 
@@ -118,6 +119,7 @@ Current scope remains a trusted private node. File denylist/path checks are not 
 - [ ] Allocation/network restrictions, DNS/outgoing-IP behavior and shared/read-only mount policy.
 - [ ] Runtime config updates/token rotation, durable activity delivery and callback retry/reconciliation.
 - [ ] Diagnostics, service logs, certificate renewal, upgrade/reboot behavior and Windows CI.
+  - [x] Package a no-Go native runtime-test suite, require exact test coverage/zero skips and record host/version/hash/identity evidence without declaring live gates complete.
 - [ ] Sustained multi-server/load testing on supported Windows Server and panel versions.
 
 ## Update discipline

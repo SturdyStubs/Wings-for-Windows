@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0-alpha.15 — October 20, 2026
+
+- Package a compiled native runtime-test binary and exact test/hash manifest; allow an explicit existing harmless fixture so the VM needs neither Go nor repository source.
+- Add Test-Host.ps1: verify clean/matching source revisions and binary hashes, record OS/build/invoking-token metadata, run every manifest test with zero skips, and save JSON plus logs in a new evidence directory.
+- Keep panel, distinct-account, service and real network-filter verification false even when the runtime baseline passes. No node config, credentials, service setup or WFP mutation is used.
+- Add a staged Windows Server VM workflow and baseline/remaining-gate matrix. Verify local no-Go execution, damaged/dirty packages, reused output directories and incomplete test inventory rejection.
+- Full development suite: 192 cases/subtests, zero skipped; portable native baseline: 14 cases/subtests, zero skipped. Actual Server 2022/service/panel/game validation remains pending; M2 remains open.
+
 ## 0.1.0-alpha.14 — October 20, 2026
 
 - Check effective game-token DACL grants for executable read/execute, declared dependency reads and working/temporary-directory list, traverse, metadata and file/subdirectory creation before network-policy installation or process creation.

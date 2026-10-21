@@ -1,6 +1,6 @@
 # Verification and release status
 
-Version `0.1.0-alpha.14`, verified locally October 20, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). No production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration was changed. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
+Version `0.1.0-alpha.15`, verified locally October 20, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). No production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration was changed. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
 
 The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed by the original tests. Alpha 2 adds upstream/panel-derived metadata fixtures and canonical route assertions, plus regression checks for the fixes below. Passing these tests is still not proof that a complete live panel/game deployment works. Current outstanding work is tracked in [ROADMAP.md](../ROADMAP.md).
 
@@ -8,7 +8,7 @@ The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed
 
 The release build runs `go test -count=1 -timeout 90s ./...` and `go vet ./...`. Tests launch harmless compiled fixture executables in temporary directories and use a mock panel API. They do not start Docker or contact a live panel.
 
-Alpha 14 local run: **191 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
+Alpha 15 local run: **192 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
 
 Coverage includes:
 
@@ -56,9 +56,14 @@ Coverage includes:
 - Actual Windows image creation with launch pins held, including a restricted-token fixture; pins can be released after startup. A separate no-existing-writer regression verifies audit handles themselves enforce no-delete sharing. These tests do not validate concurrent ACL changes, existing writable mappings, runtime loader paths or a hostile race campaign.
 - Required launch permissions using a real restricting SID and disposable ACL fixtures: executable execute denial, explicit denies, unreadable dependencies, root file-creation denial, read-only temporary directories, missing paths/types, cancellation and dependency bounds. Only fixture ACLs are modified.
 - Actual file read/execute opens and allowed/denied temporary-file creation under an impersonated restricted token agree with preflight results; impersonation is reverted before assertions. No account is created/logged on. Node specs preserve dependency snapshots and check the same temporary directory passed to the child. Missing-credential JSON reports leave `launch_access` as `not_run`.
+- Portable native test argument rejection and no-Go packaged execution: 14 cases/subtests, zero skipped. The PowerShell runner verifies clean/matching source revisions and binary hashes, refuses existing evidence directories, rejects incomplete manifest coverage, and keeps all live panel/account/service/WFP verification flags false.
 - GitHub milestones and README badge endpoints are checked against actual repository counts. Progress initialization is idempotent; closing/reopening issues remains authoritative.
 
 The build script produces the Windows amd64 daemon, demo executable, documentation, dependency licenses and a ZIP checksum. Go race-detector testing is not included; no compatible C toolchain is configured on this host.
+
+## Portable VM evidence
+
+Use [the Windows Server VM workflow](WINDOWS-SERVER-TESTING.md) to run the packaged native tests without Go. The local runner was checked with Windows PowerShell 5.1 and Go removed from PATH, including checksum/dirty-source/reused-output/incomplete-suite rejection. Reports record the actual OS build and invoking SID; a client-Windows pass is not relabeled as a Windows Server result. Successful local baseline: 14 cases/subtests, zero skipped. Server 2022 results are pending.
 
 ## Required live checks
 

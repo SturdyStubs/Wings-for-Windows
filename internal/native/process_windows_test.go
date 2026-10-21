@@ -3,6 +3,7 @@ package native
 import (
 	"bufio"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"golang.org/x/sys/windows"
 	"os"
@@ -16,8 +17,23 @@ import (
 )
 
 var fixture string
+var suppliedFixture = flag.String("wings-fixture", "", "Use an existing harmless runtime fixture instead of compiling one")
 
 func TestMain(m *testing.M) {
+	flag.Parse()
+	if *suppliedFixture != "" {
+		if !filepath.IsAbs(*suppliedFixture) {
+			fmt.Fprintln(os.Stderr, "wings-fixture must be an absolute executable path")
+			os.Exit(2)
+		}
+		info, err := os.Stat(*suppliedFixture)
+		if err != nil || !info.Mode().IsRegular() {
+			fmt.Fprintln(os.Stderr, "wings-fixture must name an existing regular file")
+			os.Exit(2)
+		}
+		fixture = *suppliedFixture
+		os.Exit(m.Run())
+	}
 	directory, err := os.MkdirTemp("", "native-runtime-test-")
 	if err != nil {
 		panic(err)
@@ -30,6 +46,19 @@ func TestMain(m *testing.M) {
 	code := m.Run()
 	os.RemoveAll(directory)
 	os.Exit(code)
+}
+
+func TestPortableFixtureArgumentsRejectMissingAndRelativePaths(t *testing.T) {
+	self, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, path := range []string{"relative-fixture.exe", filepath.Join(t.TempDir(), "missing.exe"), t.TempDir()} {
+		output, err := exec.Command(self, "-wings-fixture", path, "-test.run=^$").CombinedOutput()
+		if err == nil || !strings.Contains(string(output), "wings-fixture must") {
+			t.Fatal("invalid portable fixture accepted", path, err, string(output))
+		}
+	}
 }
 func launch(t *testing.T, mode string) *Process {
 	t.Helper()
