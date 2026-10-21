@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 	"wings-windows/internal/config"
+	"wings-windows/internal/eggconfig"
 )
 
 type ProcessConfiguration struct {
@@ -25,6 +26,7 @@ type outputMatcher struct {
 	regex   *regexp.Regexp
 }
 type processPolicy struct {
+	configs     []eggconfig.File
 	matchers    []outputMatcher
 	stripANSI   bool
 	stopCommand string
@@ -47,7 +49,11 @@ func newProcessPolicy(profile config.Profile, remote *ProcessConfiguration) (*pr
 		return nil, fmt.Errorf("panel process_configuration is required by this profile")
 	}
 	if len(remote.Configs) > 0 {
-		return nil, fmt.Errorf("egg config-file rewriting is not supported yet; use a local execution profile")
+		var err error
+		p.configs, err = eggconfig.Compile(remote.Configs, profile.EggConfigFiles)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if len(remote.Startup.Done) == 0 || len(remote.Startup.Done) > 64 {
 		return nil, fmt.Errorf("egg startup.done must contain 1..64 matchers")

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.23 - October 21, 2026
+
+- Add per-profile egg_config_files, requiring egg process configuration, and the supported plain-text file parser before launch. Validate exact local approval, scalar/legacy replacements, prefix order and bounded UTF-8/LF behavior. Unsupported parsers, conditions and unresolved templates fail explicitly.
+- Preflight/render every existing target before writing; pin ancestors and regular single-link handles, reject protected configuration/TLS/code identities and preserve file ACLs with in-place writes. I/O failure/cancellation may leave partial edits; no transactional rollback or interrupted-operation guarantee is claimed.
+- Add contract, path, encoding/bounds, cancellation, guarded-write and native-launch tests; extend the disposable VM fixture for missing-file refusal and actual non-administrator SCM rewriting with retained ACLs. Final package/VM evidence follows separately. Reboot tests remain deferred.
+
 ## 0.1.0-alpha.22 - October 21, 2026
 
 - Add per-profile crash_recovery.persist_history, requiring the existing protected console log store. Persist retry reservations before launch, retain the consumed budget across service/daemon restarts and keep games offline with no resumed timer.

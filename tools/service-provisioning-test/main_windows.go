@@ -25,6 +25,13 @@ func main() {
 		break
 	}
 	server := node.RemoteServer{UUID: id, Settings: node.Settings{UUID: id, Environment: map[string]any{}}}
+	if len(c.Profiles[id].EggConfigFiles) > 0 {
+		server.ProcessConfiguration = &node.ProcessConfiguration{}
+		server.ProcessConfiguration.Startup.Done = []string{"regex:^SERVER_READY$"}
+		server.ProcessConfiguration.Stop.Type = "command"
+		server.ProcessConfiguration.Stop.Value = "stop"
+		server.ProcessConfiguration.Configs = []json.RawMessage{json.RawMessage(`{"file":"server.cfg","parser":"file","replace":[{"match":"server.name","replace_with":"server.name \"Windows Café\""},{"match":"server.port","replace_with":"server.port 28015"}]}`)}
+	}
 	if c.ConsoleLogs != nil {
 		server.Settings.Environment["LOG_PROBE_PATH"] = filepath.Join(c.ConsoleLogs.Directory, id, "console.jsonl")
 		if p := c.Profiles[id].CrashRecovery; p != nil && p.PersistHistory {

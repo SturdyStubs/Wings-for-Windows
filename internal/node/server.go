@@ -15,6 +15,7 @@ import (
 	"time"
 	"wings-windows/internal/config"
 	"wings-windows/internal/consolelog"
+	"wings-windows/internal/eggconfig"
 	"wings-windows/internal/native"
 	"wings-windows/internal/provision"
 )
@@ -490,6 +491,17 @@ func (s *Server) startWithContext(parent context.Context) error {
 	spec, err := s.spec()
 	if err != nil {
 		return err
+	}
+	if len(processPolicy.configs) > 0 {
+		protected := []string{s.panel.Config.SourcePath, s.panel.Config.TLS.Cert, s.panel.Config.TLS.Key}
+		for _, profile := range s.panel.Config.Profiles {
+			protected = append(protected, profile.Executable)
+			protected = append(protected, profile.Requirements.RequiredFiles...)
+		}
+		if err := eggconfig.Apply(ctx, s.Root, processPolicy.configs, protected); err != nil {
+			return err
+		}
+		s.log("[Windows node] approved egg configuration files updated")
 	}
 	s.mu.Lock()
 	if s.closing {

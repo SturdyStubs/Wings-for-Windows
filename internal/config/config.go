@@ -17,7 +17,7 @@ import (
 	"wings-windows/internal/networkpolicy"
 )
 
-const Version = "0.1.0-alpha.22"
+const Version = "0.1.0-alpha.23"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -26,6 +26,7 @@ type TLS struct {
 	Key  string `json:"key"`
 }
 type Profile struct {
+	EggConfigFiles             []string             `json:"egg_config_files,omitempty"`
 	CrashRecovery              *CrashRecovery       `json:"crash_recovery,omitempty"`
 	NetworkPolicy              networkpolicy.Policy `json:"network_policy,omitempty"`
 	RunAs                      *identity.Reference  `json:"run_as,omitempty"`
@@ -142,6 +143,9 @@ func (c *Config) Validate() error {
 	normalized := make(map[string]Profile, len(c.Profiles))
 	identities := make(map[string]bool)
 	for id, p := range c.Profiles {
+		if err := p.ValidateEggFiles(); err != nil {
+			return fmt.Errorf("server %s: %w", id, err)
+		}
 		if p.CrashRecovery != nil && p.CrashRecovery.PersistHistory && c.ConsoleLogs == nil {
 			return fmt.Errorf("server %s: crash_recovery.persist_history requires console_logs private storage", id)
 		}

@@ -4,7 +4,7 @@ This is an independent native Windows runtime, not a build of upstream Wings wit
 
 See the [original source parity audit](WINGS-PARITY-AUDIT.md) and [current progress](../ROADMAP.md). Alpha 2 fixes the listing URL/schema, file denylist, derived environment and emergency-kill defects. The route table describes implemented behavior; live panel compatibility remains unverified.
 
-Alpha 3 adds decoded egg process configuration and live Job Object CPU/memory updates during sync. Opt-in `use_egg_process_configuration` supports readiness literals/regexes, ANSI stripping, command stops and explicit SIGKILL. Local mode remains the default. Unsupported signal/native-stop strategies and `configs` rewrites fail explicitly in egg mode. User-interaction adapters remain unimplemented.
+Alpha 3 adds decoded egg process configuration and live Job Object CPU/memory updates during sync. Opt-in `use_egg_process_configuration` supports readiness literals/regexes, ANSI stripping, command stops and explicit SIGKILL. Local mode remains the default. Unsupported signal/native-stop strategies and unsupported `configs` rewrites fail explicitly in egg mode. Alpha 23 supports only explicitly approved plain-text `file` rewrites; see [scope and limits](EGG-TEXT-CONFIG.md). User-interaction adapters remain unimplemented.
 
 ```text
 Pterodactyl panel backend -- node bearer / HTTPS --> Windows Native HTTP API

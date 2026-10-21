@@ -1,5 +1,5 @@
 #Requires -RunAsAdministrator
-param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery)
+param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText)
 $ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
 if($TestPersistentRecovery -and (-not $TestCrashRecovery -or -not $TestConsoleLogs)){throw 'Persistent recovery fixture requires TestCrashRecovery and TestConsoleLogs'}
 if($Root -notmatch '^C:\\WingsWindowsTesting\\scm-([0-9a-f]{8})$'){throw 'Use a fresh C:\WingsWindowsTesting\scm-<eight-hex> fixture root'}
@@ -84,6 +84,7 @@ try {
  $config=[ordered]@{listen=('127.0.0.1:'+$nodePort);panel_url=('http://127.0.0.1:'+$panelPort);node_uuid=[guid]::NewGuid().ToString();token_id='scm-fixture';token=$nodeToken;data_directory=(Join-Path $Root 'data');allow_insecure_loopback=$true;tls=@{cert='';key=''};profiles=$profiles}
  if($TestConsoleLogs){$config.console_logs=@{directory=(Join-Path $Root 'logs\console');max_file_bytes=1048576;max_files=2};$profiles[$ServerID].allowed_environment=@('LOG_PROBE_PATH')}
  if($TestPersistentRecovery){$profiles[$ServerID].crash_recovery.persist_history=$true;$profiles[$ServerID].crash_recovery.window_seconds=3600;$profiles[$ServerID].allowed_environment+=@('RECOVERY_PROBE_PATH')}
+ if($TestEggText){$profiles[$ServerID].use_egg_process_configuration=$true;$profiles[$ServerID].egg_config_files=@('server.cfg')}
  $configuration=Join-Path $Root 'private\config.json';$config|ConvertTo-Json -Depth 10|Set-Content -LiteralPath $configuration -Encoding Ascii
  $exe=Join-Path $Root 'bin\wings-windows.exe'
  # Force a post-ACL failure once to validate compensation on real VM state.
@@ -114,7 +115,23 @@ try {
  $serviceInfo=Get-CimInstance Win32_Service -Filter "Name='WingsWindowsNative'"
  $owner=Invoke-CimMethod -InputObject (Get-CimInstance Win32_Process -Filter ('ProcessId='+$serviceInfo.ProcessId)) -MethodName GetOwnerSid
  if($owner.Sid -ne $daemonSid){throw 'SCM daemon SID mismatch'};$report.checks.actual_service_identity='passed'
+ if($TestEggText){
+  Set-Power 'start'
+  $until=[DateTime]::UtcNow.AddSeconds(5);$failed=$false
+  do{$failed=(@((Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data|Where-Object {$_ -like '*egg file 1 preflight failed*'}).Count -gt 0);if(-not $failed){Start-Sleep -Milliseconds 50}}while(-not $failed -and [DateTime]::UtcNow -lt $until)
+  if(-not $failed -or (Get-NodeAPI ('/api/servers/'+$ServerID)).state -ne 'offline'){throw 'Missing approved egg file did not reject startup'}
+  $report.checks.egg_text_missing_file_rejects_launch='passed'
+  $eggPath=Join-Path $Root ('data\'+$ServerID+'\server.cfg')
+  [IO.File]::WriteAllText($eggPath,"# keep`r`nserver.name old`r`nserver.port 1`r`n",[Text.UTF8Encoding]::new($false))
+  $eggACL=(Get-Acl -LiteralPath $eggPath).Sddl
+ }
  Set-Power 'start';Wait-State 'running';$report.checks.separate_game_start='passed'
+ if($TestEggText){
+  $expected="# keep`nserver.name ""Windows Caf$([char]0xe9)""`nserver.port 28015`n"
+  if([IO.File]::ReadAllText($eggPath) -ne $expected -or (Get-Acl -LiteralPath $eggPath).Sddl -ne $eggACL){throw 'SCM text rewrite content or ACL differs'}
+  $report.checks.egg_text_daemon_rewrite_preserves_acl='passed'
+ }
+
  Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body (@{commands=@('SCM console test')}|ConvertTo-Json) | Out-Null
  $deadline=[DateTime]::UtcNow.AddSeconds(5);$echoed=$false
  do{$log=Get-NodeAPI ('/api/servers/'+$ServerID+'/logs');$echoed='ECHO:SCM console test' -in $log.data;if(-not $echoed){Start-Sleep -Milliseconds 100}}while(-not $echoed -and [DateTime]::UtcNow -lt $deadline)
