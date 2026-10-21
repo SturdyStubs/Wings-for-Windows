@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "version": "0.1.0-alpha.25",
+  "source_revision": "99a84f1263535c0c559c7b8da1244e596d3cb49e",
+  "zip_sha256": "dd10028da4498fa54c4c0f004fe93467359e95b899af9b5e3400eda59888dc93",
+  "runtime_tests_sha256": "2f3218d6621b07a78a09aacbf4badffe923154e0233a4e218499028560acb09f",
+  "demo_sha256": "5ca42bcb6de014e9c60b7517de3544970be43a606944e754b4f8113ff837ad2a",
+  "host": {
+    "os": "Microsoft Windows Server 2022 Standard Evaluation",
+    "build": "20348",
+    "powershell": "5.1.20348.558"
+  },
+  "local_tests_passed": 446,
+  "local_tests_skipped": 0,
+  "packaged_vm_native_tests_passed": 14,
+  "baseline_started_utc": "2026-10-21T17:13:19.6922897Z",
+  "baseline_finished_utc": "2026-10-21T17:13:22.2692035Z",
+  "scope": "Harmless demo, separate daemon/game accounts, SCM and loopback mock panel. Approved mixed text/JSON/properties parsing, malformed-third-file refusal, literal expansion policy and Unicode/continuation/ACL preservation tested; no host reboot, real panel/TLS/game or WFP traffic certification.",
+  "service": {
+    "passed": true,
+    "checks": {
+      "event_source_registration_idempotent_whatif": "passed",
+      "installer_rollback": "passed",
+      "installer_start_failure_rollback": "passed",
+      "installer_account_rights_acls": "passed",
+      "public_bad_service_password_cleanup": "passed",
+      "public_operation_lock_rejected": "passed",
+      "public_preexisting_batch_right_preserved": "passed",
+      "public_credential_overwrite_rejected": "passed",
+      "public_credential_wrong_identity_rejected": "passed",
+      "public_credential_replace_inspect": "passed",
+      "credential_bootstrap": "passed",
+      "scm_service_start_and_api": "passed",
+      "actual_service_identity": "passed",
+      "egg_text_missing_file_rejects_launch": "passed",
+      "egg_json_malformed_batch_preserves_text": "passed",
+      "egg_properties_malformed_batch_preserves_targets": "passed",
+      "separate_game_start": "passed",
+      "egg_properties_daemon_rewrite_escapes_literals_acl": "passed",
+      "egg_json_daemon_rewrite_types_precision_acl": "passed",
+      "egg_text_daemon_rewrite_preserves_acl": "passed",
+      "service_console": "passed",
+      "console_log_game_read_denied": "passed",
+      "recovery_state_game_read_denied": "passed",
+      "crash_recovery_restarts_and_cleans_old_tree": "passed",
+      "crash_recovery_manual_kill_cancels": "passed",
+      "crash_recovery_budget_stops_loop": "passed",
+      "console_log_rotation_and_size_limit": "passed",
+      "actual_game_tree_identity": "passed",
+      "scm_stop_kills_game_tree": "passed",
+      "console_log_history_restored_after_service_restart": "passed",
+      "crash_recovery_service_restart_preserves_budget": "passed",
+      "restored_budget_blocks_extra_automatic_restart": "passed",
+      "daemon_termination_preserves_recovery_budget": "passed",
+      "service_restart_and_game_stop": "passed",
+      "public_credential_remove_inspect": "passed",
+      "corrupt_recovery_state_refuses_service_start": "passed",
+      "event_source_remove_existing_service_rejected": "passed",
+      "actual_service_lifecycle_events": "passed",
+      "actual_startup_failure_event_secret_safe": "passed"
+    },
+    "error": null,
+    "cleanup": {
+      "credential_removed": true,
+      "service_removed": true,
+      "mock_stopped": true,
+      "event_source_removed": true,
+      "accounts_and_rights_removed": true
+    }
+  },
+  "independent_cleanup_audit": {
+    "retained_profiles": [
+      {
+        "loaded": 1,
+        "fixture": "scm-5eb53e13",
+        "count": 1
+      }
+    ],
+    "explicit_rights_remaining": 0,
+    "historical_event_ids": [
+      100,
+      101,
+      102,
+      103,
+      200
+    ],
+    "passed": true,
+    "event_source_remaining": 0,
+    "tasks_remaining": 0,
+    "accounts_remaining": 0,
+    "service_remaining": 0,
+    "processes_remaining": 0,
+    "mock_processes_remaining": 0
+  },
+  "retained_limits": "One loaded profile retained without force unload/delete. Earlier fixture/profile and alpha 19 disposable-credential limitation remain as previously documented."
+}

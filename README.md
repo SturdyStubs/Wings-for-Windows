@@ -26,7 +26,7 @@ Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.co
 GitHub Issues are the source of truth; ROADMAP.md records implementation scope and verification. Run `scripts/Update-Progress.ps1` to regenerate this section. Use `-Initialize` to add missing planned milestones/tasks; rerunning it never automatically re-closes existing issues.
 <!-- progress:end -->
 
-Alpha 24 verification: **425 local cases/subtests**, **14 packaged native cases** and **37 Server 2022 combined checks** pass. See the [evidence and remaining gates](docs/evidence/server2022-alpha24-egg-json.md).
+Alpha 25 verification: **446 local cases/subtests**, **14 packaged native cases** and **39 Server 2022 combined checks** pass. See the [evidence and remaining gates](docs/evidence/server2022-alpha25-egg-properties.md).
 
 ## What works
 

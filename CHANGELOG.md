@@ -4,7 +4,7 @@
 
 - Add approved properties egg parsing with exact keys/literal conditions, scalar/legacy replacements, continuation/Unicode normalization and bounded Java-style escaping. Preserve initial comments, normalize duplicate declarations and keep environment/property expansion disabled.
 - Reuse three-parser preflight and guarded writes, reject malformed/oversize properties and retain native launch checks. Pin/checksum magiconair/properties v1.8.10 and package its BSD-2-Clause notice.
-- Add parsing/escaping/continuation/Unicode, literal environment/cycle, limits/cancellation, mixed-batch and actual native-launch tests; extend the disposable VM fixture for malformed-third-file refusal and actual properties edits with retained ACLs. Final package/VM evidence follows separately. Reboot tests remain deferred.
+- Add parsing/escaping/continuation/Unicode, literal environment/cycle, limits/cancellation, mixed-batch and actual native-launch tests; extend the disposable VM fixture for malformed-third-file refusal and actual properties edits with retained ACLs. All 446 local cases/subtests pass with zero skips; vet, clean release build and packaged checks pass. The exact package passes 14 native and all 39 combined Server 2022 checks. Independent cleanup passes; one loaded profile is retained. See [evidence](docs/evidence/server2022-alpha25-egg-properties.md). Reboot tests remain deferred.
 
 ## 0.1.0-alpha.24 - October 21, 2026
 

@@ -73,6 +73,7 @@ For configured `block_connections`, stop workloads using the dedicated account a
 | Persistent retry budgets | Final alpha 22: 14 native cases and 33 service/persistence checks passed, including forced daemon termination and corrupt-state refusal; [evidence](evidence/server2022-alpha22-recovery-state.md). |
 | Approved egg text configuration | Final alpha 23: 14 native cases and 35 service/persistence/text checks passed; missing-file refusal and UTF-8 edits preserve full SDDL; [evidence](evidence/server2022-alpha23-egg-text.md). |
 | Approved JSON egg configuration | Final alpha 24: 14 native cases and 37 combined checks passed; mixed-batch refusal and typed/precise JSON edits preserve SDDL; [evidence](evidence/server2022-alpha24-egg-json.md). |
+| Approved properties egg configuration | Final alpha 25: 14 native cases and 39 combined checks passed; malformed third-file refusal and Unicode/literal/conditional edits preserve earlier targets and SDDL; [evidence](evidence/server2022-alpha25-egg-properties.md). |
 | Reboot/profile recovery | Deferred at operator request; remains unverified. |
 | Trusted-TLS real panel/game workflows | Pending. |
 | Real WFP installation, traffic and crash behavior | Pending. |

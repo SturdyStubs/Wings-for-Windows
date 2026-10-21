@@ -8,7 +8,7 @@ The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed
 
 The release build runs `go test -count=1 -timeout 90s ./...` and `go vet ./...`. Tests launch harmless compiled fixture executables in temporary directories and use a mock panel API. They do not start Docker or contact a live panel.
 
-Alpha 24 local run: **425 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
+Alpha 25 local run: **446 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
 
 Coverage includes:
 
@@ -139,4 +139,4 @@ Local fixtures cover nested/array/wildcard paths, scalar types and preserved lar
 
 ## Alpha 25 approved properties egg files
 
-Local fixtures cover full-key conditions, escapes/Unicode/continuations, stable output, literal environment/cycle values, encoding/size/count/cancellation limits, mixed-batch preservation and actual native launch. A pinned dependency and its complete BSD notice are packaged. Exact release/VM evidence follows separately. YAML/INI/XML, full parser parity and interrupted-operation recovery remain open; reboot testing stays deferred. See [properties guide](EGG-PROPERTIES-CONFIG.md).
+Local fixtures cover full-key conditions, escapes/Unicode/continuations, stable output, literal environment/cycle values, encoding/size/count/cancellation limits, mixed-batch preservation and actual native launch. A pinned dependency and its complete BSD notice are packaged. All 446 local cases/subtests pass with zero skips; vet, clean release build and packaged checks pass. The exact package passes 14 native and all 39 combined Server 2022 checks, including third-file refusal without earlier edits and actual Unicode/continuation/literal/conditional rewrites with retained SDDL. See [evidence and cleanup limits](evidence/server2022-alpha25-egg-properties.md). YAML/INI/XML, full parser parity and interrupted-operation recovery remain open; reboot testing stays deferred. See [properties guide](EGG-PROPERTIES-CONFIG.md).
