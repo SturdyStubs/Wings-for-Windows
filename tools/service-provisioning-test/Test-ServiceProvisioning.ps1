@@ -1,5 +1,5 @@
 #Requires -RunAsAdministrator
-param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs)
+param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents)
 $ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
 if($Root -notmatch '^C:\\WingsWindowsTesting\\scm-([0-9a-f]{8})$'){throw 'Use a fresh C:\WingsWindowsTesting\scm-<eight-hex> fixture root'}
 $suffix=$Matches[1]
@@ -7,10 +7,13 @@ if($GameName -ne ('WwScmG_'+$suffix) -or $DaemonName -ne ('WwScmD_'+$suffix)){th
 if($ServerID -notmatch '^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$'){throw 'Use a full random server UUID'}
 $report=[ordered]@{passed=$false;checks=[ordered]@{};error=$null;cleanup=[ordered]@{}}
 $gameCreated=$false;$serviceCreated=$false;$credentialSeeded=$false;$mock=$null;$daemonSid=$null;$gameSid=$null
+$eventSourceCreated=$false;$eventStarted=Get-Date;$eventKey='HKLM:\SYSTEM\CurrentControlSet\Services\EventLog\Application\WingsWindowsNative'
+$eventScript=Join-Path $Package 'scripts\Register-EventSource.ps1'
 $installer=Join-Path $Staging 'Install-Service.ps1';Import-Module (Join-Path $Staging 'NodeSetup.psm1') -Force;Initialize-NodeSetupNative
 if(Get-Service WingsWindowsNative -ErrorAction SilentlyContinue){throw 'A Wings service already exists; refusing to touch it'}
 foreach($name in @($GameName,$DaemonName)){if(Get-LocalUser -Name $name -ErrorAction SilentlyContinue){throw 'Test account exists'}}
 if(Test-Path -LiteralPath $Root){throw 'Test root exists'}
+if($TestServiceEvents -and (Test-Path -LiteralPath $eventKey)){throw 'Event source exists; refusing to touch it'}
 function New-TestPassword {$b=New-Object byte[] 32;$r=[Security.Cryptography.RandomNumberGenerator]::Create();try{$r.GetBytes($b);ConvertTo-SecureString ('Aa1!'+[Convert]::ToBase64String($b)) -AsPlainText -Force}finally{[Array]::Clear($b,0,$b.Length);$r.Dispose()}}
 function Invoke-Bootstrap([switch]$Cleanup) {
  $script=Join-Path $Root 'bin\scripts\Set-ServiceGameCredential.ps1'
@@ -58,6 +61,14 @@ function Get-NodeAPI([string]$Path) {Invoke-RestMethod -Uri ('http://127.0.0.1:'
 function Set-Power([string]$Action) {Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/power') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body (@{action=$Action}|ConvertTo-Json) -TimeoutSec 5 | Out-Null}
 function Wait-State([string]$Expected) {$until=[DateTime]::UtcNow.AddSeconds(12);do{try{$state=(Get-NodeAPI ('/api/servers/'+$ServerID)).state;if($state -eq $Expected){return}}catch{};Start-Sleep -Milliseconds 100}while([DateTime]::UtcNow -lt $until);$logs=Get-NodeAPI ('/api/servers/'+$ServerID+'/logs');throw ('State timeout '+$Expected+': '+($logs|ConvertTo-Json -Compress))}
 try {
+ if($TestServiceEvents){
+  & $eventScript -WhatIf
+  if(Test-Path -LiteralPath $eventKey){throw 'WhatIf registered an Event Log source'}
+  & $eventScript;$eventSourceCreated=$true
+  & $eventScript
+  if((Get-ItemProperty -LiteralPath $eventKey).WingsWindowsManaged -ne 1){throw 'Event source registration missing marker'}
+  $report.checks.event_source_registration_idempotent_whatif='passed'
+ }
  $gamePassword=New-TestPassword;$daemonPassword=New-TestPassword;$serviceCredential=[PSCredential]::new(('.\'+$DaemonName),$daemonPassword)
  New-LocalUser -Name $GameName -Password $gamePassword -Description 'Disposable SCM game account' | Out-Null;$gameCreated=$true;$gameSid=(Get-LocalUser -Name $GameName).SID.Value
  foreach($dir in @($Root,(Join-Path $Root 'bin'),(Join-Path $Root 'private'),(Join-Path $Root 'data'))){New-Item -ItemType Directory -Path $dir|Out-Null}
@@ -153,12 +164,31 @@ try {
  Start-Service WingsWindowsNative;Wait-State 'offline';if($TestConsoleLogs){$restored=(Get-NodeAPI ('/api/servers/'+$ServerID)).native_console_logs;if(-not $restored.enabled -or $restored.restored_lines -le 0 -or 'ECHO:PERSISTED_RESTART_MARKER' -notin (Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data){throw 'Console history did not survive actual service restart'};$report.checks.console_log_history_restored_after_service_restart='passed'};if($TestCrashRecovery){if((Get-NodeAPI ('/api/servers/'+$ServerID)).native_recovery.attempts_in_window -ne 0){throw 'In-memory recovery state did not reset on service restart'};$report.checks.crash_recovery_service_restart_resets_budget='passed'};Set-Power 'start';Wait-State 'running';Set-Power 'stop';Wait-State 'offline';$report.checks.service_restart_and_game_stop='passed'
  Stop-Service WingsWindowsNative
  Invoke-Bootstrap -Cleanup;$credentialSeeded=$false;$report.cleanup.credential_removed=$true
+ if($TestServiceEvents){
+  $rejected=$false;try{& $eventScript -Remove}catch{$rejected=$true};if(-not $rejected){throw 'Removed event source with existing service'}
+  $report.checks.event_source_remove_existing_service_rejected='passed'
+  $events=@(Get-WinEvent -FilterHashtable @{LogName='Application';ProviderName='WingsWindowsNative';StartTime=$eventStarted} -ErrorAction Stop)
+  foreach($id in @(100,101,102,103)){if($id -notin $events.Id){throw ('Missing service lifecycle event '+$id)}}
+  $report.checks.actual_service_lifecycle_events='passed'
+  $configurationPath=Join-Path $Root 'private\config.json'
+  $originalConfiguration=[IO.File]::ReadAllText($configurationPath)
+  try{
+   [IO.File]::WriteAllText($configurationPath,'{"token":"EVENT_SECRET_DO_NOT_LOG')
+   try{Start-Service WingsWindowsNative -ErrorAction Stop}catch{}
+   $failedService=Get-Service WingsWindowsNative;try{$failedService.WaitForStatus('Stopped',[TimeSpan]::FromSeconds(15))}finally{$failedService.Dispose()}
+   $events=@(Get-WinEvent -FilterHashtable @{LogName='Application';ProviderName='WingsWindowsNative';Id=200;StartTime=$eventStarted} -ErrorAction Stop)
+   $messages=($events|ForEach-Object{$_.Properties[0].Value}) -join "`n"
+   if($messages -notmatch 'stage=configuration' -or $messages -match 'EVENT_SECRET_DO_NOT_LOG' -or $messages.Contains($Root) -or $messages.Contains($nodeToken)){throw 'Startup failure event missing safe stage or exposes raw details'}
+   $report.checks.actual_startup_failure_event_secret_safe='passed'
+  }finally{[IO.File]::WriteAllText($configurationPath,$originalConfiguration);$originalConfiguration=$null}
+ }
  $report.passed=$true
 } catch {$report.error=$_.Exception.Message}
 finally {
  if($credentialSeeded -and $daemonSid){try{Stop-Service WingsWindowsNative -ErrorAction Stop;Invoke-Bootstrap -Cleanup;$credentialSeeded=$false;$report.cleanup.credential_removed=$true}catch{$report.cleanup.credential_error=$_.Exception.Message;$report.passed=$false}}
  if($serviceCreated -and -not $credentialSeeded){try{Stop-Service WingsWindowsNative -ErrorAction SilentlyContinue;$s=Get-Service WingsWindowsNative;try{$s.WaitForStatus('Stopped',[TimeSpan]::FromSeconds(10))}finally{$s.Dispose()}; & "$env:SystemRoot\System32\sc.exe" delete WingsWindowsNative|Out-Null;$report.cleanup.service_removed=($LASTEXITCODE -eq 0)}catch{$report.cleanup.service_error=$_.Exception.Message;$report.passed=$false}}
  if($mock){Stop-Process -Id $mock.Id -ErrorAction SilentlyContinue;$mock.Dispose();$report.cleanup.mock_stopped=$true}
+ if($eventSourceCreated){try{& $eventScript -Remove;$report.cleanup.event_source_removed=(-not (Test-Path -LiteralPath $eventKey))}catch{$report.cleanup.event_source_error=$_.Exception.Message;$report.passed=$false}}
  if($credentialSeeded -or (Get-Service WingsWindowsNative -ErrorAction SilentlyContinue)){$report.passed=$false;$report.cleanup.state_retained='Service or credential cleanup incomplete; accounts and rights retained for inspection'}else{
  foreach($entry in @(@{SID=$daemonSid;Names=@('SeServiceLogonRight','SeAssignPrimaryTokenPrivilege','SeIncreaseQuotaPrivilege','SeBatchLogonRight')},@{SID=$gameSid;Names=@('SeBatchLogonRight')})){
   if($entry.SID){foreach($right in $entry.Names){if($right -in @([WingsWindows.NodeSetup]::Rights($entry.SID))){[WingsWindows.NodeSetup]::Right($entry.SID,$right,$true)}}}

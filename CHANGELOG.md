@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.21 - October 21, 2026
+
+- Add fixed Windows Application service lifecycle/failure events with version/PID and allowlisted stages; exclude raw errors and configuration secrets. Offer explicit, idempotent managed source registration/removal without changing runtime privileges or clearing historical events.
+- Report SCM Running only after initial config/panel sync, TLS material loading and API listener binding. Publish pending checkpoints, honor stop during initialization and preserve current status on interrogation. Missing/failed Event Log sinks remain nonfatal.
+- Add injected service and real HTTP/HTTPS readiness regressions; extend the disposable Server 2022 fixture with registration, lifecycle and secret-safe startup-failure checks. Final build/VM evidence follows separately. Reboot tests remain deferred; persistent state/interrupted operations and broader deployment gates stay open.
+
 ## 0.1.0-alpha.20 - October 21, 2026
 
 - Add opt-in per-server JSONL console storage, file-size/count limits, rotation, recent-history restoration and native_console_logs counters/error status. Preserve the existing console and /logs contracts.

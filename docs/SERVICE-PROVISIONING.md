@@ -66,7 +66,7 @@ Start-Service WingsWindowsNative
 Get-Service WingsWindowsNative
 ```
 
-`-Start` is available for a fully prepared account, but a successful service start alone does not prove panel readiness or game credential availability. Host reboot, cold credential/profile initialization, real trusted-TLS panel/game use, persistent service logging and automatic recovery remain open. Keep manual startup until those checks pass.
+`-Start` is available for a fully prepared account, but SCM Running now follows initial panel sync and listener setup; it still does not certify real panel/browser connectivity or game credential availability. Host reboot, cold credential/profile initialization, real trusted-TLS panel/game use, broader daemon diagnostics and automatic daemon recovery remain open. Keep manual startup until those checks pass.
 
 ## Failure and recovery
 
@@ -83,3 +83,5 @@ Server 2022 build 20348 testing of the new installer with alpha 16 runtime binar
 These tests use a local mock panel and harmless demo, with unmanaged networking. They do not certify real panel/TLS/game, WFP traffic isolation, reboot/profile recovery or mutually untrusted hosting. Follow [ROADMAP.md](../ROADMAP.md) for remaining gates.
 
 For optional persistent game console history, configure console_logs.directory as InstallationRoot\logs\console. The existing protected logs ACL is inherited; the daemon creates console/UUID children after installation. See [retention and failure behavior](CONSOLE-LOGS.md). Initial managed setup still requires an empty logs directory.
+
+For optional service lifecycle/failure entries in the Windows Application log, register the managed source before starting the service. See [service diagnostics](SERVICE-EVENTS.md). The installer does not register it automatically.

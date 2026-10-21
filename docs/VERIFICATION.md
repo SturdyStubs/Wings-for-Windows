@@ -1,6 +1,6 @@
 # Verification and release status
 
-Version `0.1.0-alpha.20`, verified locally October 20, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). The local automated suite changes no production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration. Separate disposable VM service tests deliberately create and clean up temporary users, rights, tasks, service registration and fixture ACLs. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
+Version `0.1.0-alpha.21`, verified locally October 21, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). The local automated suite changes no production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration. Separate disposable VM service tests deliberately create and clean up temporary users, rights, tasks, service registration and fixture ACLs. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
 
 The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed by the original tests. Alpha 2 adds upstream/panel-derived metadata fixtures and canonical route assertions, plus regression checks for the fixes below. Passing these tests is still not proof that a complete live panel/game deployment works. Current outstanding work is tracked in [ROADMAP.md](../ROADMAP.md).
 
@@ -99,7 +99,7 @@ These remain open and limit the release to an experimental private node:
 
 ## Unsupported features
 
-Do not enable backups, restore, transfer, SFTP, automatic egg installation/reinstall, signed downloads/uploads or Rust Server Wiper operations on this node. This release has no network/account isolation, disk quota, automatic daemon restart, service Event Log integration or game updater. Optional game crash recovery and persistent console history are documented below.
+Do not enable backups, restore, transfer, SFTP, automatic egg installation/reinstall, signed downloads/uploads or Rust Server Wiper operations on this node. This release has no network/account isolation, disk quota, automatic daemon restart, game updater. Optional game crash recovery and persistent console history are documented below.
 
 Failures during startup are reported in recent console output. A game that never matches readiness remains starting. A daemon shutdown kills managed jobs, so plan service updates as game-server downtime.
 
@@ -120,3 +120,7 @@ The local suite adds policy/default validation, actual process/startup crashes a
 ## Alpha 20 persistent console logs
 
 New local tests cover bounded rotation/history, rejected aliases and duplicate writers, corrupt/torn records, invalid UTF-8/truncation, backpressure, write/close/locked-rotation errors, concurrent close and history restored into a fresh manager. Config/identity/managed-layout tests enforce a separate private store. A test-only helper gives Windows PowerShell children their own module path instead of inheriting incompatible PowerShell 7 module paths from a developer host. Full suite: 294 cases/subtests, zero skipped; vet, clean-source release build and packaged negative checks pass. The checksum-verified package passes 14 native cases and all 25 SCM/credential/recovery/logging checks on Server 2022, including actual game-token read denial, bounded rotation and restored history after service restart. See [evidence, fixture correction and cleanup limits](evidence/server2022-alpha20-console.md). No reboot test is performed. Persistent game/recovery state, daemon diagnostics, real panel/game and WFP gates remain open.
+
+## Alpha 21 Windows service diagnostics
+
+Local injected-handler and HTTP/HTTPS fixtures verify truthful SCM readiness, pending/interrogate/stop/shutdown/startup cancellation, sink failures and secret-safe failure stages. The full 317-case suite, vet and clean release build are required; exact final package/VM evidence is recorded separately. See [operator guide](SERVICE-EVENTS.md). Reboot tests remain deferred.

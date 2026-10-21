@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -21,17 +23,29 @@ import (
 )
 
 func run(ctx context.Context, path, markInstalled string) error {
+	return runWithReady(ctx, path, markInstalled, func() {})
+}
+
+type runtimeFailure struct {
+	stage string
+	err   error
+}
+
+func (e *runtimeFailure) Error() string { return e.err.Error() }
+func (e *runtimeFailure) Unwrap() error { return e.err }
+
+func runWithReady(ctx context.Context, path, markInstalled string, ready func()) error {
 	if runtime.GOOS != "windows" {
 		return fmt.Errorf("native Windows runtime requires Windows")
 	}
 	c, err := config.Load(path)
 	if err != nil {
-		return err
+		return &runtimeFailure{"configuration", err}
 	}
 	m := node.NewManager(c)
 	defer m.Close()
 	if err = m.Sync(ctx); err != nil {
-		return fmt.Errorf("initial panel sync: %w", err)
+		return &runtimeFailure{"panel_sync", fmt.Errorf("initial panel sync: %w", err)}
 	}
 	if markInstalled != "" {
 		s := m.Get(markInstalled)
@@ -46,21 +60,37 @@ func run(ctx context.Context, path, markInstalled string) error {
 	handler := api.New(m)
 	defer handler.Close()
 	server := &http.Server{Addr: c.Listen, Handler: handler, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 30 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 32 * 1024}
+	if c.TLS.Cert != "" {
+		certificate, err := tls.LoadX509KeyPair(c.TLS.Cert, c.TLS.Key)
+		if err != nil {
+			return &runtimeFailure{"tls", err}
+		}
+		server.TLSConfig = &tls.Config{MinVersion: tls.VersionTLS12, Certificates: []tls.Certificate{certificate}}
+	}
+	listener, err := net.Listen("tcp", c.Listen)
+	if err != nil {
+		return &runtimeFailure{"listener", err}
+	}
+	defer listener.Close()
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	result := make(chan error, 1)
 	go func() {
 		log.Printf("Windows Native %s listening on %s (%d configured servers)", config.Version, c.Listen, len(m.All()))
 		if c.TLS.Cert != "" {
-			result <- server.ListenAndServeTLS(c.TLS.Cert, c.TLS.Key)
+			result <- server.ServeTLS(listener, "", "")
 		} else {
-			result <- server.ListenAndServe()
+			result <- server.Serve(listener)
 		}
 	}()
+	ready()
 	select {
 	case err = <-result:
 		if err == http.ErrServerClosed {
 			return nil
 		}
-		return err
+		return &runtimeFailure{"http", err}
 	case <-ctx.Done():
 		shutdown, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
@@ -69,7 +99,10 @@ func run(ctx context.Context, path, markInstalled string) error {
 		if err != nil {
 			server.Close()
 		}
-		return err
+		if err != nil {
+			return &runtimeFailure{"shutdown", err}
+		}
+		return nil
 	}
 }
 func main() {
