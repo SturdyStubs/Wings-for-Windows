@@ -1,6 +1,6 @@
 # Verification and release status
 
-Version `0.1.0-alpha.25`, verified locally October 21, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). The local automated suite changes no production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration. Separate disposable VM service tests deliberately create and clean up temporary users, rights, tasks, service registration and fixture ACLs. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
+Version `0.1.0-alpha.26`, verified locally October 21, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). The local automated suite changes no production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration. Separate disposable VM service tests deliberately create and clean up temporary users, rights, tasks, service registration and fixture ACLs. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
 
 The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed by the original tests. Alpha 2 adds upstream/panel-derived metadata fixtures and canonical route assertions, plus regression checks for the fixes below. Passing these tests is still not proof that a complete live panel/game deployment works. Current outstanding work is tracked in [ROADMAP.md](../ROADMAP.md).
 
@@ -140,3 +140,7 @@ Local fixtures cover nested/array/wildcard paths, scalar types and preserved lar
 ## Alpha 25 approved properties egg files
 
 Local fixtures cover full-key conditions, escapes/Unicode/continuations, stable output, literal environment/cycle values, encoding/size/count/cancellation limits, mixed-batch preservation and actual native launch. A pinned dependency and its complete BSD notice are packaged. All 446 local cases/subtests pass with zero skips; vet, clean release build and packaged checks pass. The exact package passes 14 native and all 39 combined Server 2022 checks, including third-file refusal without earlier edits and actual Unicode/continuation/literal/conditional rewrites with retained SDDL. See [evidence and cleanup limits](evidence/server2022-alpha25-egg-properties.md). YAML/INI/XML, full parser parity and interrupted-operation recovery remain open; reboot testing stays deferred. See [properties guide](EGG-PROPERTIES-CONFIG.md).
+
+## Alpha 26 approved INI egg files
+
+Local fixtures cover default/section/bracketed paths, dotted keys, exact section ownership, scalar/legacy values, duplicates, Unicode, literal interpolation/cycles, Windows paths/quoting, stable output, unsupported rules/encoding/shapes, input/result/encoding bounds, cancellation, mixed-batch preservation and native launch. The pinned upstream dependency and Apache license are packaged. Final release/VM evidence follows separately. See [INI guide](EGG-INI-CONFIG.md). YAML/XML and broader parser/lifecycle parity remain open; reboot tests remain deferred.

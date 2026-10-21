@@ -58,4 +58,4 @@ Profile v1 accepts `crash_recovery` with explicit `enabled`, bounded `max_restar
 
 ## Optional egg text files
 
-Profile v1 accepts egg_config_files only with use_egg_process_configuration. It approves exact relative filenames for plain-text file, bounded [JSON](EGG-JSON-CONFIG.md) and [properties](EGG-PROPERTIES-CONFIG.md) parsers. All targets must already exist; other parsers still fail explicitly. See [schema, bounds and partial-write limits](EGG-TEXT-CONFIG.md).
+Profile v1 accepts egg_config_files only with use_egg_process_configuration. It approves exact relative filenames for plain-text file, bounded [JSON](EGG-JSON-CONFIG.md), [properties](EGG-PROPERTIES-CONFIG.md) and [INI](EGG-INI-CONFIG.md) parsers. All targets must already exist; other parsers still fail explicitly. See [schema, bounds and partial-write limits](EGG-TEXT-CONFIG.md).

@@ -61,3 +61,30 @@ func TestMixedPropertiesPreflightPreservesEarlierFile(t *testing.T) {
 		t.Fatal(values)
 	}
 }
+
+func TestMixedINIPreflightPreservesEarlierFile(t *testing.T) {
+	root := t.TempDir()
+	textPath := filepath.Join(root, "server.cfg")
+	propPath := filepath.Join(root, "server.ini")
+	os.WriteFile(textPath, []byte("key=old\n"), 0600)
+	os.WriteFile(propPath, []byte(`[invalid`), 0600)
+	plans, err := Compile([]json.RawMessage{json.RawMessage(`{"file":"server.cfg","parser":"file","replace":[{"match":"key=","replace_with":"key=new"}]}`), json.RawMessage(`{"file":"server.ini","parser":"ini","replace":[{"match":"port","replace_with":28015}]}`)}, []string{"server.cfg", "server.ini"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if Apply(context.Background(), root, plans, nil) == nil {
+		t.Fatal("malformed INI accepted")
+	}
+	raw, _ := os.ReadFile(textPath)
+	if string(raw) != "key=old\n" {
+		t.Fatal("earlier target changed")
+	}
+	os.WriteFile(propPath, []byte("keep=yes\n"), 0600)
+	if err := Apply(context.Background(), root, plans, nil); err != nil {
+		t.Fatal(err)
+	}
+	raw, _ = os.ReadFile(propPath)
+	if string(raw) != "keep=yes\nport=28015\n" {
+		t.Fatal(string(raw))
+	}
+}

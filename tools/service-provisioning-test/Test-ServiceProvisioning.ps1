@@ -1,6 +1,7 @@
 #Requires -RunAsAdministrator
-param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties)
+param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI)
 $ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
+if($TestEggINI -and -not $TestEggProperties){throw 'INI fixture requires TestEggProperties for four-parser validation'}
 if($TestEggProperties -and -not $TestEggJSON){throw 'Properties fixture requires TestEggJSON for three-parser validation'}
 if($TestEggJSON -and -not $TestEggText){throw 'JSON fixture requires TestEggText for mixed-batch validation'}
 if($TestPersistentRecovery -and (-not $TestCrashRecovery -or -not $TestConsoleLogs)){throw 'Persistent recovery fixture requires TestCrashRecovery and TestConsoleLogs'}
@@ -89,6 +90,7 @@ try {
  if($TestEggText){$profiles[$ServerID].use_egg_process_configuration=$true;$profiles[$ServerID].egg_config_files=@('server.cfg')}
  if($TestEggJSON){$profiles[$ServerID].egg_config_files+=@('server.json')}
  if($TestEggProperties){$profiles[$ServerID].egg_config_files+=@('server.properties')}
+ if($TestEggINI){$profiles[$ServerID].egg_config_files+=@('server.ini')}
  $configuration=Join-Path $Root 'private\config.json';$config|ConvertTo-Json -Depth 10|Set-Content -LiteralPath $configuration -Encoding Ascii
  $exe=Join-Path $Root 'bin\wings-windows.exe'
  # Force a post-ACL failure once to validate compensation on real VM state.
@@ -154,7 +156,25 @@ try {
   [IO.File]::WriteAllText($eggPropertiesPath,$propertiesInput,[Text.UTF8Encoding]::new($false))
   $eggPropertiesACL=(Get-Acl -LiteralPath $eggPropertiesPath).Sddl
  }
+ if($TestEggINI){
+  $eggIniPath=Join-Path $Root ('data\'+$ServerID+'\server.ini')
+  [IO.File]::WriteAllText($eggIniPath,'[invalid',[Text.UTF8Encoding]::new($false))
+  $textBefore=[IO.File]::ReadAllText($eggPath);$jsonBefore=[IO.File]::ReadAllText($eggJsonPath);$propertiesBefore=[IO.File]::ReadAllText($eggPropertiesPath)
+  Set-Power 'start'
+  $until=[DateTime]::UtcNow.AddSeconds(5);$failed=$false
+  do{$failed=(@((Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data|Where-Object {$_ -like '*egg file 4 preflight failed*'}).Count -gt 0);if(-not $failed){Start-Sleep -Milliseconds 50}}while(-not $failed -and [DateTime]::UtcNow -lt $until)
+  if(-not $failed -or (Get-NodeAPI ('/api/servers/'+$ServerID)).state -ne 'offline' -or [IO.File]::ReadAllText($eggPath) -ne $textBefore -or [IO.File]::ReadAllText($eggJsonPath) -ne $jsonBefore -or [IO.File]::ReadAllText($eggPropertiesPath) -ne $propertiesBefore){throw 'Malformed INI did not preserve all earlier batch targets'}
+  $report.checks.egg_ini_malformed_batch_preserves_targets='passed'
+  $iniInput=(@('; normalized comment','port=1','literal=${USERNAME}','path=C:\Games\','[network]','host=127.0.0.1','[parent]','shared=parent','[parent.child]','keep=yes') -join "`r`n")+"`r`n"
+  [IO.File]::WriteAllText($eggIniPath,$iniInput,[Text.UTF8Encoding]::new($false))
+  $eggIniACL=(Get-Acl -LiteralPath $eggIniPath).Sddl
+ }
  Set-Power 'start';Wait-State 'running';$report.checks.separate_game_start='passed'
+ if($TestEggINI){
+  $expectedINI=(@('port=28015','literal=${USERNAME}','path=`C:\Games\`','added=${USERNAME}','[network]','host=127.0.0.1','enabled=true','note=`  ;# keep  `','[parent]','shared=parent','[parent.child]','keep=yes','shared=child-only','[/Script.Game.Settings]',('Server.Name=Caf'+[char]0xe9)) -join "`n")+"`n"
+  if([IO.File]::ReadAllText($eggIniPath) -ne $expectedINI -or (Get-Acl -LiteralPath $eggIniPath).Sddl -ne $eggIniACL){throw 'SCM INI sections/Unicode/literals/paths/quotes or ACL differs'}
+  $report.checks.egg_ini_daemon_rewrite_sections_literals_acl='passed'
+ }
  if($TestEggProperties){
   $expectedProperties=(@('# retained header','server-port=28015','name=Windows Caf\u00e9 \ud83d\ude00','mode=stay','continued=firstsecond','literal=${USERNAME}','untouched=keep','added=${USERNAME}','enabled=true') -join "`n")+"`n"
   if([IO.File]::ReadAllText($eggPropertiesPath) -ne $expectedProperties -or (Get-Acl -LiteralPath $eggPropertiesPath).Sddl -ne $eggPropertiesACL){throw 'SCM properties escaping/continuation/literal environment/ACL differs'}

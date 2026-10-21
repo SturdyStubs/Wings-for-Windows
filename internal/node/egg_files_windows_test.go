@@ -82,3 +82,27 @@ func TestEggJSONBlocksMalformedInputThenLaunches(t *testing.T) {
 		t.Fatal(string(raw), err)
 	}
 }
+
+func TestEggINIRejectsMalformedThenLaunches(t *testing.T) {
+	_, s, _ := setupConfigured(t, func(remote *RemoteServer) {
+		remote.ProcessConfiguration = processFixture(t)
+		remote.ProcessConfiguration.Startup.Done = []string{"regex:^SERVER_READY$"}
+		remote.ProcessConfiguration.Configs = []json.RawMessage{json.RawMessage(`{"file":"server.ini","parser":"ini","replace":[{"match":"port","replace_with":28015}]}`)}
+	})
+	s.Profile.UseEggProcessConfiguration = true
+	s.Profile.EggConfigFiles = []string{"server.ini"}
+	path := filepath.Join(s.Root, "server.ini")
+	os.WriteFile(path, []byte(`[invalid`), 0600)
+	if err := s.start(); err == nil || s.HasProcess() {
+		t.Fatal("launched with malformed INI")
+	}
+	os.WriteFile(path, []byte("keep=yes\n"), 0600)
+	if err := s.start(); err != nil {
+		t.Fatal(err)
+	}
+	await(t, s, "running")
+	raw, _ := os.ReadFile(path)
+	if !strings.Contains(string(raw), "port=28015\n") || !strings.Contains(string(raw), "keep=yes\n") {
+		t.Fatal(string(raw))
+	}
+}
