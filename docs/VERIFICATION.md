@@ -8,7 +8,7 @@ The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed
 
 The release build runs `go test -count=1 -timeout 90s ./...` and `go vet ./...`. Tests launch harmless compiled fixture executables in temporary directories and use a mock panel API. They do not start Docker or contact a live panel.
 
-Alpha 23 local run: **394 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
+Alpha 24 local run: **425 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
 
 Coverage includes:
 
@@ -135,4 +135,4 @@ Contract/config/Windows fixtures verify approved prefix rewriting, encoding/sche
 
 ## Alpha 24 approved JSON egg files
 
-Local fixtures cover nested/array/wildcard paths, scalar types and preserved large numbers, literal conditions, malformed/duplicate/deep/oversize input, bounded growth/encoding, cancellation, mixed-batch preflight and actual native launch. Exact release/VM evidence follows separately. The remaining parsers, full egg compatibility and interrupted-operation recovery remain open. See [JSON guide](EGG-JSON-CONFIG.md). No reboot test is performed.
+Local fixtures cover nested/array/wildcard paths, scalar types and preserved large numbers, literal conditions, malformed/duplicate/deep/oversize input, bounded growth/encoding, cancellation, mixed-batch preflight and actual native launch. All 425 local cases/subtests pass with zero skips; vet, clean release build and packaged negative checks pass. The exact package passes 14 native and all 37 combined Server 2022 checks, including malformed mixed-batch refusal and actual typed JSON edits with retained precision/SDDL. See [evidence and cleanup limits](evidence/server2022-alpha24-egg-json.md). The remaining parsers, full egg compatibility and interrupted-operation recovery remain open. See [JSON guide](EGG-JSON-CONFIG.md). No reboot test is performed.

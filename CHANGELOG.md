@@ -4,7 +4,7 @@
 
 - Add approved JSON egg file parsing before launch: nested object keys, array indices, one wildcard level and literal conditions, with upstream-compatible scalar coercion and untouched number precision. Reuse exact target approval and guarded writes.
 - Reject duplicate/malformed/unsupported JSON, bound depth/node count/wildcard growth and encode through a capped writer. Validate mixed JSON/text batches before writes. Regex conditions, node templates and remaining parser types stay unsupported.
-- Add contract/bounds/shape/cancellation, mixed-batch and native-launch tests; extend the disposable VM fixture for malformed-JSON launch refusal without changing earlier text and actual typed JSON edits with preserved precision/ACLs. Final package/VM evidence follows separately. Reboot tests remain deferred.
+- Add contract/bounds/shape/cancellation, mixed-batch and native-launch tests; extend the disposable VM fixture for malformed-JSON launch refusal without changing earlier text and actual typed JSON edits with preserved precision/ACLs. All 425 local cases/subtests pass with zero skips; vet, clean release build and packaged negative checks pass. The exact package passes 14 native and 37 combined Server 2022 checks, including malformed mixed-batch refusal and typed JSON edits with preserved large integers and SDDL. Independent cleanup passes; one loaded profile is retained. Reboot tests remain deferred.
 
 ## 0.1.0-alpha.23 - October 21, 2026
 
