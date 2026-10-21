@@ -99,7 +99,7 @@ These remain open and limit the release to an experimental private node:
 
 ## Unsupported features
 
-Do not enable backups, restore, transfer, SFTP, automatic egg installation/reinstall, signed downloads/uploads or Rust Server Wiper operations on this node. This release has no network/account isolation, disk quota, crash auto-restart, persistent console history, service Event Log integration or game updater.
+Do not enable backups, restore, transfer, SFTP, automatic egg installation/reinstall, signed downloads/uploads or Rust Server Wiper operations on this node. This release has no network/account isolation, disk quota, automatic daemon restart, service Event Log integration or game updater. Optional game crash recovery and persistent console history are documented below.
 
 Failures during startup are reported in recent console output. A game that never matches readiness remains starting. A daemon shutdown kills managed jobs, so plan service updates as game-server downtime.
 
@@ -119,4 +119,4 @@ The local suite adds policy/default validation, actual process/startup crashes a
 
 ## Alpha 20 persistent console logs
 
-New local tests cover bounded rotation/history, rejected aliases and duplicate writers, corrupt/torn records, invalid UTF-8/truncation, backpressure, write/close/locked-rotation errors, concurrent close and history restored into a fresh manager. Config/identity/managed-layout tests enforce a separate private store. A test-only helper gives Windows PowerShell children their own module path instead of inheriting incompatible PowerShell 7 module paths from a developer host. Final build/package/Server 2022 evidence is recorded separately. No reboot test is performed.
+New local tests cover bounded rotation/history, rejected aliases and duplicate writers, corrupt/torn records, invalid UTF-8/truncation, backpressure, write/close/locked-rotation errors, concurrent close and history restored into a fresh manager. Config/identity/managed-layout tests enforce a separate private store. A test-only helper gives Windows PowerShell children their own module path instead of inheriting incompatible PowerShell 7 module paths from a developer host. Full suite: 294 cases/subtests, zero skipped; vet, clean-source release build and packaged negative checks pass. The checksum-verified package passes 14 native cases and all 25 SCM/credential/recovery/logging checks on Server 2022, including actual game-token read denial, bounded rotation and restored history after service restart. See [evidence, fixture correction and cleanup limits](evidence/server2022-alpha20-console.md). No reboot test is performed. Persistent game/recovery state, daemon diagnostics, real panel/game and WFP gates remain open.

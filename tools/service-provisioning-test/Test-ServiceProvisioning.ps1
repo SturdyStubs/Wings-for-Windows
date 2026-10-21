@@ -133,12 +133,12 @@ try {
  }
  if($TestConsoleLogs){
   $fill='LOG_FILL_'+('x'*3800)
-  for($batch=0;$batch -lt 18;$batch++){
+  for($batch=0;$batch -lt 36;$batch++){
    $before=(Get-NodeAPI ('/api/servers/'+$ServerID)).native_console_logs.persisted
-   Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body (@{commands=@(1..32|ForEach-Object{$fill})}|ConvertTo-Json)|Out-Null
+   Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body (@{commands=@(1..16|ForEach-Object{$fill})}|ConvertTo-Json)|Out-Null
    $until=[DateTime]::UtcNow.AddSeconds(5)
-   do{$status=(Get-NodeAPI ('/api/servers/'+$ServerID)).native_console_logs;if($status.error){throw 'Persistent console storage reported failure'};if($status.persisted -lt ($before+32)){Start-Sleep -Milliseconds 25}}while($status.persisted -lt ($before+32) -and [DateTime]::UtcNow -lt $until)
-   if($status.persisted -lt ($before+32) -or $status.dropped -ne 0){throw 'Controlled console fill failed to drain without drops'}
+   do{$status=(Get-NodeAPI ('/api/servers/'+$ServerID)).native_console_logs;if($status.error){throw 'Persistent console storage reported failure'};if($status.persisted -lt ($before+16)){Start-Sleep -Milliseconds 25}}while($status.persisted -lt ($before+16) -and [DateTime]::UtcNow -lt $until)
+   if($status.persisted -lt ($before+16) -or $status.dropped -ne 0){throw 'Controlled console fill failed to drain without drops'}
   }
   $files=@(Get-ChildItem -LiteralPath (Join-Path $Root ('logs\console\'+$ServerID)) -Filter '*.jsonl')
   if($files.Count -ne 2 -or @($files|Where-Object{$_.Length -gt 1048576}).Count){throw 'Rotated console file limits failed'}

@@ -68,6 +68,7 @@ For configured `block_connections`, stop workloads using the dedicated account a
 | Windows Server SCM demo workflow | Passed using the new installer, separate daemon/game accounts and loopback mock panel. Final package evidence is tracked in VERIFICATION.md. |
 | Managed service credential provisioning | Final alpha 18 package: 18 public-helper/SCM checks passed. [Evidence](evidence/server2022-alpha18-credentials.md). |
 | Bounded game crash recovery | Final alpha 19: 22 SCM/credential/recovery checks passed; [evidence](evidence/server2022-alpha19-recovery.md). |
+| Persistent console logs | Final alpha 20: 14 native cases and 25 SCM/credential/recovery/logging checks passed; [evidence](evidence/server2022-alpha20-console.md). |
 | Reboot/profile recovery | Deferred at operator request; remains unverified. |
 | Trusted-TLS real panel/game workflows | Pending. |
 | Real WFP installation, traffic and crash behavior | Pending. |

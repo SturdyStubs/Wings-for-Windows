@@ -1,10 +1,11 @@
 # Changelog
 
-## 0.1.0-alpha.20 - October 20, 2026
+## 0.1.0-alpha.20 - October 21, 2026
 
 - Add opt-in per-server JSONL console storage, file-size/count limits, rotation, recent-history restoration and native_console_logs counters/error status. Preserve the existing console and /logs contracts.
 - Keep disk I/O behind a bounded queue; count overflow/truncation/corruption, report sticky storage errors and bound graceful console drain/flush. Reject observed links and duplicate writers; recursively protect logs from game access and keep them outside server data/config/code/TLS paths.
 - Add retention, history, error, concurrency, path/identity and service-fixture coverage. Correct test-only Windows PowerShell child module-path handling for developer hosts using PowerShell 7; no global environment setting is changed.
+- Full suite: 294 cases/subtests, zero skipped; vet and clean release build passed. The exact package passes 14 portable native cases and 25 Server 2022 SCM/credential/recovery/logging checks. Correct an oversized developer-fixture command batch; record both runs and retained-profile limits in evidence.
 - Persistent game/recovery state, daemon startup/service diagnostics, interrupted-operation and reboot recovery remain open. Reboot tests stay deferred by operator instruction.
 
 ## 0.1.0-alpha.19 - October 20, 2026

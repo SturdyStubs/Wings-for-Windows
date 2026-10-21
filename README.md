@@ -26,6 +26,8 @@ Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.co
 GitHub Issues are the source of truth; ROADMAP.md records implementation scope and verification. Run `scripts/Update-Progress.ps1` to regenerate this section. Use `-Initialize` to add missing planned milestones/tasks; rerunning it never automatically re-closes existing issues.
 <!-- progress:end -->
 
+Alpha 20 verification: **294 local cases/subtests**, **14 packaged native cases** and **25 Server 2022 SCM/credential/recovery/logging checks** pass. See the [evidence and remaining gates](docs/evidence/server2022-alpha20-console.md).
+
 ## What works
 
 | Feature | Implementation |
@@ -52,7 +54,7 @@ There is **no Docker dependency**. Windows runs the actual Windows executable. T
 
 Job Objects manage processes; they **do not isolate files, credentials, accounts or the network like containers**. Profiles without `run_as` still run as the daemon's Windows account and can expose credentials and other servers' files. The experimental [identity path](docs/IDENTITIES.md) adds distinct-account checks and restricted tokens, with a passing separate-account batch-task probe on Server 2022. SCM demo launch passes; remaining filesystem/network isolation gates are open. Use this on a private node where you trust all code and all people with access to server files/console. It is unsuitable for public or mutually untrusted hosting.
 
-Linux egg installation scripts, automatic installs/updates, SFTP, signed upload/download URLs, backups, transfers, scheduled tasks that need unsupported endpoints, RCON, disk quotas and automatic crash restart are not implemented. Unsupported operations return HTTP 501. File editing works through the panel API, but its upload/download and SFTP features do not. Games that require RCON or a real interactive console instead of stdin/stdout need an additional adapter.
+Linux egg installation scripts, automatic installs/updates, SFTP, signed upload/download URLs, backups, transfers, scheduled tasks that need unsupported endpoints, RCON, disk quotas and automatic daemon restart are not implemented. Unsupported operations return HTTP 501. File editing works through the panel API, but its upload/download and SFTP features do not. Games that require RCON or a real interactive console instead of stdin/stdout need an additional adapter.
 
 The separate Rust Server Wiper extension is **not yet validated against this daemon**; required backup/delete/restore operations are currently unsupported. Keep existing Linux nodes on upstream Wings. Existing Linux eggs require a Linux execution backend; native Windows games need Windows-specific profiles and installers.
 
