@@ -14,6 +14,8 @@ Status emits JSON containing `target`, `present` and, for a present entry, `user
 
 Uppercase UUID input normalizes to lowercase. Invalid UUIDs, wildcard/prefix targets, mixed CLI operations and positional arguments fail before management operations. These commands need no node configuration file. Missing status returns `present: false` with exit status zero; credential-store API errors return nonzero.
 
+The Server 2022 [live identity probe](evidence/server2022-alpha16-ssh-identity.md) found that the key-authenticated SSH session could not store the credential (Win32 1312), while a password-backed daemon batch task could store/use/remove it. Validate the actual Windows logon/profile context as well as the account name; SSH connectivity alone is not credential-store readiness.
+
 ## Rotate deliberately
 
 ```powershell

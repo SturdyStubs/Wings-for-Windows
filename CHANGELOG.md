@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — direct Server 2022 validation
+
+- Verify the unchanged alpha 16 package over SSH on Server 2022 build 20348: default runner, all 14 native cases/subtests and retrieved full reports/logs.
+- Validate eight real separate-account native stages from SYSTEM and non-administrator daemon password-backed tasks. Confirm actual child SID, own/temp writes, peer/private read denial, daemon memory denial, stdio and graceful exit.
+- Retain the developer-only probe source and sanitized evidence. No daemon protocol/runtime changes or new release artifact are introduced by this evidence update.
+- Record key-authenticated SSH credential-store failure (1312), successful password-backed provisioning, cleanup of temporary users/rights/tasks/credentials, and intentionally retained loaded profile. SCM, recovery, panel/game and network gates remain open.
+
 ## 0.1.0-alpha.16 — October 20, 2026
 
 - Fix Test-Host.ps1 default package resolution by evaluating script-relative paths after parameter binding, with a MyInvocation fallback. Resolve the default output directory in the body beside the package, avoiding Windows PowerShell startup working-directory quirks.

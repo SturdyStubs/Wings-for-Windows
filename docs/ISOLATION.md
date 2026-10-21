@@ -1,6 +1,6 @@
 # Windows isolation design
 
-Status: architecture decision for M2; implementation and security validation remain open. Alpha 6 adds an opt-in identity/token launch path; alpha 7 adds handle-based ancestor/recursive ACL auditing and observed link rejection; legacy profiles still run as the daemon account. Alpha 8 adds daemon process/primary-token and declared code/dependency DACL guards. Alpha 11 adds an optional SID-scoped WFP connection-blocking path whose live installation/traffic behavior is unverified. Full policy enforcement and separate-account deployment validation remain open.
+Status: architecture decision for M2; implementation and security validation remain open. Alpha 6 adds an opt-in identity/token launch path; alpha 7 adds handle-based ancestor/recursive ACL auditing and observed link rejection; legacy profiles still run as the daemon account. Alpha 8 adds daemon process/primary-token and declared code/dependency DACL guards. Alpha 11 adds an optional SID-scoped WFP connection-blocking path whose live installation/traffic behavior is unverified. A direct Server 2022 separate-account batch probe now passes with a non-administrator daemon token; full policy enforcement, SCM/profile lifecycle and broader deployment validation remain open. See [evidence](evidence/server2022-alpha16-ssh-identity.md).
 
 ## Decision
 

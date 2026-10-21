@@ -63,8 +63,8 @@ For configured `block_connections`, stop workloads using the dedicated account a
 | Gate | Recorded status |
 | --- | --- |
 | Windows 11 x64 build 26200, PowerShell 5.1 portable native fixture run | Local pass: 14 cases/subtests, zero skipped; Go absent from PATH. |
-| Windows Server 2022 VM native baseline | User-provided alpha 15 report: 14 passed, zero failed/skipped; build 20348, PowerShell 5.1, Administrator token. [Evidence and limits](evidence/server2022-alpha15-runtime.md). |
-| Distinct-account Windows Server logon/launch and ACL behavior | Pending. |
+| Windows Server 2022 VM native baseline | Direct alpha 16 SSH run: 14 passed, zero failed/skipped; build 20348, PowerShell 5.1, Administrator/session 0. [Evidence and limits](evidence/server2022-alpha16-ssh-identity.md). |
+| Distinct-account Windows Server logon/launch and ACL behavior | Eight native fixture stages passed with SYSTEM and non-administrator daemon batch tasks. SCM/profile lifecycle and hostile policy tests remain open. |
 | Windows Server SCM/reboot and trusted-TLS panel workflows | Pending. |
 | Real WFP installation, traffic and crash behavior | Pending. |
 | Real game's complete panel lifecycle and multi-server load | Pending. |

@@ -67,13 +67,21 @@ Use [the Windows Server VM workflow](WINDOWS-SERVER-TESTING.md) to run the packa
 
 Alpha 16 additionally verifies the Windows PowerShell `-File` invocation with both package/output arguments omitted, including execution from outside the package. This regression now runs during every clean-source release build; dirty development builds are not certified by the host runner.
 
+## Direct Server 2022 follow-up
+
+The agent subsequently transferred the checksum-verified alpha 16 package over pinned-host-key SSH, ran the default command directly and retrieved the full JSON/log: all 14 runtime cases passed. Real account probes then passed eight native stages from SYSTEM and non-administrator daemon password-backed batch tasks, including actual game SID, own/temp writes, denied peer/private reads and denied daemon memory. The helper calls the existing native/identity APIs directly; it is not node/panel/SCM verification.
+
+The non-administrator native report passed, but the cleanup wrapper refused to delete a still-loaded temporary profile and exited nonzero. Accounts/tasks/credentials/rights were removed and independently checked; profile teardown remains incomplete. See [full evidence, contexts and limits](evidence/server2022-alpha16-ssh-identity.md).
+
 ## Required live checks
 
 These remain open and limit the release to an experimental private node:
 
 - [ ] Verify optional WFP filter installation/readback, IPv4/IPv6 TCP/UDP/loopback behavior, unrelated-account preservation, children, rollback and daemon/filter-engine crash/restart cleanup.
-- [ ] Provision a distinct non-administrator game account and verify batch logon, pinned SID, service privileges, ACL rejection, process-handle protection and game launch under that identity.
-- [ ] Install on a disposable Windows Server 2022/2025 host and confirm job limits under that host's policy.
+- [x] Verify real distinct-account native fixture launch, pinned child SID, file/memory denial, stdio and stop on Server 2022 from a non-administrator daemon batch task.
+- [ ] Repeat with the intended SCM/service identity and complete credential/profile lifecycle, negative policy and recovery checks.
+- [x] Run the packaged native baseline and job-limit queries/updates on the disposable Server 2022 VM.
+- [ ] Verify the intended service policy, sustained resource enforcement and additional supported Windows host configurations.
 - [ ] Connect a real test panel using trusted TLS from both the panel backend and browser.
 - [ ] Verify the server-creation/manual-provisioning workflow and installation callback in that panel version.
 - [ ] Start the bundled demo from the panel, see readiness, send a command, then stop/restart/kill it.
