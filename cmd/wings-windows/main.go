@@ -29,10 +29,10 @@ func run(ctx context.Context, path, markInstalled string) error {
 		return err
 	}
 	m := node.NewManager(c)
+	defer m.Close()
 	if err = m.Sync(ctx); err != nil {
 		return fmt.Errorf("initial panel sync: %w", err)
 	}
-	defer m.Close()
 	if markInstalled != "" {
 		s := m.Get(markInstalled)
 		if s == nil {

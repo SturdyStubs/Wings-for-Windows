@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -13,6 +14,7 @@ import (
 	"sync"
 	"time"
 	"wings-windows/internal/config"
+	"wings-windows/internal/consolelog"
 	"wings-windows/internal/native"
 	"wings-windows/internal/provision"
 )
@@ -44,6 +46,8 @@ type Server struct {
 	cpu               float64
 	logs              []string
 	logBytes          int
+	consoleStore      *consolelog.Store
+	outputWG          sync.WaitGroup
 	subscribers       map[chan Event]struct{}
 	closing           bool
 	recoveryStopped   bool
@@ -92,7 +96,19 @@ func (m *Manager) Sync(ctx context.Context) error {
 			return err
 		}
 		r.Settings.UUID = id
-		m.servers[id] = &Server{settings: r.Settings, filePolicy: policy, processPolicy: processPolicy, powerEpoch: make(chan struct{}), Profile: profile, Root: root, panel: m.Panel, state: "offline", subscribers: make(map[chan Event]struct{})}
+		s := &Server{settings: r.Settings, filePolicy: policy, processPolicy: processPolicy, powerEpoch: make(chan struct{}), Profile: profile, Root: root, panel: m.Panel, state: "offline", subscribers: make(map[chan Event]struct{})}
+		if options := m.Config.ConsoleLogs; options != nil {
+			store, history, err := consolelog.Open(*options, id)
+			if err != nil {
+				return fmt.Errorf("server %s console log storage: %w", id, err)
+			}
+			s.consoleStore = store
+			s.logs = history
+			for _, line := range history {
+				s.logBytes += len(line)
+			}
+		}
+		m.servers[id] = s
 	}
 	return nil
 }
@@ -128,6 +144,20 @@ func (m *Manager) Close() {
 			p.Kill()
 			<-p.Done
 		}
+		if s.consoleStore != nil {
+			drained := make(chan struct{})
+			go func() { s.outputWG.Wait(); close(drained) }()
+			select {
+			case <-drained:
+			case <-time.After(2 * time.Second):
+				log.Printf("server %s console drain timed out", s.ID())
+			}
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			if err := s.consoleStore.Close(ctx); err != nil {
+				log.Printf("server %s console flush: %v", s.ID(), err)
+			}
+			cancel()
+		}
 	}
 }
 func (s *Server) ID() string    { s.mu.Lock(); defer s.mu.Unlock(); return s.settings.UUID }
@@ -156,6 +186,9 @@ func (s *Server) log(line string) {
 	s.logLocked(line)
 }
 func (s *Server) logLocked(line string) {
+	if s.consoleStore != nil {
+		s.consoleStore.Enqueue(line)
+	}
 	s.logs = append(s.logs, line)
 	s.logBytes += len(line)
 	for len(s.logs) > 1000 || s.logBytes > 1<<20 {
@@ -465,7 +498,9 @@ func (s *Server) startWithContext(parent context.Context) error {
 	s.previousCPU = 0
 	s.cpu = 0
 	s.setStateLocked("starting")
+	s.outputWG.Add(2)
 	go func() {
+		defer s.outputWG.Done()
 		defer p.Stdout.Close()
 		reader := bufio.NewReaderSize(p.Stdout, 64*1024)
 		for {
@@ -479,6 +514,7 @@ func (s *Server) startWithContext(parent context.Context) error {
 		}
 	}()
 	go func() {
+		defer s.outputWG.Done()
 		<-p.Done
 		s.mu.Lock()
 		if p.CleanupError != nil {
@@ -609,7 +645,11 @@ func (s *Server) Response() map[string]any {
 	if s.recovery != nil {
 		recovery["next_attempt_at"] = s.recovery.next.UTC().Format(time.RFC3339Nano)
 	}
-	return map[string]any{"state": s.state, "is_suspended": s.settings.Suspended, "configuration": s.settings, "utilization": stats, "native_recovery": recovery}
+	consoleStatus := consolelog.Status{}
+	if s.consoleStore != nil {
+		consoleStatus = s.consoleStore.Status()
+	}
+	return map[string]any{"state": s.state, "is_suspended": s.settings.Suspended, "configuration": s.settings, "utilization": stats, "native_recovery": recovery, "native_console_logs": consoleStatus}
 }
 func (s *Server) StatsJSON() string {
 	b, _ := json.Marshal(s.Response()["utilization"])

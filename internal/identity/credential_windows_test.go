@@ -1,15 +1,16 @@
 package identity
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"golang.org/x/sys/windows"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
+	"wings-windows/internal/testutil"
 )
 
 func TestCredentialLifecycleWithoutAccountLogon(t *testing.T) {
@@ -38,7 +39,7 @@ func TestCredentialLifecycleWithoutAccountLogon(t *testing.T) {
 			command += " -Replace"
 		}
 		// All values here are fixed fake fixtures, never real account secrets.
-		return exec.Command("powershell.exe", "-NoProfile", "-NonInteractive", "-Command", command).Run()
+		return testutil.PowerShell(context.Background(), "-NoProfile", "-NonInteractive", "-Command", command).Run()
 	}
 	const user = `.\WingsTestNeverLogOn`
 	const first = "TEST-only-secret-first"

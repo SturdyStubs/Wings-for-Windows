@@ -17,7 +17,7 @@ import (
 	"wings-windows/internal/networkpolicy"
 )
 
-const Version = "0.1.0-alpha.19"
+const Version = "0.1.0-alpha.20"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -41,6 +41,7 @@ type Profile struct {
 	MemoryMB                   int                  `json:"memory_mb"`
 }
 type Config struct {
+	ConsoleLogs             *ConsoleLogs       `json:"console_logs,omitempty"`
 	SourcePath              string             `json:"-"`
 	Listen                  string             `json:"listen"`
 	PanelURL                string             `json:"panel_url"`
@@ -83,6 +84,9 @@ func Load(path string) (Config, error) {
 	err = c.Validate()
 	if err == nil {
 		c.SourcePath, err = filepath.Abs(path)
+		if err == nil && c.ConsoleLogs != nil {
+			err = c.ConsoleLogs.Protect(c.SourcePath)
+		}
 	}
 	return c, err
 }
@@ -127,12 +131,22 @@ func (c *Config) Validate() error {
 	if !filepath.IsAbs(c.DataDirectory) {
 		return errors.New("data_directory must be absolute")
 	}
+	if c.ConsoleLogs != nil {
+		if err := c.ConsoleLogs.Normalize(c.DataDirectory); err != nil {
+			return err
+		}
+	}
 	if len(c.Profiles) == 0 {
 		return errors.New("at least one local executable profile is required")
 	}
 	normalized := make(map[string]Profile, len(c.Profiles))
 	identities := make(map[string]bool)
 	for id, p := range c.Profiles {
+		if c.ConsoleLogs != nil {
+			if err := c.ConsoleLogs.Protect(append([]string{c.SourcePath, c.TLS.Cert, c.TLS.Key, p.Executable}, p.Requirements.RequiredFiles...)...); err != nil {
+				return err
+			}
+		}
 		if p.CrashRecovery != nil {
 			if err := p.CrashRecovery.Normalize(); err != nil {
 				return fmt.Errorf("%s: %w", id, err)

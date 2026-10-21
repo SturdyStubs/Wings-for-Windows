@@ -1,12 +1,14 @@
 package setup_test
 
 import (
+	"context"
 	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
+	"wings-windows/internal/testutil"
 )
 
 func TestManagedPermissionPlanRejectsUnsafeLayouts(t *testing.T) {
@@ -15,7 +17,7 @@ func TestManagedPermissionPlanRejectsUnsafeLayouts(t *testing.T) {
 		t.Fatal(err)
 	}
 	const id = "11111111-1111-4111-8111-111111111111"
-	for _, name := range []string{"valid", "external executable", "external dependency", "missing dependency", "external TLS key", "wrong data root", "unsafe profile key", "existing server data", "existing logs", "unmanaged root entry", "shared game identity", "hardlinked code", "junction code"} {
+	for _, name := range []string{"valid", "external executable", "external dependency", "missing dependency", "external TLS key", "wrong data root", "unsafe profile key", "existing server data", "existing logs", "unmanaged root entry", "shared game identity", "hardlinked code", "junction code", "external console log directory"} {
 		t.Run(name, func(t *testing.T) {
 			root := t.TempDir()
 			for _, dir := range []string{"bin", "private", "data"} {
@@ -41,6 +43,8 @@ func TestManagedPermissionPlanRejectsUnsafeLayouts(t *testing.T) {
 				profile["requirements"] = map[string]any{"required_files": []string{filepath.Join(root, "bin", "missing.dll")}}
 			case "external TLS key":
 				config["tls"] = map[string]string{"key": game}
+			case "external console log directory":
+				config["console_logs"] = map[string]any{"directory": filepath.Join(root, "private", "console")}
 			case "wrong data root":
 				config["data_directory"] = filepath.Join(root, "bin")
 			case "unsafe profile key":
@@ -101,8 +105,7 @@ Write-Output ('RULES='+$plan.Rules.Count)
 			if err := os.WriteFile(scriptPath, []byte(script), 0600); err != nil {
 				t.Fatal(err)
 			}
-			powershell := filepath.Join(os.Getenv("SystemRoot"), "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
-			output, err := exec.Command(powershell, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", scriptPath, "-Module", module, "-Root", root, "-Exe", exe, "-Config", configPath).CombinedOutput()
+			output, err := testutil.PowerShell(context.Background(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", scriptPath, "-Module", module, "-Root", root, "-Exe", exe, "-Config", configPath).CombinedOutput()
 			if name == "valid" {
 				if err != nil || !strings.Contains(string(output), "RULES=") {
 					t.Fatalf("valid plan: %v %s", err, output)

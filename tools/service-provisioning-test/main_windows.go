@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"wings-windows/internal/config"
 	"wings-windows/internal/node"
@@ -24,6 +25,9 @@ func main() {
 		break
 	}
 	server := node.RemoteServer{UUID: id, Settings: node.Settings{UUID: id, Environment: map[string]any{}}}
+	if c.ConsoleLogs != nil {
+		server.Settings.Environment["LOG_PROBE_PATH"] = filepath.Join(c.ConsoleLogs.Directory, id, "console.jsonl")
+	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/remote/servers", func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Authorization") != "Bearer "+c.TokenID+"."+c.Token {

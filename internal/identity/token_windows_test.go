@@ -1,14 +1,15 @@
 package identity
 
 import (
+	"context"
 	"crypto/rand"
 	"fmt"
 	"golang.org/x/sys/windows"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 	"unsafe"
+	"wings-windows/internal/testutil"
 )
 
 func TestTokenPinAndDaemonAccountRejection(t *testing.T) {
@@ -42,7 +43,7 @@ func TestCredentialHelperRoundTripWithoutAccountLogon(t *testing.T) {
 	}
 	// A unique temporary generic credential, never a real account/password.
 	command := "& '" + strings.ReplaceAll(path, "'", "''") + "' -ServerUUID '" + id + "' -Credential ([PSCredential]::new('.\u005cWingsTestNeverLogOn', (ConvertTo-SecureString 'TEST-only-password-123' -AsPlainText -Force)))"
-	if output, err := exec.Command("powershell.exe", "-NoProfile", "-NonInteractive", "-Command", command).CombinedOutput(); err != nil {
+	if output, err := testutil.PowerShell(context.Background(), "-NoProfile", "-NonInteractive", "-Command", command).CombinedOutput(); err != nil {
 		t.Fatalf("credential helper: %v %s", err, output)
 	}
 	user, password, err := readCredential(target)

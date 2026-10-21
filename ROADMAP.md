@@ -1,6 +1,6 @@
 # Progress toward Wings compatibility
 
-Last updated: October 20, 2026. Current version: **0.1.0-alpha.19**. Active development: **M3 — Windows lifecycle features**. M1/M2 remain open for live panel and isolation gates.
+Last updated: October 20, 2026. Current version: **0.1.0-alpha.20**. Active development: **M3 — Windows lifecycle features**. M1/M2 remain open for live panel and isolation gates.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
@@ -28,6 +28,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - Alpha 17: opt-in local service-account creation, scoped service/launch/batch rights and protected initial bin/private/data/logs ACLs. Managed setup rejects populated data, shared identities and observed links, and compensates failed service registration/start. Actual Server 2022 SCM demo start/console/stop/restart passed under a non-administrator daemon with a separate game identity and loopback mock panel. Game credentials still require credential-backed provisioning; cold boot/profile recovery, real panel/game and WFP gates remain open. See [service setup](docs/SERVICE-PROVISIONING.md).
 - Alpha 18: add an elevated managed-node command for creating, inspecting, deliberately replacing and removing a configured game's credential in the stopped daemon account's credential store. Bind to the registered service identity and pinned game SID; use a bounded SID-restricted pipe, temporary password-backed task and narrowly scoped batch right with cleanup. The final package passes 18 Server 2022 public-helper/SCM checks, including bad-password cleanup, lock contention and preserved preexisting rights. Full suite: 231 cases/subtests, zero skipped. See [evidence](docs/evidence/server2022-alpha18-credentials.md); cold reboot/profile recovery and actual account-password changes remain open.
 - Alpha 19: opt-in bounded game crash recovery after unexpected nonzero exits, fresh launch/security checks, rolling attempt budget and cancellation on manual power/suspension/shutdown. Native-only API metadata and console/log reasons are available. State is in memory; cold boot/profile recovery is deferred at the operator's request, not verified. Local suite: 258 cases/subtests, zero skipped; final Server 2022 package: 22 SCM/credential/recovery checks passed. See [recovery guide](docs/CRASH-RECOVERY.md) and [evidence/cleanup limits](docs/evidence/server2022-alpha19-recovery.md).
+- Alpha 20: opt-in persistent per-server console history with bounded JSONL rotation, asynchronous writes, explicit drop/error status and restored recent lines after service restart. Protect shared logs from game access, reject observed links/duplicate writers and keep storage outside server data. Game/recovery state and daemon diagnostics are not persisted. See [console logging](docs/CONSOLE-LOGS.md).
 - HTTP inventory: handlers at **13 of upstream's 38 method/path combinations**, with partial behavior; **25 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
 - Automatic installation, full file manager/SFTP, backups/restores, transfers, strong isolation and live certification remain open.
 - Unchanged Linux eggs require a Linux execution backend. Native Windows profiles do not translate Linux images/binaries.
@@ -98,7 +99,8 @@ Current scope remains a trusted private node. File denylist/path checks are not 
 - [ ] Egg configuration parsers for text, JSON, YAML, INI, properties and XML.
 - [ ] Crash detection/restart policy, persistent state/logs, reboot and interrupted-operation recovery.
   - [x] Add opt-in bounded recovery for unexpected nonzero game exits with fresh launch guards, operator cancellation and status/reason reporting.
-  - [ ] Add persistent state/logs and interrupted-operation recovery. Reboot tests are deferred at the operator's request; the gate remains open.
+  - [x] Add opt-in persistent, bounded server console logs with restored recent history and observable storage failures.
+  - [ ] Add persistent game/recovery state, daemon diagnostics and interrupted-operation recovery. Reboot tests are deferred at the operator's request; the gate remains open.
 - [ ] Console/control-event, log-file or RCON adapters where required by a game.
 - [ ] Complete a real game's create → install → start → stop/restart → reinstall → delete workflow from the panel.
 

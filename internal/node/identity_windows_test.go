@@ -17,6 +17,8 @@ func TestIdentitySpecProtectsSecretsDaemonAndOtherServers(t *testing.T) {
 	key := filepath.Join(t.TempDir(), "node.key")
 	s.panel.Config.SourcePath = secret
 	s.panel.Config.TLS.Key = key
+	logDirectory := filepath.Join(t.TempDir(), "logs")
+	s.panel.Config.ConsoleLogs = &config.ConsoleLogs{Directory: logDirectory}
 	s.panel.Config.Profiles[other] = config.Profile{}
 	spec, err := s.spec()
 	if err != nil {
@@ -29,8 +31,11 @@ func TestIdentitySpecProtectsSecretsDaemonAndOtherServers(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := map[string]uint32{secret: identity.ReadWriteAccess, key: identity.ReadWriteAccess, binary: identity.WriteAccess, filepath.Dir(binary): identity.ReplaceChildAccess, filepath.Join(m.Config.DataDirectory, other): identity.ReadWriteAccess}
+	want := map[string]uint32{logDirectory: identity.ReadWriteAccess, secret: identity.ReadWriteAccess, key: identity.ReadWriteAccess, binary: identity.WriteAccess, filepath.Dir(binary): identity.ReplaceChildAccess, filepath.Join(m.Config.DataDirectory, other): identity.ReadWriteAccess}
 	for _, rule := range spec.AccessRules {
+		if rule.Path == logDirectory && !rule.Recursive {
+			t.Fatal("console logs were not recursively protected")
+		}
 		if rule.Path == filepath.Join(m.Config.DataDirectory, other) && !rule.Recursive {
 			t.Fatal("other server root was not recursive")
 		}

@@ -81,3 +81,5 @@ Uninstalling with `sc.exe delete WingsWindowsNative` removes only service regist
 Server 2022 build 20348 testing of the new installer with alpha 16 runtime binaries passed actual SCM start, non-administrator daemon identity, separate game identity, console, complete demo job-tree termination on service stop and restart/start/stop. An injected registration failure restored the setup changes. The final alpha 17 package passed all 11 checks, including expanded start-failure/full-DACL rollback. See [sanitized evidence](evidence/server2022-alpha17-service.md).
 
 These tests use a local mock panel and harmless demo, with unmanaged networking. They do not certify real panel/TLS/game, WFP traffic isolation, reboot/profile recovery or mutually untrusted hosting. Follow [ROADMAP.md](../ROADMAP.md) for remaining gates.
+
+For optional persistent game console history, configure console_logs.directory as InstallationRoot\logs\console. The existing protected logs ACL is inherited; the daemon creates console/UUID children after installation. See [retention and failure behavior](CONSOLE-LOGS.md). Initial managed setup still requires an empty logs directory.

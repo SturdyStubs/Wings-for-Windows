@@ -130,3 +130,7 @@ Alpha 18 adds managed-service credential create/inspect/replace/remove through a
 ## Game crash recovery
 
 Alpha 19 adds opt-in [bounded automatic restart](CRASH-RECOVERY.md) through the existing normal launch path. GET /api/servers/<UUID> includes native_recovery status; no new routes or standard power/status values are introduced. Operator controls cancel automatic recovery. Timers/history are not persisted across service restarts.
+
+## Persistent console history
+
+Alpha 20 optionally persists per-server console output in an administratively protected log tree. Existing /logs responses can include restored lines after service restart. The server response adds native_console_logs counters/error status; no new upstream routes are implemented. See [limits and retention](CONSOLE-LOGS.md).

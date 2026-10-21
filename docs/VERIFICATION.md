@@ -1,6 +1,6 @@
 # Verification and release status
 
-Version `0.1.0-alpha.19`, verified locally October 20, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). The local automated suite changes no production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration. Separate disposable VM service tests deliberately create and clean up temporary users, rights, tasks, service registration and fixture ACLs. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
+Version `0.1.0-alpha.20`, verified locally October 20, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). The local automated suite changes no production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration. Separate disposable VM service tests deliberately create and clean up temporary users, rights, tasks, service registration and fixture ACLs. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
 
 The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed by the original tests. Alpha 2 adds upstream/panel-derived metadata fixtures and canonical route assertions, plus regression checks for the fixes below. Passing these tests is still not proof that a complete live panel/game deployment works. Current outstanding work is tracked in [ROADMAP.md](../ROADMAP.md).
 
@@ -8,7 +8,7 @@ The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed
 
 The release build runs `go test -count=1 -timeout 90s ./...` and `go vet ./...`. Tests launch harmless compiled fixture executables in temporary directories and use a mock panel API. They do not start Docker or contact a live panel.
 
-Alpha 19 local run: **258 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
+Alpha 20 local run: **294 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
 
 Coverage includes:
 
@@ -116,3 +116,7 @@ The development scripts passed a Server 2022 15-check fixture using alpha 17 run
 ## Alpha 19 game crash recovery
 
 The local suite adds policy/default validation, actual process/startup crashes and bounded loops, clean/disabled exits, queued/manual stop/kill, suspension/shutdown and active-launch cancellation, fresh-panel suspension rejection, failed preflight and rolling attempt expiry. Full suite: 258 cases/subtests, zero skipped; vet and clean-source release build passed. The checksum-verified final package passes 14 portable native cases and all 22 Server 2022 SCM/credential/recovery checks. See [evidence and harness/profile cleanup limits](evidence/server2022-alpha19-recovery.md). Reboot tests are deferred by operator instruction and remain unverified. Persistent state/logs, daemon restart policy, real game/panel and network isolation remain open.
+
+## Alpha 20 persistent console logs
+
+New local tests cover bounded rotation/history, rejected aliases and duplicate writers, corrupt/torn records, invalid UTF-8/truncation, backpressure, write/close/locked-rotation errors, concurrent close and history restored into a fresh manager. Config/identity/managed-layout tests enforce a separate private store. A test-only helper gives Windows PowerShell children their own module path instead of inheriting incompatible PowerShell 7 module paths from a developer host. Final build/package/Server 2022 evidence is recorded separately. No reboot test is performed.

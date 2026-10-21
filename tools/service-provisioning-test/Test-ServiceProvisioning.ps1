@@ -1,5 +1,5 @@
 #Requires -RunAsAdministrator
-param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery)
+param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs)
 $ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
 if($Root -notmatch '^C:\\WingsWindowsTesting\\scm-([0-9a-f]{8})$'){throw 'Use a fresh C:\WingsWindowsTesting\scm-<eight-hex> fixture root'}
 $suffix=$Matches[1]
@@ -70,6 +70,7 @@ try {
  $profiles=@{};$profiles[$ServerID]=[ordered]@{schema_version=1;executable=(Join-Path $Root 'bin\wings-windows-demo.exe');arguments=@('spawn');allowed_environment=@();stop_command='stop';ready_pattern='^SERVER_READY$';memory_mb=128;run_as=@{sid=$gameSid;credential_target=('WingsWindows/'+$ServerID)}}
  if($TestCrashRecovery){$profiles[$ServerID].crash_recovery=@{enabled=$true;max_restarts=2;window_seconds=60;delay_seconds=2}}
  $config=[ordered]@{listen=('127.0.0.1:'+$nodePort);panel_url=('http://127.0.0.1:'+$panelPort);node_uuid=[guid]::NewGuid().ToString();token_id='scm-fixture';token=$nodeToken;data_directory=(Join-Path $Root 'data');allow_insecure_loopback=$true;tls=@{cert='';key=''};profiles=$profiles}
+ if($TestConsoleLogs){$config.console_logs=@{directory=(Join-Path $Root 'logs\console');max_file_bytes=1048576;max_files=2};$profiles[$ServerID].allowed_environment=@('LOG_PROBE_PATH')}
  $configuration=Join-Path $Root 'private\config.json';$config|ConvertTo-Json -Depth 10|Set-Content -LiteralPath $configuration -Encoding Ascii
  $exe=Join-Path $Root 'bin\wings-windows.exe'
  # Force a post-ACL failure once to validate compensation on real VM state.
@@ -105,6 +106,13 @@ try {
  $deadline=[DateTime]::UtcNow.AddSeconds(5);$echoed=$false
  do{$log=Get-NodeAPI ('/api/servers/'+$ServerID+'/logs');$echoed='ECHO:SCM console test' -in $log.data;if(-not $echoed){Start-Sleep -Milliseconds 100}}while(-not $echoed -and [DateTime]::UtcNow -lt $deadline)
  if(-not $echoed){throw 'Service console echo missing'};$report.checks.service_console='passed'
+ if($TestConsoleLogs){
+  Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body '{"commands":["probe-log-access"]}'|Out-Null
+  $until=[DateTime]::UtcNow.AddSeconds(5);$denied=$false
+  do{$denied='LOG_PROBE_DENIED' -in (Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data;if(-not $denied){Start-Sleep -Milliseconds 50}}while(-not $denied -and [DateTime]::UtcNow -lt $until)
+  if(-not $denied){throw 'Actual game token did not report denial opening the console log'}
+  $report.checks.console_log_game_read_denied='passed'
+ }
  if($TestCrashRecovery){
   function Crash-Game {Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body '{"commands":["crash"]}'|Out-Null}
   function Wait-RecoveryPending {$until=[DateTime]::UtcNow.AddSeconds(5);do{$state=Get-NodeAPI ('/api/servers/'+$ServerID);if($state.native_recovery.pending){return};Start-Sleep -Milliseconds 50}while([DateTime]::UtcNow -lt $until);throw 'Recovery was not scheduled'}
@@ -123,12 +131,26 @@ try {
   $report.checks.crash_recovery_budget_stops_loop='passed'
   Set-Power 'start';Wait-State 'running'
  }
+ if($TestConsoleLogs){
+  $fill='LOG_FILL_'+('x'*3800)
+  for($batch=0;$batch -lt 18;$batch++){
+   $before=(Get-NodeAPI ('/api/servers/'+$ServerID)).native_console_logs.persisted
+   Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body (@{commands=@(1..32|ForEach-Object{$fill})}|ConvertTo-Json)|Out-Null
+   $until=[DateTime]::UtcNow.AddSeconds(5)
+   do{$status=(Get-NodeAPI ('/api/servers/'+$ServerID)).native_console_logs;if($status.error){throw 'Persistent console storage reported failure'};if($status.persisted -lt ($before+32)){Start-Sleep -Milliseconds 25}}while($status.persisted -lt ($before+32) -and [DateTime]::UtcNow -lt $until)
+   if($status.persisted -lt ($before+32) -or $status.dropped -ne 0){throw 'Controlled console fill failed to drain without drops'}
+  }
+  $files=@(Get-ChildItem -LiteralPath (Join-Path $Root ('logs\console\'+$ServerID)) -Filter '*.jsonl')
+  if($files.Count -ne 2 -or @($files|Where-Object{$_.Length -gt 1048576}).Count){throw 'Rotated console file limits failed'}
+  $report.checks.console_log_rotation_and_size_limit='passed'
+  Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body '{"commands":["PERSISTED_RESTART_MARKER"]}'|Out-Null
+ }
  $gameProcesses=@();foreach($process in Get-CimInstance Win32_Process -Filter "Name='wings-windows-demo.exe'"){$owner=Invoke-CimMethod -InputObject $process -MethodName GetOwnerSid;if($owner.Sid -eq $gameSid){$gameProcesses+=$process.ProcessId}}
  if($gameProcesses.Count -ne 2){throw 'Expected root and child with actual game SID'};$report.checks.actual_game_tree_identity='passed'
  Stop-Service WingsWindowsNative
  (Get-Service WingsWindowsNative).WaitForStatus('Stopped',[TimeSpan]::FromSeconds(10))
  foreach($processID in $gameProcesses){if(Get-Process -Id $processID -ErrorAction SilentlyContinue){throw 'Managed game survived SCM stop'}};$report.checks.scm_stop_kills_game_tree='passed'
- Start-Service WingsWindowsNative;Wait-State 'offline';if($TestCrashRecovery){if((Get-NodeAPI ('/api/servers/'+$ServerID)).native_recovery.attempts_in_window -ne 0){throw 'In-memory recovery state did not reset on service restart'};$report.checks.crash_recovery_service_restart_resets_budget='passed'};Set-Power 'start';Wait-State 'running';Set-Power 'stop';Wait-State 'offline';$report.checks.service_restart_and_game_stop='passed'
+ Start-Service WingsWindowsNative;Wait-State 'offline';if($TestConsoleLogs){$restored=(Get-NodeAPI ('/api/servers/'+$ServerID)).native_console_logs;if(-not $restored.enabled -or $restored.restored_lines -le 0 -or 'ECHO:PERSISTED_RESTART_MARKER' -notin (Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data){throw 'Console history did not survive actual service restart'};$report.checks.console_log_history_restored_after_service_restart='passed'};if($TestCrashRecovery){if((Get-NodeAPI ('/api/servers/'+$ServerID)).native_recovery.attempts_in_window -ne 0){throw 'In-memory recovery state did not reset on service restart'};$report.checks.crash_recovery_service_restart_resets_budget='passed'};Set-Power 'start';Wait-State 'running';Set-Power 'stop';Wait-State 'offline';$report.checks.service_restart_and_game_stop='passed'
  Stop-Service WingsWindowsNative
  Invoke-Bootstrap -Cleanup;$credentialSeeded=$false;$report.cleanup.credential_removed=$true
  $report.passed=$true

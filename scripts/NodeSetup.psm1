@@ -86,6 +86,7 @@ function Get-NodePermissionPlan([string]$InstallationRoot,[string]$Executable,[s
     foreach ($path in @($Executable,$Configuration)) { Assert-NodeSetupPath $path }
     if (-not $Executable.StartsWith(($bin+'\'),[StringComparison]::OrdinalIgnoreCase) -or -not $Configuration.StartsWith(($private+'\'),[StringComparison]::OrdinalIgnoreCase)) { throw 'Managed setup requires the executable under bin and configuration under private.' }
     $config = Get-Content -LiteralPath $Configuration -Raw | ConvertFrom-Json
+    if($config.console_logs -and $config.console_logs.directory -ne (Join-Path $logs 'console')){throw 'Managed console_logs.directory must be InstallationRoot\logs\console.'}
     if ($config.data_directory.TrimEnd('\') -ne $data) { throw 'Managed setup requires data_directory = InstallationRoot\data.' }
     $gameSIDs = @();$profiles = @($config.profiles.PSObject.Properties)
     foreach ($entry in $profiles) {

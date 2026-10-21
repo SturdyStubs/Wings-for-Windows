@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"testing"
 	"time"
+	"wings-windows/internal/testutil"
 )
 
 func runCredentialScript(t *testing.T, script string, args ...string) {
@@ -19,7 +19,7 @@ func runCredentialScript(t *testing.T, script string, args ...string) {
 	command := append([]string{"-NoProfile", "-ExecutionPolicy", "Bypass", "-File", file}, args...)
 	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Second)
 	defer cancel()
-	output, err := exec.CommandContext(ctx, filepath.Join(os.Getenv("SystemRoot"), "System32", "WindowsPowerShell", "v1.0", "powershell.exe"), command...).CombinedOutput()
+	output, err := testutil.PowerShell(ctx, command...).CombinedOutput()
 	if err != nil {
 		t.Fatalf("credential fixture: %v\n%s", err, output)
 	}

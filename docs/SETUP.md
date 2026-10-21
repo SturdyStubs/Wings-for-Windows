@@ -113,7 +113,7 @@ Get-Service WingsWindowsNative
 
 The script validates the configuration and registers the service with manual startup. Without `-ConfigurePermissions`, it does not grant account rights or adjust ACLs. The opt-in managed mode grants scoped rights and initial ACLs; neither mode modifies firewall rules or enables automatic recovery. Set automatic startup only after testing host reboots. The service runs the same daemon and kills its managed jobs on shutdown; it does not adopt previously running external game processes.
 
-A disposable Server 2022 SCM test passed using separate non-administrator daemon/game accounts, a loopback mock panel and demo processes. Cold reboot, real panel/game and profile recovery remain unverified. Foreground logging goes to stderr; persistent service/Event Log integration remains future work.
+A disposable Server 2022 SCM test passed using separate non-administrator daemon/game accounts, a loopback mock panel and demo processes. Cold reboot, real panel/game and profile recovery remain unverified. Foreground daemon diagnostics go to stderr; persistent daemon/service/Event Log integration remains future work. Game console history can now be stored separately through [console_logs](CONSOLE-LOGS.md).
 
 To update, stop the service, replace the executable and restart it. Stopping the daemon terminates managed games; arrange an appropriate maintenance window. To uninstall the service, stop it and use Windows' `sc.exe delete WingsWindowsNative`. Game files and configuration remain on disk.
 

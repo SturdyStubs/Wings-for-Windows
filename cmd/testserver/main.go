@@ -42,6 +42,18 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		line := scanner.Text()
+		if line == "probe-log-access" {
+			_, err := os.ReadFile(os.Getenv("LOG_PROBE_PATH"))
+			switch {
+			case os.IsPermission(err):
+				fmt.Println("LOG_PROBE_DENIED")
+			case err == nil:
+				fmt.Println("LOG_PROBE_ALLOWED")
+			default:
+				fmt.Println("LOG_PROBE_ERROR")
+			}
+			continue
+		}
 		if line == "crash" {
 			os.Exit(23)
 		}
