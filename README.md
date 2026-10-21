@@ -2,9 +2,9 @@
 
 Run native Windows game-server executables through a Pterodactyl panel. This is a separate Go daemon implementing a **subset of the Wings protocol**, with Windows Job Objects replacing the Docker process runtime.
 
-**Version: 0.1.0-alpha.17. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
+**Version: 0.1.0-alpha.18. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
 
-Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). Alpha 17 adds opt-in dedicated service-account creation, explicit account rights and initial node ACLs, with failure rollback. See [managed service setup](docs/SERVICE-PROVISIONING.md). Game accounts and per-service-identity game credentials still need separate provisioning. The portable runtime baseline needs no Go on the VM. Direct Server 2022 tests cover distinct-account batch launches and an actual non-administrator SCM service using a loopback mock panel; real panel/game, reboot/profile recovery and network isolation gates remain open. M2 remains in progress. Full Wings parity remains in progress.
+Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). Alpha 17 adds opt-in dedicated service-account creation, explicit account rights and initial node ACLs, with failure rollback. See [managed service setup](docs/SERVICE-PROVISIONING.md). Game accounts still need separate creation. Alpha 18 adds [service-account credential provisioning](docs/SERVICE-CREDENTIALS.md) for create/inspect/replace/remove through a temporary password-backed task. The portable runtime baseline needs no Go on the VM. Direct Server 2022 tests cover distinct-account batch launches and an actual non-administrator SCM service using a loopback mock panel; real panel/game, reboot/profile recovery and network isolation gates remain open. M2 remains in progress. Full Wings parity remains in progress.
 
 <!-- progress:start -->
 
@@ -67,8 +67,8 @@ cd Wings-for-Windows
 If Go is not on PATH, pass `-GoExecutable C:\path\to\go.exe`. The script runs the Windows integration tests and `go vet`, then creates:
 
 ```text
-dist/wings-windows-native-0.1.0-alpha.17-windows-amd64.zip
-dist/wings-windows-native-0.1.0-alpha.17-windows-amd64.zip.sha256
+dist/wings-windows-native-0.1.0-alpha.18-windows-amd64.zip
+dist/wings-windows-native-0.1.0-alpha.18-windows-amd64.zip.sha256
 ```
 
 The archive includes the daemon, a harmless console demo executable, compiled runtime tests, a host-report script, configuration example, documentation and service script. Docker, Node, PHP and a C compiler are not needed to build it. Native integration tests compile a temporary demo executable using Go.
@@ -113,6 +113,7 @@ To add a real server, install its Windows files yourself, add a profile using th
 - [Windows Server VM validation and evidence](docs/WINDOWS-SERVER-TESTING.md)
 - [Profile schema and preflight checks](docs/PROFILES.md)
 - [Isolation design and acceptance gates](docs/ISOLATION.md)
+- [Service-account credential provisioning](docs/SERVICE-CREDENTIALS.md)
 - [Experimental game identities and credential provisioning](docs/IDENTITIES.md)
 - [Credential inspection, rotation and retirement](docs/CREDENTIAL-LIFECYCLE.md)
 - [Identity deployment diagnostic](docs/IDENTITY-DIAGNOSTICS.md)

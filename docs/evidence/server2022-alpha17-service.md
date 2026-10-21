@@ -16,7 +16,7 @@ Validation date: October 20, 2026 (America/Phoenix); baseline UTC start/finish: 
 
 The ZIP checksum was checked before/after transfer. Uploaded service installer/module bytes exactly match those in the release ZIP. The Administrator context performs host setup only; SCM runs the daemon as a new non-administrator local account, which launches a separate non-administrator game account. All node tokens/passwords are disposable and generated in VM memory.
 
-The [developer fixture](../../tools/service-provisioning-test/README.md) retains the check bodies and a loopback mock panel for review and repeat testing. It is separate from supported operator tooling.
+The [alpha 17 developer fixture](https://github.com/SturdyStubs/Wings-for-Windows/tree/3deb1b6/tools/service-provisioning-test) retains the check bodies and a loopback mock panel for review and repeat testing. It is separate from supported operator tooling.
 
 ## Service checks
 

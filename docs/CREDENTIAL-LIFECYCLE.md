@@ -2,6 +2,8 @@
 
 These tools manage one exact `WingsWindows/<full-server-UUID>` generic credential in the **current Windows account's** credential set. Run them as the daemon's eventual Windows identity. They do not enumerate other credentials, contact the panel, log on a game account, launch/stop games, delete users or change rights/ACLs.
 
+For a managed installation with a registered, stopped service, alpha 18 adds [Set-ServiceGameCredential.ps1](SERVICE-CREDENTIALS.md). It creates the correct daemon credential context from an elevated operator session and provides the same exact-target create/inspect/replace/remove operations. The examples below remain the lower-level current-account workflow.
+
 ## Create and inspect
 
 ```powershell

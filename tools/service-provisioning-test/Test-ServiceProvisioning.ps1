@@ -13,31 +13,46 @@ foreach($name in @($GameName,$DaemonName)){if(Get-LocalUser -Name $name -ErrorAc
 if(Test-Path -LiteralPath $Root){throw 'Test root exists'}
 function New-TestPassword {$b=New-Object byte[] 32;$r=[Security.Cryptography.RandomNumberGenerator]::Create();try{$r.GetBytes($b);ConvertTo-SecureString ('Aa1!'+[Convert]::ToBase64String($b)) -AsPlainText -Force}finally{[Array]::Clear($b,0,$b.Length);$r.Dispose()}}
 function Invoke-Bootstrap([switch]$Cleanup) {
- $task='WingsScmBootstrap_'+[guid]::NewGuid().ToString('N');$pipe=$null
- $pipeName='WingsScmPipe_'+[guid]::NewGuid().ToString('N')
- $arguments='-NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "'+(Join-Path $Root 'bin\bootstrap.ps1')+'" -Root "'+$Root+'" -ServerID "'+$ServerID+'" -PipeName "'+$pipeName+'"'
- if($Cleanup){$arguments+=' -Cleanup'}else{
-  $security=[IO.Pipes.PipeSecurity]::new()
-  foreach($sid in @('S-1-5-18','S-1-5-32-544')){$security.AddAccessRule([IO.Pipes.PipeAccessRule]::new([Security.Principal.SecurityIdentifier]::new($sid),[IO.Pipes.PipeAccessRights]::FullControl,[Security.AccessControl.AccessControlType]::Allow))}
-  $security.AddAccessRule([IO.Pipes.PipeAccessRule]::new([Security.Principal.SecurityIdentifier]::new($daemonSid),[IO.Pipes.PipeAccessRights]::Read,[Security.AccessControl.AccessControlType]::Allow))
-  $pipe=[IO.Pipes.NamedPipeServerStream]::new($pipeName,[IO.Pipes.PipeDirection]::Out,1,[IO.Pipes.PipeTransmissionMode]::Byte,[IO.Pipes.PipeOptions]::Asynchronous,4096,4096,$security)
+ $script=Join-Path $Root 'bin\scripts\Set-ServiceGameCredential.ps1'
+ $options=@{InstallationRoot=$Root;ServerUUID=$ServerID;ServiceCredential=$serviceCredential}
+ if($Cleanup){
+  $removed=& $script @options -Remove
+  if(-not $removed.removed){throw 'Expected credential removal'}
+  $status=& $script @options -Inspect
+  if($status.present){throw 'Credential remains after removal'}
+  $report.checks.public_credential_remove_inspect='passed'
+ }else{
+  $wrongPassword=New-TestPassword
+  try{
+   $badOptions=@{InstallationRoot=$Root;ServerUUID=$ServerID;ServiceCredential=[PSCredential]::new($serviceCredential.UserName,$wrongPassword)}
+   $failed=$false;try{& $script @badOptions -Inspect|Out-Null}catch{$failed=$true}
+   if(-not $failed){throw 'Public helper accepted an incorrect service password'}
+  }finally{$wrongPassword.Dispose()}
+  if('SeBatchLogonRight' -in @([WingsWindows.NodeSetup]::Rights($daemonSid)) -or @(Get-ScheduledTask|Where-Object{$_.TaskName -like 'WingsCredential_*'}).Count){throw 'Bad service password left task/right state'}
+  $report.checks.public_bad_service_password_cleanup='passed'
+  $lock=[IO.File]::Open((Join-Path $Root 'private\credential-provisioning.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
+  try{$failed=$false;try{& $script @options -Inspect|Out-Null}catch{$failed=$true};if(-not $failed){throw 'Concurrent helper bypassed the operation lock'}}finally{$lock.Dispose()}
+  $report.checks.public_operation_lock_rejected='passed'
+  [WingsWindows.NodeSetup]::Right($daemonSid,'SeBatchLogonRight',$false)
+  try{& $script @options -Inspect|Out-Null;if('SeBatchLogonRight' -notin @([WingsWindows.NodeSetup]::Rights($daemonSid))){throw 'Helper removed a preexisting batch right'}}finally{[WingsWindows.NodeSetup]::Right($daemonSid,'SeBatchLogonRight',$true)}
+  $report.checks.public_preexisting_batch_right_preserved='passed'
+  $gameCredential=[PSCredential]::new(('.\'+$GameName),$gamePassword)
+  $created=& $script @options -GameCredential $gameCredential
+  if(-not $created.present -or $created.username -ne $gameCredential.UserName){throw 'Public credential creation failed'}
+  $status=& $script @options -Inspect
+  if(-not $status.present -or $status.username -ne $gameCredential.UserName){throw 'Public credential inspection failed'}
+  $failed=$false;try{& $script @options -GameCredential $gameCredential | Out-Null}catch{$failed=$true}
+  if(-not $failed){throw 'Public helper overwrote an existing target'}
+  $report.checks.public_credential_overwrite_rejected='passed'
+  $failed=$false;try{& $script @options -GameCredential $serviceCredential | Out-Null}catch{$failed=$true}
+  if(-not $failed){throw 'Public helper accepted wrong pinned game SID'}
+  $report.checks.public_credential_wrong_identity_rejected='passed'
+  $replaced=& $script @options -GameCredential $gameCredential -Replace
+  if(-not $replaced.present){throw 'Public same-account replacement failed'}
+  $report.checks.public_credential_replace_inspect='passed'
  }
- $registered=$false
- try{
-  $action=New-ScheduledTaskAction -Execute "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -Argument $arguments
-  Register-ScheduledTask -TaskName $task -Action $action -User ($env:COMPUTERNAME+'\'+$DaemonName) -Password $serviceCredential.GetNetworkCredential().Password -RunLevel Limited | Out-Null;$registered=$true
-  if($pipe){$wait=$pipe.BeginWaitForConnection($null,$null)}
-  Start-ScheduledTask -TaskName $task
-  if($pipe){if(-not $wait.AsyncWaitHandle.WaitOne(15000)){throw 'Credential handoff connection timeout'};$pipe.EndWaitForConnection($wait);$writer=[IO.StreamWriter]::new($pipe);try{$payload=[ordered]@{username=('.\'+$GameName);password=([PSCredential]::new(('.\'+$GameName),$gamePassword)).GetNetworkCredential().Password};$writer.Write(($payload|ConvertTo-Json -Compress));$writer.Flush();$payload.password=$null}finally{$writer.Dispose();$pipe=$null}}
-  $file='bootstrap-report.json';if($Cleanup){$file='credential-cleanup.json'};$path=Join-Path $Root ('logs\'+$file);$deadline=[DateTime]::UtcNow.AddSeconds(20)
-  while(-not(Test-Path -LiteralPath $path)-and [DateTime]::UtcNow -lt $deadline){Start-Sleep -Milliseconds 100}
-  if(-not(Test-Path -LiteralPath $path)){throw 'Credential task did not produce a report'}
-  $result=Get-Content -LiteralPath $path -Raw|ConvertFrom-Json
-  if(-not $result.passed){throw ('Credential task failed: '+$result.error)}
- }finally{
-  if($pipe){$pipe.Dispose()}
-  if($registered){for($i=0;$i -lt 40 -and (Get-ScheduledTask -TaskName $task).State -eq 'Running';$i++){Start-Sleep -Milliseconds 100};if((Get-ScheduledTask -TaskName $task).State -eq 'Running'){throw 'Credential task still running; registration retained'};Unregister-ScheduledTask -TaskName $task -Confirm:$false}
- }
+ if('SeBatchLogonRight' -in @([WingsWindows.NodeSetup]::Rights($daemonSid))){throw 'Public helper left an added batch right'}
+ if(@(Get-ScheduledTask|Where-Object{$_.TaskName -like 'WingsCredential_*'}).Count){throw 'Public helper left a task'}
 }
 function Get-NodeAPI([string]$Path) {Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+$Path) -Headers @{Authorization=('Bearer '+$nodeToken)} -TimeoutSec 3}
 function Set-Power([string]$Action) {Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/power') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body (@{action=$Action}|ConvertTo-Json) -TimeoutSec 5 | Out-Null}
@@ -48,7 +63,8 @@ try {
  foreach($dir in @($Root,(Join-Path $Root 'bin'),(Join-Path $Root 'private'),(Join-Path $Root 'data'))){New-Item -ItemType Directory -Path $dir|Out-Null}
  foreach($file in @('wings-windows.exe','wings-windows-demo.exe')){Copy-Item -LiteralPath (Join-Path $Package $file) -Destination (Join-Path $Root ('bin\'+$file))}
  Copy-Item -LiteralPath (Join-Path $Package 'scripts\Store-GameCredential.ps1') -Destination (Join-Path $Root 'bin\Store-GameCredential.ps1')
- Copy-Item -LiteralPath (Join-Path $Staging 'bootstrap.ps1') -Destination (Join-Path $Root 'bin\bootstrap.ps1')
+ New-Item -ItemType Directory -Path (Join-Path $Root 'bin\scripts') | Out-Null
+ foreach($file in @('Store-GameCredential.ps1','Set-ServiceGameCredential.ps1','CredentialBridge.psm1','CredentialTask.ps1','NodeSetup.psm1')){Copy-Item -LiteralPath (Join-Path $Staging $file) -Destination (Join-Path $Root ('bin\scripts\'+$file))}
  $first=[Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback,0);$second=[Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback,0);$first.Start();$second.Start();$panelPort=$first.LocalEndpoint.Port;$nodePort=$second.LocalEndpoint.Port;$first.Stop();$second.Stop()
  $b=New-Object byte[] 32;$rng=[Security.Cryptography.RandomNumberGenerator]::Create();try{$rng.GetBytes($b);$nodeToken=[Convert]::ToBase64String($b)}finally{$rng.Dispose()}
  $profiles=@{};$profiles[$ServerID]=[ordered]@{schema_version=1;executable=(Join-Path $Root 'bin\wings-windows-demo.exe');arguments=@('spawn');allowed_environment=@();stop_command='stop';ready_pattern='^SERVER_READY$';memory_mb=128;run_as=@{sid=$gameSid;credential_target=('WingsWindows/'+$ServerID)}}
@@ -75,7 +91,6 @@ try {
  $rights=@([WingsWindows.NodeSetup]::Rights($daemonSid));foreach($right in @('SeServiceLogonRight','SeAssignPrimaryTokenPrivilege','SeIncreaseQuotaPrivilege')){if($right -notin $rights){throw 'Required daemon right missing'}}
  if('SeBatchLogonRight' -notin @([WingsWindows.NodeSetup]::Rights($gameSid))){throw 'Required game batch right missing'}
  $report.checks.installer_account_rights_acls='passed'
- [WingsWindows.NodeSetup]::Right($daemonSid,'SeBatchLogonRight',$false)
  Invoke-Bootstrap;$credentialSeeded=$true;$report.checks.credential_bootstrap='passed'
  $mock=Start-Process -FilePath (Join-Path $Staging 'mock-panel.exe') -ArgumentList @($configuration) -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $Staging 'panel-out.log') -RedirectStandardError (Join-Path $Staging 'panel-error.log')
  Start-Sleep -Milliseconds 300
@@ -97,7 +112,6 @@ try {
  Start-Service WingsWindowsNative;Wait-State 'offline';Set-Power 'start';Wait-State 'running';Set-Power 'stop';Wait-State 'offline';$report.checks.service_restart_and_game_stop='passed'
  Stop-Service WingsWindowsNative
  Invoke-Bootstrap -Cleanup;$credentialSeeded=$false;$report.cleanup.credential_removed=$true
- [WingsWindows.NodeSetup]::Right($daemonSid,'SeBatchLogonRight',$true)
  $report.passed=$true
 } catch {$report.error=$_.Exception.Message}
 finally {

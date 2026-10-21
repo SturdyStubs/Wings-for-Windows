@@ -26,7 +26,7 @@ try {
     Write-Output "Tests passed: $passedTests (including subtests); skipped: $skippedTests"
     & $GoExecutable vet ./...
     if ($LASTEXITCODE -ne 0) { throw 'Go vet failed.' }
-    $version = '0.1.0-alpha.17'
+    $version = '0.1.0-alpha.18'
     $stage = Join-Path $projectRoot ('dist\stage-' + [guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $stage -Force | Out-Null
     $revision = 'unavailable'
@@ -62,6 +62,9 @@ try {
     Copy-Item -LiteralPath 'scripts\NodeSetup.psm1' -Destination (Join-Path $stage 'scripts')
     Copy-Item -LiteralPath 'scripts\Update-Progress.ps1' -Destination (Join-Path $stage 'scripts')
     Copy-Item -LiteralPath 'scripts\Store-GameCredential.ps1' -Destination (Join-Path $stage 'scripts')
+    Copy-Item -LiteralPath 'scripts\Set-ServiceGameCredential.ps1' -Destination (Join-Path $stage 'scripts')
+    Copy-Item -LiteralPath 'scripts\CredentialTask.ps1' -Destination (Join-Path $stage 'scripts')
+    Copy-Item -LiteralPath 'scripts\CredentialBridge.psm1' -Destination (Join-Path $stage 'scripts')
     Copy-Item -LiteralPath 'scripts\Test-Host.ps1' -Destination (Join-Path $stage 'scripts')
     if ($dirty -eq $false) {
         # Exercise both omitted defaults through Windows PowerShell -File,

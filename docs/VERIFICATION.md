@@ -1,6 +1,6 @@
 # Verification and release status
 
-Version `0.1.0-alpha.17`, verified locally October 20, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). The local automated suite changes no production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration. Separate disposable VM service tests deliberately create and clean up temporary users, rights, tasks, service registration and fixture ACLs. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
+Version `0.1.0-alpha.18`, verified locally October 20, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). The local automated suite changes no production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration. Separate disposable VM service tests deliberately create and clean up temporary users, rights, tasks, service registration and fixture ACLs. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
 
 The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed by the original tests. Alpha 2 adds upstream/panel-derived metadata fixtures and canonical route assertions, plus regression checks for the fixes below. Passing these tests is still not proof that a complete live panel/game deployment works. Current outstanding work is tracked in [ROADMAP.md](../ROADMAP.md).
 
@@ -8,7 +8,7 @@ The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed
 
 The release build runs `go test -count=1 -timeout 90s ./...` and `go vet ./...`. Tests launch harmless compiled fixture executables in temporary directories and use a mock panel API. They do not start Docker or contact a live panel.
 
-Alpha 17 local run: **206 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
+Alpha 18 local run: **231 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
 
 Coverage includes:
 
@@ -106,3 +106,9 @@ Failures during startup are reported in recent console output. A game that never
 ## Alpha 17 service provisioning
 
 The new installer/module passed a disposable Server 2022 SCM demo test using the alpha 16 runtime binaries: account creation, rights/ACLs, injected registration-failure rollback, actual non-administrator service identity, separate game-account tree, API console, SCM stop and restart/game stop. The final alpha 17 package passed all 11 service checks, including expanded start-failure/full-DACL rollback. An independent audit confirmed no test users, rights, tasks, services or processes remain; one loaded profile is retained. See [evidence](evidence/server2022-alpha17-service.md). No real panel, TLS, reboot, WFP traffic or game-server result is claimed.
+
+## Alpha 18 service credential bridge
+
+Local tests cover real duplex pipe framing/peer PIDs, UTF-8 round trip, rejected zero/negative/oversize/truncated/invalid-UTF-8 frames and pure plan rejection of running/mismatched services, wrong pinned game SID, wrong targets, missing files/profiles and malformed UUIDs. Plans use mocked account/service lookup and change no users/tasks/rights. Injected scheduler/right backends also cover nonterminating registration errors, partial task creation, preserved preexisting batch rights and explicit cleanup failures without host mutation. Full development suite: 231 cases/subtests, zero skipped; vet passed.
+
+The development scripts passed a Server 2022 15-check fixture using alpha 17 runtime binaries: public create/inspect/replace/remove, accidental-overwrite and wrong-identity rejection, plus actual SCM demo identity/console/stop/restart. Final alpha 18 package evidence is recorded separately. No cold reboot, actual account-password reset, real panel/game or WFP traffic result is claimed.

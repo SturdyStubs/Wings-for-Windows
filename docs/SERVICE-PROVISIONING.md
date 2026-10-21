@@ -55,9 +55,9 @@ Managed DACLs disable inheritance. Administrators and SYSTEM retain full control
 
 ## Provision game credentials, then start
 
-The service is registered with **manual startup** and is not started by default. Each game password still must be stored in Credential Manager **as the daemon account**, using [Store-GameCredential.ps1](IDENTITIES.md) in an appropriate local password-backed provisioning context. Running that helper as Administrator stores the credential for Administrator, not for the daemon. Key-authenticated SSH may lack a usable credential set (observed error 1312); it is insufficient for this step on the tested VM.
+The service is registered with **manual startup** and is not started by default. Each game password still must be stored in Credential Manager **as the daemon account**, using the [service credential command](SERVICE-CREDENTIALS.md), or [Store-GameCredential.ps1](IDENTITIES.md) in an appropriate local password-backed provisioning context. Running that helper as Administrator stores the credential for Administrator, not for the daemon. Key-authenticated SSH may lack a usable credential set (observed error 1312); it is insufficient for this step on the tested VM.
 
-The public installer does not yet automate this bootstrap context. Our VM test uses a temporary password-backed task and SID-restricted in-memory pipe; its passing result does not establish a supported unattended deployment workflow. Do not grant interactive access or hand out service passwords merely to bypass this missing workflow. Complete provisioning with your existing controlled credential-management procedure, or keep the service stopped until that workflow is available.
+Alpha 18 provides [Set-ServiceGameCredential.ps1](SERVICE-CREDENTIALS.md) to perform this step from an elevated operator session. It uses the service credential to create a temporary password-backed task, passes the game credential through a restricted in-memory pipe, and removes the task and any added batch right afterward. The service must remain stopped during the operation. Game-account creation, password changes and cold-profile/reboot recovery remain separate work.
 
 Run identity diagnostics in the daemon's actual context, then validate start, console, stop and restart with the demo before a real game. Once credentials are ready:
 

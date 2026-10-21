@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0-alpha.18 - October 20, 2026
+
+- Add Set-ServiceGameCredential.ps1 for managed-node credential create, metadata inspection, explicit same-account replacement and exact-target removal as the registered daemon account, while the service is stopped.
+- Bind provisioning to service registration, profile UUID/credential target and pinned game SID. Use a temporary password-backed limited task, SID-restricted duplex pipe, OS peer-process checks, bounded frames/timeouts and an exclusive private-tree operation lock. Return metadata only.
+- Stop immediately on Task Scheduler/CIM errors, inspect the exact owned task name even after registration errors, and compensate partially created tasks. Regression tests cover absent/partial registration and failed right cleanup.
+- Preserve preexisting batch rights; remove only the helper's temporary right and task. Surface incomplete cleanup and uncertain credential outcomes instead of silently retrying. Never create a plaintext password file or put game passwords in worker arguments.
+- Add 25 planner/pipe/failure cases/subtests: 231 full development cases/subtests pass with zero skipped; vet passes. Server 2022 development scripts pass 15 public-helper/SCM fixture checks. Final package evidence follows separately; reboot/profile recovery and actual Windows-account password changes remain open.
+
 ## 0.1.0-alpha.17 - October 20, 2026
 
 - Add opt-in dedicated local service-account creation and managed initial bin/private/data/logs permissions. Grant only required daemon service/process-launch rights and per-game batch-logon rights; preserve existing rights.

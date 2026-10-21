@@ -42,7 +42,7 @@ try {
     $registered = $true
     if ($Start) { Start-Service -Name 'WingsWindowsNative' }
     if ($ConfigurePermissions) {
-        Write-Output 'Service registered with dedicated-account rights and initial node ACLs. Provision game credentials as this service identity before launching games. WFP permissions are not configured.'
+        Write-Output 'Service registered with dedicated-account rights and initial node ACLs. Use Set-ServiceGameCredential.ps1 to provision game credentials for this service identity before launching games. WFP permissions are not configured.'
     } else {
         Write-Output 'Service registered. Configure account ACLs and Log on as a service before starting it.'
     }

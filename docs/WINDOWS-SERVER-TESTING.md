@@ -9,7 +9,7 @@ Build from a clean checkout on the development machine using `scripts/Build.ps1`
 In Windows PowerShell inside the VM, use the actual downloaded ZIP path:
 
 ```powershell
-$archive = 'C:\Users\Administrator\Downloads\wings-windows-native-0.1.0-alpha.17-windows-amd64.zip'
+$archive = 'C:\Users\Administrator\Downloads\wings-windows-native-0.1.0-alpha.18-windows-amd64.zip'
 $expected = ((Get-Content -LiteralPath ($archive + '.sha256') -Raw).Trim() -split '\s+')[0]
 $actual = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
 if ($actual -ne $expected) { throw 'Archive checksum mismatch.' }
@@ -50,7 +50,7 @@ On success, `runtime_fixture_verified` becomes true. `panel_tested`, `distinct_a
 
 After the baseline passes, checkpoint the VM again. Follow [identity provisioning](IDENTITIES.md) to create a dedicated daemon identity and distinct non-administrator game identity, grant the intended logon rights, protect binaries/secrets and provision writable data/`.tmp` directories. These actions remain manual; the baseline script does none of them.
 
-Store the credential as the eventual daemon identity and run its [identity diagnostic](IDENTITY-DIAGNOSTICS.md). Save the ten-stage JSON report and first failure. Passing requires the configured SID, batch logon, daemon guards, forbidden filesystem grants, [required launch permissions](LAUNCH-ACCESS.md) and conservative service privileges. This still launches no game. Do not publish a filled node configuration or credentials as evidence.
+For a managed, registered and stopped service, use [Set-ServiceGameCredential.ps1](SERVICE-CREDENTIALS.md) to create the credential in the daemon context. Otherwise store it through an appropriate password-backed daemon session. Run the [identity diagnostic](IDENTITY-DIAGNOSTICS.md). Save the ten-stage JSON report and first failure. Passing requires the configured SID, batch logon, daemon guards, forbidden filesystem grants, [required launch permissions](LAUNCH-ACCESS.md) and conservative service privileges. This still launches no game. Do not publish a filled node configuration or credentials as evidence.
 
 ## 5. Validate panel, service and network separately
 

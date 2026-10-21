@@ -23,7 +23,7 @@ Microsoft documents [batch logon](https://learn.microsoft.com/windows/win32/api/
 
 Provision distinct non-administrator local game accounts and their passwords through your host's administrative workflow. Assign only the required batch-logon right and file permissions. Managed service setup can create the daemon account, grant scoped daemon/game rights and apply initial node ACLs. It does not create game accounts or store their credentials; those remain explicit operator steps. Interactive/RDP access is not required for game accounts and should not be granted as part of provisioning. No interactive desktop or Windows user profile is loaded during launch; games needing a loaded profile need further support.
 
-Store a credential **as the Windows identity that will run the daemon**, using a secure provisioning session for that account:
+For a managed service, use [service-account credential provisioning](SERVICE-CREDENTIALS.md) from an elevated operator session. The lower-level alternative is to store a credential **as the Windows identity that will run the daemon**, using a secure provisioning session for that account:
 
 ```powershell
 $gameCredential = Get-Credential -UserName '.\WingsGameRust'
