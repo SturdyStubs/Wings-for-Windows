@@ -4,7 +4,7 @@
 
 - Add per-profile egg_config_files, requiring egg process configuration, and the supported plain-text file parser before launch. Validate exact local approval, scalar/legacy replacements, prefix order and bounded UTF-8/LF behavior. Unsupported parsers, conditions and unresolved templates fail explicitly.
 - Preflight/render every existing target before writing; pin ancestors and regular single-link handles, reject protected configuration/TLS/code identities and preserve file ACLs with in-place writes. I/O failure/cancellation may leave partial edits; no transactional rollback or interrupted-operation guarantee is claimed.
-- Add contract, path, encoding/bounds, cancellation, guarded-write and native-launch tests; extend the disposable VM fixture for missing-file refusal and actual non-administrator SCM rewriting with retained ACLs. Final package/VM evidence follows separately. Reboot tests remain deferred.
+- Add contract, path, encoding/bounds, cancellation, guarded-write and native-launch tests; extend the disposable VM fixture for missing-file refusal and actual non-administrator SCM rewriting with retained ACLs. All 394 local cases/subtests pass with zero skips; vet, clean release build and packaged negative checks pass. The exact package passes 14 native and 35 Server 2022 service/persistence/text checks, including missing-file refusal and actual non-administrator UTF-8 editing with unchanged SDDL. Independent cleanup passes; one loaded profile is retained. Reboot tests remain deferred.
 
 ## 0.1.0-alpha.22 - October 21, 2026
 

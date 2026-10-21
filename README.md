@@ -4,7 +4,7 @@ Run native Windows game-server executables through a Pterodactyl panel. This is 
 
 **Version: 0.1.0-alpha.23. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
 
-Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). Alpha 23 adds [locally approved egg text-file rewriting](docs/EGG-TEXT-CONFIG.md) before game launch. Alpha 22 added opt-in [persistent automatic-restart budgets](docs/RECOVERY-STATE.md), retaining consumed attempts across daemon restarts while leaving games offline. Alpha 21 added [Windows service lifecycle events](docs/SERVICE-EVENTS.md) and accurate SCM listener readiness. Alpha 20 added opt-in [persistent server console history](docs/CONSOLE-LOGS.md): bounded JSONL files, rotation, asynchronous disk writes and recent history restored after service restart. [Crash recovery](docs/CRASH-RECOVERY.md) and [managed service setup](docs/SERVICE-PROVISIONING.md) remain available. Game/account state is not restored by log loading. Reboot testing remains deferred at the operator's request; real panel/game and full isolation gates remain open. Full Wings parity remains in progress.
+Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). The current release adds [locally approved egg text-file rewriting](docs/EGG-TEXT-CONFIG.md) before game launch. Existing features include [persistent retry budgets](docs/RECOVERY-STATE.md), [console history](docs/CONSOLE-LOGS.md) and [managed service setup](docs/SERVICE-PROVISIONING.md). Reboot testing remains deferred; real panel/game compatibility and full isolation gates remain open.
 
 <!-- progress:start -->
 
@@ -26,7 +26,7 @@ Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.co
 GitHub Issues are the source of truth; ROADMAP.md records implementation scope and verification. Run `scripts/Update-Progress.ps1` to regenerate this section. Use `-Initialize` to add missing planned milestones/tasks; rerunning it never automatically re-closes existing issues.
 <!-- progress:end -->
 
-Alpha 22 verification: **345 local cases/subtests**, **14 packaged native cases** and **33 Server 2022 service/persistence checks** pass. See the [evidence and remaining gates](docs/evidence/server2022-alpha22-recovery-state.md).
+Alpha 23 verification: **394 local cases/subtests**, **14 packaged native cases** and **35 Server 2022 service/persistence/text checks** pass. See the [evidence and remaining gates](docs/evidence/server2022-alpha23-egg-text.md).
 
 ## What works
 

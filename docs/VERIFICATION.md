@@ -8,7 +8,7 @@ The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed
 
 The release build runs `go test -count=1 -timeout 90s ./...` and `go vet ./...`. Tests launch harmless compiled fixture executables in temporary directories and use a mock panel API. They do not start Docker or contact a live panel.
 
-Alpha 22 local run: **345 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
+Alpha 23 local run: **394 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
 
 Coverage includes:
 
@@ -131,4 +131,4 @@ Local storage/config/node fixtures cover durable reservations, repeated reopen, 
 
 ## Alpha 23 approved egg text files
 
-Contract/config/Windows fixtures verify approved prefix rewriting, encoding/schema/bounds, protected identities and observed links, full-batch preflight, guard cleanup, cancellation and actual launch. Exact release and VM results follow separately. Other parsers, full egg compatibility and interrupted-operation recovery remain open; reboot testing remains deferred. See [operator guide](EGG-TEXT-CONFIG.md).
+Contract/config/Windows fixtures verify approved prefix rewriting, encoding/schema/bounds, protected identities and observed links, full-batch preflight, guard cleanup, cancellation and actual launch. All 394 local cases/subtests pass with zero skips; vet, clean release build and packaged negative checks pass. The exact package passes 14 native and all 35 Server 2022 service/persistence/text checks, including missing-file refusal and actual non-administrator UTF-8 edits with preserved SDDL. See [evidence and cleanup limits](evidence/server2022-alpha23-egg-text.md). Other parsers, full egg compatibility and interrupted-operation recovery remain open; reboot testing remains deferred. See [operator guide](EGG-TEXT-CONFIG.md).

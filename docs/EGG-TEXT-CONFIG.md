@@ -48,4 +48,4 @@ Power cancellation is checked during rendering/between writes and again before n
 
 ## Validation
 
-Local contract and Windows fixtures cover prefix/overlap order, legacy/scalar values, UTF-8/LF behavior, schema and size bounds, cancellation, full-batch preflight, code/alias/lock rejection, released directory guards and actual game launch after successful editing. Exact package and Server 2022 results are recorded in [verification](VERIFICATION.md). Reboot tests remain deferred; the remaining parsers and installer workflows stay open.
+Local contract and Windows fixtures cover prefix/overlap order, legacy/scalar values, UTF-8/LF behavior, schema and size bounds, cancellation, full-batch preflight, code/alias/lock rejection, released directory guards and actual game launch after successful editing. The exact package passes 14 native and 35 Server 2022 service/persistence/text checks, including missing-file refusal and actual non-administrator edits with preserved SDDL. See [evidence and cleanup limits](evidence/server2022-alpha23-egg-text.md). Reboot tests remain deferred; the remaining parsers and installer workflows stay open.
