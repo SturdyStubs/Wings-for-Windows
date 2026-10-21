@@ -71,3 +71,5 @@ For configured `block_connections`, stop workloads using the dedicated account a
 | Real game's complete panel lifecycle and multi-server load | Pending. |
 
 Attach host reports/results to the relevant [M2 matrix issue](https://github.com/SturdyStubs/Wings-for-Windows/issues/21) and [deployment gate](https://github.com/SturdyStubs/Wings-for-Windows/issues/41). Close only the exercised acceptance gates after reviewing the evidence; a baseline pass alone completes neither milestone.
+
+Alpha 17 final-package SCM validation: **11 checks passed** on Server 2022, including registration/start failure rollback. [Evidence and cleanup limits](evidence/server2022-alpha17-service.md). Real panel/game, reboot/profile recovery and WFP gates remain open.

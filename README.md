@@ -124,3 +124,5 @@ To add a real server, install its Windows files yourself, add a profile using th
 - [Third-party notices](THIRD-PARTY-NOTICES.md)
 
 Protocol reference: [upstream Wings](https://github.com/pterodactyl/wings/tree/747bc43), snapshot `747bc43` from October 13, 2026. This implementation uses its API conventions; the upstream Linux runtime remains separate. MIT licensed; see [LICENSE](LICENSE).
+
+Alpha 17 final-package SCM validation: **11 checks passed** on Server 2022, including registration/start failure rollback. [Evidence and cleanup limits](docs/evidence/server2022-alpha17-service.md). Real panel/game, reboot/profile recovery and WFP gates remain open.

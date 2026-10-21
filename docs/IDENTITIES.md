@@ -78,3 +78,5 @@ Direct Server 2022 probes now validate real separate-account batch logon and nat
 `--check` validates reference syntax and per-server uniqueness. `--check-profiles` checks executable/dependency requirements; it does not read credentials, attempt account logon, test launch privileges or run the token ACL guard. Those checks happen on actual start. Manual `--mark-installed` still acknowledges provisioned files only and does not certify identity readiness.
 
 Alpha 17 adds initial service-account/rights/ACL provisioning. A disposable Server 2022 SCM test also passed with a separate game identity, console commands, service stop killing the game tree and restart/start/stop. This used a loopback mock panel and initialized credential-backed profile; cold boot/profile recovery and real game/network isolation remain open. See [service setup](SERVICE-PROVISIONING.md).
+
+Alpha 17 final-package SCM validation: **11 checks passed** on Server 2022, including registration/start failure rollback. [Evidence and cleanup limits](evidence/server2022-alpha17-service.md). Real panel/game, reboot/profile recovery and WFP gates remain open.

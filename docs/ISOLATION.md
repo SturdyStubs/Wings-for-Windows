@@ -42,3 +42,5 @@ Verify supported host/service configurations on disposable Windows Server instal
 | Process-isolated Windows containers | Not selected as the hostile multi-tenant boundary. Adds an image/runtime/host compatibility matrix. |
 | Hyper-V isolated containers or VMs | Required direction for stronger separation; backend selection and implementation remain open. |
 | Linux VM with upstream Wings | Separate option for unchanged Linux eggs; native profiles do not translate Linux binaries/images. |
+
+Alpha 17 final-package SCM validation: **11 checks passed** on Server 2022, including registration/start failure rollback. [Evidence and cleanup limits](evidence/server2022-alpha17-service.md). Real panel/game, reboot/profile recovery and WFP gates remain open.

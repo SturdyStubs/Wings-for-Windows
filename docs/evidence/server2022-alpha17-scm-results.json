@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "version": "0.1.0-alpha.17",
+  "source_revision": "4db3aa4a596fdba2ea7cdcba286f5ce36068486a",
+  "zip_sha256": "04f82f76813c5291d18cbd1f3d542e4d21de7172c9ff4c5e2e97b6e008b78a6f",
+  "host": {
+    "os": "Windows Server 2022 Standard Evaluation",
+    "build": "20348",
+    "powershell": "5.1.20348.558"
+  },
+  "scope": "Disposable accounts, harmless demo, loopback mock panel; initialized password-backed credential profile. No real panel/TLS/game, reboot, or WFP traffic validation.",
+  "service": {
+    "passed": true,
+    "checks": {
+      "installer_rollback": "passed",
+      "installer_start_failure_rollback": "passed",
+      "installer_account_rights_acls": "passed",
+      "credential_bootstrap": "passed",
+      "scm_service_start_and_api": "passed",
+      "actual_service_identity": "passed",
+      "separate_game_start": "passed",
+      "service_console": "passed",
+      "actual_game_tree_identity": "passed",
+      "scm_stop_kills_game_tree": "passed",
+      "service_restart_and_game_stop": "passed"
+    },
+    "error": null,
+    "cleanup": {
+      "credential_removed": true,
+      "service_removed": true,
+      "mock_stopped": true,
+      "accounts_and_rights_removed": true
+    }
+  },
+  "independent_cleanup_audit": {
+    "passed": true,
+    "accounts_remaining": 0,
+    "processes_remaining": 0,
+    "tasks_remaining": 0,
+    "service_remaining": 0,
+    "explicit_rights_remaining": 0,
+    "profile_count": 1,
+    "loaded_profiles": 1
+  }
+}

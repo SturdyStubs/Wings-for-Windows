@@ -130,3 +130,5 @@ Current scope remains a trusted private node. File denylist/path checks are not 
 ## Update discipline
 
 Each implementation batch updates this tracker, the corresponding GitHub issue, CHANGELOG.md and verification evidence. Release notes identify local checks and unverified live behavior separately. An unsupported route returning 501 is not counted as implemented. Do not mark a milestone complete based only on a test count or route count.
+
+Alpha 17 final-package SCM validation: **11 checks passed** on Server 2022, including registration/start failure rollback. [Evidence and cleanup limits](docs/evidence/server2022-alpha17-service.md). Real panel/game, reboot/profile recovery and WFP gates remain open.

@@ -81,7 +81,8 @@ These remain open and limit the release to an experimental private node:
 
 - [ ] Verify optional WFP filter installation/readback, IPv4/IPv6 TCP/UDP/loopback behavior, unrelated-account preservation, children, rollback and daemon/filter-engine crash/restart cleanup.
 - [x] Verify real distinct-account native fixture launch, pinned child SID, file/memory denial, stdio and stop on Server 2022 from a non-administrator daemon batch task.
-- [ ] Repeat with the intended SCM/service identity and complete credential/profile lifecycle, negative policy and recovery checks.
+- [x] Run a non-administrator SCM demo workflow, separate game identity, console, stop/restart and installer failure rollback on Server 2022 (mock panel).
+- [ ] Complete credential/profile lifecycle, cold boot, negative policy and recovery checks.
 - [x] Run the packaged native baseline and job-limit queries/updates on the disposable Server 2022 VM.
 - [ ] Verify the intended service policy, sustained resource enforcement and additional supported Windows host configurations.
 - [ ] Connect a real test panel using trusted TLS from both the panel backend and browser.
@@ -91,7 +92,8 @@ These remain open and limit the release to an experimental private node:
 - [ ] Exercise file listing/editing through the real panel frontend and confirm unsupported operations give clear errors.
 - [ ] Provision one real Windows game server, validate its working directory, dependencies, port binding, output regex and stdin stop behavior.
 - [ ] Observe CPU/job-memory behavior under realistic load; confirm root-only statistics are understood.
-- [ ] Register the service using an unprivileged account, test SCM stop, host reboot and certificate renewal.
+- [x] Register a non-administrator service and verify actual SCM stop/restart with separate game identity on Server 2022.
+- [ ] Verify host reboot, profile recovery and certificate renewal.
 - [ ] Verify firewall/NAT and reach the actual game from another machine.
 - [ ] Decide which game-specific adapters are required for RCON/log-file-only consoles.
 
@@ -103,4 +105,4 @@ Failures during startup are reported in recent console output. A game that never
 
 ## Alpha 17 service provisioning
 
-The new installer/module passed a disposable Server 2022 SCM demo test using the alpha 16 runtime binaries: account creation, rights/ACLs, injected registration-failure rollback, actual non-administrator service identity, separate game-account tree, API console, SCM stop and restart/game stop. The alpha 17 package and expanded start-failure rollback are being validated separately. No real panel, TLS, reboot, WFP traffic or game-server result is claimed.
+The new installer/module passed a disposable Server 2022 SCM demo test using the alpha 16 runtime binaries: account creation, rights/ACLs, injected registration-failure rollback, actual non-administrator service identity, separate game-account tree, API console, SCM stop and restart/game stop. The final alpha 17 package passed all 11 service checks, including expanded start-failure/full-DACL rollback. An independent audit confirmed no test users, rights, tasks, services or processes remain; one loaded profile is retained. See [evidence](evidence/server2022-alpha17-service.md). No real panel, TLS, reboot, WFP traffic or game-server result is claimed.

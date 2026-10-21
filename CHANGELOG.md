@@ -1,10 +1,11 @@
 # Changelog
 
-## 0.1.0-alpha.17 ? October 20, 2026
+## 0.1.0-alpha.17 - October 20, 2026
 
 - Add opt-in dedicated local service-account creation and managed initial bin/private/data/logs permissions. Grant only required daemon service/process-launch rights and per-game batch-logon rights; preserve existing rights.
 - Reject populated initial data/logs, reused identities, code/private paths outside the owned layout, observed reparse points and multi-hardlink code. Game-account creation and credential bootstrap remain separate operator steps.
 - Compensate failed setup by restoring snapshotted DACLs, removing added rights and deleting only the newly created service account. If service removal fails, retain account/permission state for inspection. Empty created directories remain; no recursive data deletion.
+- Final alpha 17 package passes 11 actual Server 2022 SCM demo checks, including registration/start rollback and full preexisting DACL restoration. Independent cleanup audit confirms no temporary users, rights, tasks, service or processes remain; one loaded profile is retained.
 - Add 14 planner cases/subtests without changing local accounts/rights/ACLs. Full suite: 206 cases/subtests, zero skipped; vet passed. Document actual Server 2022 SCM demo validation and remaining reboot/profile, real panel/game and WFP gates.
 
 ## Unreleased — direct Server 2022 validation
