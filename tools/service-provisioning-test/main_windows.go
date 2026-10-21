@@ -51,6 +51,9 @@ func main() {
 		server.Settings.Environment["LOG_PROBE_PATH"] = filepath.Join(c.ConsoleLogs.Directory, id, "console.jsonl")
 		if p := c.Profiles[id].CrashRecovery; p != nil && p.PersistHistory {
 			server.Settings.Environment["RECOVERY_PROBE_PATH"] = filepath.Join(c.ConsoleLogs.Directory, id, "recovery.1.json")
+			if p := c.Profiles[id]; p.RestoreRunning {
+				server.Settings.Environment["INTENT_PROBE_PATH"] = filepath.Join(c.ConsoleLogs.Directory, id, "intent.1.json")
+			}
 		}
 	}
 	mux := http.NewServeMux()

@@ -28,7 +28,18 @@ type recoveryBudget interface {
 	Save([]time.Time) error
 	Close(context.Context) error
 }
+type desiredPersistence interface {
+	Save(bool) error
+	Close(context.Context) error
+}
 type Server struct {
+	desiredWrite         sync.Mutex
+	desiredStore         desiredPersistence
+	desiredRunning       bool
+	desiredRestored      bool
+	desiredGeneration    uint64
+	desiredStorageError  string
+	startupSuppressed    bool
 	mu                   sync.Mutex
 	configurationSync    sync.Mutex
 	power                sync.Mutex
@@ -63,14 +74,16 @@ type Server struct {
 	recoveryStorageError string
 }
 type Manager struct {
-	Config  config.Config
-	Panel   *Panel
-	mu      sync.RWMutex
-	servers map[string]*Server
+	restoreOnce sync.Once
+	restoreGate chan struct{}
+	Config      config.Config
+	Panel       *Panel
+	mu          sync.RWMutex
+	servers     map[string]*Server
 }
 
 func NewManager(c config.Config) *Manager {
-	return &Manager{Config: c, Panel: NewPanel(c), servers: make(map[string]*Server)}
+	return &Manager{restoreGate: make(chan struct{}, 2), Config: c, Panel: NewPanel(c), servers: make(map[string]*Server)}
 }
 func (m *Manager) Sync(ctx context.Context) error {
 	remote, err := m.Panel.Servers(ctx)
@@ -129,6 +142,27 @@ func (m *Manager) Sync(ctx context.Context) error {
 				s.pruneRecoveryLocked(time.Now())
 			}
 		}
+
+		if profile.RestoreRunning {
+			if m.Config.ConsoleLogs == nil {
+				return errors.New("restore_running requires private storage")
+			}
+			intent, running, err := consolelog.OpenIntent(*m.Config.ConsoleLogs, id)
+			if err != nil {
+				closeCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+				if s.recoveryStore != nil {
+					s.recoveryStore.Close(closeCtx)
+				}
+				if s.consoleStore != nil {
+					s.consoleStore.Close(closeCtx)
+				}
+				cancel()
+				return fmt.Errorf("server %s desired state storage could not be opened", id)
+			}
+			s.desiredStore = intent
+			s.desiredRunning = running
+			s.desiredRestored = running
+		}
 		m.servers[id] = s
 	}
 	return nil
@@ -164,6 +198,20 @@ func (m *Manager) Close() {
 		if p != nil {
 			p.Kill()
 			<-p.Done
+		}
+		if s.desiredStore != nil {
+			drained := make(chan struct{})
+			go func() { s.outputWG.Wait(); close(drained) }()
+			select {
+			case <-drained:
+			case <-time.After(2 * time.Second):
+				log.Printf("server %s desired-state exit drain timed out", s.ID())
+			}
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			if err := s.desiredStore.Close(ctx); err != nil {
+				log.Printf("server %s desired state close did not complete successfully", s.ID())
+			}
+			cancel()
 		}
 		if s.recoveryStore != nil {
 			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
@@ -392,6 +440,7 @@ func (s *Server) powerWithEpoch(action string, epoch chan struct{}) error {
 		s.mu.Unlock()
 		return ErrSuspended
 	}
+	s.startupSuppressed = true
 	if epoch == nil {
 		s.cancelRecoveryLocked(action == "stop" || action == "kill")
 	}
@@ -408,10 +457,11 @@ func (s *Server) powerWithEpoch(action string, epoch chan struct{}) error {
 			s.setStateLocked("stopping")
 		}
 		s.mu.Unlock()
+		var killErr error
 		if p != nil {
-			return p.Kill()
+			killErr = p.Kill()
 		}
-		return nil
+		return errors.Join(killErr, s.setDesired(context.Background(), false, nil))
 	}
 	if (action == "start" || action == "restart") && s.settings.Suspended {
 		s.mu.Unlock()
@@ -426,6 +476,13 @@ func (s *Server) powerWithEpoch(action string, epoch chan struct{}) error {
 	s.mu.Unlock()
 	go func() {
 		defer func() { cancel(); s.mu.Lock(); s.powerCancel = nil; s.mu.Unlock(); s.power.Unlock() }()
+		desiredErr := s.setDesired(ctx, action != "stop", nil)
+		if desiredErr != nil && action != "stop" {
+			if !errors.Is(desiredErr, context.Canceled) {
+				s.log("[Windows node] start blocked: desired intent could not be persisted")
+			}
+			return
+		}
 		var err error
 		switch action {
 		case "start":
@@ -437,6 +494,7 @@ func (s *Server) powerWithEpoch(action string, epoch chan struct{}) error {
 				err = s.startWithContext(ctx)
 			}
 		}
+		err = errors.Join(err, desiredErr)
 		if err != nil && !errors.Is(err, ErrAlreadyRunning) && !errors.Is(err, context.Canceled) {
 			s.log("[Windows node] " + err.Error())
 		}
@@ -447,6 +505,9 @@ func (s *Server) start() error {
 	s.mu.Lock()
 	s.cancelRecoveryLocked(false)
 	s.mu.Unlock()
+	if err := s.setDesired(context.Background(), true, nil); err != nil {
+		return err
+	}
 	return s.startWithContext(context.Background())
 }
 func (s *Server) startWithContext(parent context.Context) error {
@@ -555,20 +616,29 @@ func (s *Server) startWithContext(parent context.Context) error {
 	go func() {
 		defer s.outputWG.Done()
 		<-p.Done
+		var cleanGeneration *uint64
 		s.mu.Lock()
 		if p.CleanupError != nil {
 			s.logLocked("[Windows node] cleanup warning: " + p.CleanupError.Error())
 		}
 		if s.process == p {
+			cleanIntent := !s.closing && (s.state == "starting" || s.state == "running") && (p.ExitCode == 0 || p.CleanupError != nil)
+			generation := s.desiredGeneration
 			unexpected := (s.state == "starting" || s.state == "running") && p.ExitCode != 0 && p.CleanupError == nil
 			s.process = nil
 			s.setStateLocked("offline")
 			s.logLocked(fmt.Sprintf("[Windows node] process exited (%d)", p.ExitCode))
+			if cleanIntent {
+				cleanGeneration = &generation
+			}
 			if unexpected {
 				s.scheduleRecoveryLocked()
 			}
 		}
 		s.mu.Unlock()
+		if cleanGeneration != nil {
+			s.clearDesiredAfterExit(*cleanGeneration)
+		}
 	}()
 	return nil
 }
@@ -576,7 +646,11 @@ func (s *Server) stop(kill bool) error {
 	s.mu.Lock()
 	s.cancelRecoveryLocked(true)
 	s.mu.Unlock()
-	return s.stopWithContext(context.Background(), kill)
+	s.mu.Lock()
+	s.startupSuppressed = true
+	s.mu.Unlock()
+	desiredErr := s.setDesired(context.Background(), false, nil)
+	return errors.Join(s.stopWithContext(context.Background(), kill), desiredErr)
 }
 func (s *Server) stopWithContext(ctx context.Context, kill bool) error {
 	s.mu.Lock()
@@ -693,7 +767,7 @@ func (s *Server) Response() map[string]any {
 	if s.consoleStore != nil {
 		consoleStatus = s.consoleStore.Status()
 	}
-	return map[string]any{"state": s.state, "is_suspended": s.settings.Suspended, "configuration": s.settings, "utilization": stats, "native_recovery": recovery, "native_console_logs": consoleStatus}
+	return map[string]any{"state": s.state, "is_suspended": s.settings.Suspended, "configuration": s.settings, "utilization": stats, "native_recovery": recovery, "native_restore": s.restoreStatusLocked(), "native_console_logs": consoleStatus}
 }
 func (s *Server) StatsJSON() string {
 	b, _ := json.Marshal(s.Response()["utilization"])

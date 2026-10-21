@@ -1,6 +1,7 @@
 #Requires -RunAsAdministrator
-param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot)
+param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning)
 $ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
+if($TestRestoreRunning -and -not $TestPersistentRecovery){throw 'Restore fixture requires persistent recovery'}
 if($PrepareReboot -and (-not $TestPersistentRecovery -or -not $TestServiceEvents)){throw 'Reboot fixture requires persistent recovery and service events'}
 if($TestEggXML -and -not $TestEggYAML){throw 'XML fixture requires TestEggYAML for six-parser validation'}
 if($TestEggYAML -and -not $TestEggINI){throw 'YAML fixture requires TestEggINI for five-parser validation'}
@@ -90,6 +91,7 @@ try {
  $config=[ordered]@{listen=('127.0.0.1:'+$nodePort);panel_url=('http://127.0.0.1:'+$panelPort);node_uuid=[guid]::NewGuid().ToString();token_id='scm-fixture';token=$nodeToken;data_directory=(Join-Path $Root 'data');allow_insecure_loopback=$true;tls=@{cert='';key=''};profiles=$profiles}
  if($TestConsoleLogs){$config.console_logs=@{directory=(Join-Path $Root 'logs\console');max_file_bytes=1048576;max_files=2};$profiles[$ServerID].allowed_environment=@('LOG_PROBE_PATH')}
  if($TestPersistentRecovery){$profiles[$ServerID].crash_recovery.persist_history=$true;$profiles[$ServerID].crash_recovery.window_seconds=3600;$profiles[$ServerID].allowed_environment+=@('RECOVERY_PROBE_PATH')}
+ if($TestRestoreRunning){$profiles[$ServerID].restore_running=$true;$profiles[$ServerID].allowed_environment+=@('INTENT_PROBE_PATH')}
  if($TestEggText){$profiles[$ServerID].use_egg_process_configuration=$true;$profiles[$ServerID].egg_config_files=@('server.cfg')}
  if($TestEggJSON){$profiles[$ServerID].egg_config_files+=@('server.json')}
  if($TestEggProperties){$profiles[$ServerID].egg_config_files+=@('server.properties')}
@@ -255,6 +257,12 @@ try {
   if(-not $denied){throw 'Actual game token did not report denial opening recovery state'}
   $report.checks.recovery_state_game_read_denied='passed'
  }
+ if($TestRestoreRunning){
+  Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body '{"commands":["probe-intent-access"]}'|Out-Null
+  $until=[DateTime]::UtcNow.AddSeconds(5);$denied=$false
+  do{$denied='INTENT_PROBE_DENIED' -in (Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data;if(-not $denied){Start-Sleep -Milliseconds 50}}while(-not $denied -and [DateTime]::UtcNow -lt $until)
+  if(-not $denied){throw 'Game token read persisted intent'};$report.checks.intent_state_game_read_denied='passed'
+ }
  if($TestCrashRecovery){
   function Crash-Game {Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body '{"commands":["crash"]}'|Out-Null}
   function Wait-RecoveryPending {$until=[DateTime]::UtcNow.AddSeconds(5);do{$state=Get-NodeAPI ('/api/servers/'+$ServerID);if($state.native_recovery.pending){return};Start-Sleep -Milliseconds 50}while([DateTime]::UtcNow -lt $until);throw 'Recovery was not scheduled'}
@@ -312,11 +320,32 @@ try {
    $report.checks.daemon_termination_preserves_recovery_budget='passed'
   }else{if($budget.attempts_in_window -ne 0){throw 'In-memory recovery state did not reset on service restart'};$report.checks.crash_recovery_service_restart_resets_budget='passed'}
  };Set-Power 'start';Wait-State 'running';Set-Power 'stop';Wait-State 'offline';$report.checks.service_restart_and_game_stop='passed'
+ if($TestRestoreRunning){
+  Stop-Service WingsWindowsNative;(Get-Service WingsWindowsNative).WaitForStatus('Stopped',[TimeSpan]::FromSeconds(15))
+  $edited=Get-Content -LiteralPath $configuration -Raw|ConvertFrom-Json
+  $edited.profiles.$ServerID.crash_recovery.max_restarts=5
+  [IO.File]::WriteAllText($configuration,($edited|ConvertTo-Json -Depth 30),[Text.UTF8Encoding]::new($false))
+  Start-Service WingsWindowsNative;Wait-State 'offline';Set-Power 'start';Wait-State 'running'
+  Stop-Service WingsWindowsNative;(Get-Service WingsWindowsNative).WaitForStatus('Stopped',[TimeSpan]::FromSeconds(15))
+  Start-Service WingsWindowsNative;Wait-State 'running'
+  $restored=Get-NodeAPI ('/api/servers/'+$ServerID)
+  if(-not $restored.native_restore.loaded_running -or -not $restored.native_restore.desired_running -or $restored.native_recovery.attempts_in_window -ne 3){throw 'Persisted running intent did not restore with a reservation'}
+  $report.checks.running_intent_restores_after_scm_restart='passed'
+  Set-Power 'stop';Wait-State 'offline';Stop-Service WingsWindowsNative;(Get-Service WingsWindowsNative).WaitForStatus('Stopped',[TimeSpan]::FromSeconds(15))
+  Start-Service WingsWindowsNative;Wait-State 'offline';Start-Sleep -Milliseconds 2300
+  $stopped=Get-NodeAPI ('/api/servers/'+$ServerID)
+  if($stopped.state -ne 'offline' -or $stopped.native_restore.desired_running -or $stopped.native_restore.loaded_running -or $stopped.native_recovery.attempts_in_window -ne 3){throw 'Manual stop was not durable across restart'}
+  $report.checks.stopped_intent_survives_scm_restart='passed'
+  Stop-Service WingsWindowsNative;(Get-Service WingsWindowsNative).WaitForStatus('Stopped',[TimeSpan]::FromSeconds(15))
+  $intentPath=Join-Path $Root ('logs\console\'+$ServerID+'\intent.0.json');$intentBytes=[IO.File]::ReadAllBytes($intentPath)
+  try{[IO.File]::WriteAllText($intentPath,'CORRUPT_INTENT');try{Start-Service WingsWindowsNative -ErrorAction Stop}catch{};(Get-Service WingsWindowsNative).WaitForStatus('Stopped',[TimeSpan]::FromSeconds(15));$report.checks.corrupt_intent_refuses_service_start='passed'}finally{[IO.File]::WriteAllBytes($intentPath,$intentBytes);$intentBytes=$null}
+  Start-Service WingsWindowsNative;Wait-State 'offline'
+ }
  if($PrepareReboot){
   Set-Power 'start';Wait-State 'running'
   Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body (@{commands=@('REBOOT_MARKER_'+$suffix)}|ConvertTo-Json)|Out-Null
   $until=[DateTime]::UtcNow.AddSeconds(5);do{if(('ECHO:REBOOT_MARKER_'+$suffix) -in (Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data){break};Start-Sleep -Milliseconds 100}while([DateTime]::UtcNow -lt $until)
-  Set-Power 'stop';Wait-State 'offline'
+  if(-not $TestRestoreRunning){Set-Power 'stop';Wait-State 'offline'}
   & (Join-Path $Staging 'Prepare-Reboot.ps1') -Root $Root -Staging $Staging -Package $Package -ServerID $ServerID -DaemonSID $daemonSid -GameSID $gameSid -ServiceCredential $serviceCredential
   $rebootPrepared=$true;$report.reboot_prepared=$true;throw 'WINGS_REBOOT_PREPARED'
  }

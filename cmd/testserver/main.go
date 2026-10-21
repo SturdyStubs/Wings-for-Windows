@@ -42,10 +42,13 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if line == "probe-log-access" || line == "probe-recovery-access" {
+		if line == "probe-log-access" || line == "probe-recovery-access" || line == "probe-intent-access" {
 			variable, prefix := "LOG_PROBE_PATH", "LOG_PROBE"
 			if line == "probe-recovery-access" {
 				variable, prefix = "RECOVERY_PROBE_PATH", "RECOVERY_PROBE"
+			}
+			if line == "probe-intent-access" {
+				variable, prefix = "INTENT_PROBE_PATH", "INTENT_PROBE"
 			}
 			_, err := os.ReadFile(os.Getenv(variable))
 			switch {

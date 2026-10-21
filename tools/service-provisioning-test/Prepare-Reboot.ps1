@@ -20,7 +20,11 @@ try {
   try{$protected=[Security.Cryptography.ProtectedData]::Protect($bytes,$null,[Security.Cryptography.DataProtectionScope]::LocalMachine)}finally{[Array]::Clear($bytes,0,$bytes.Length);$plain=$null}
  }finally{[Runtime.InteropServices.Marshal]::ZeroFreeGlobalAllocUnicode($pointer)}
  $build=Get-Content -LiteralPath (Join-Path $Package 'BUILD-INFO.json') -Raw|ConvertFrom-Json
- $state=@{schema_version=1;root=$Root;staging=$Staging;server_id=$ServerID;daemon_sid=$DaemonSID;game_sid=$GameSID;service_user=$ServiceCredential.UserName;protected_password=[Convert]::ToBase64String($protected);boot_utc=(Get-CimInstance Win32_OperatingSystem).LastBootUpTime.ToUniversalTime().ToString('o');version=$build.version;source_revision=$build.source_revision;daemon_sha256=(Get-FileHash -LiteralPath (Join-Path $Root 'bin\wings-windows.exe')).Hash;mock_task=$mockTask;resume_task=$resumeTask;marker=('REBOOT_MARKER_'+$suffix)}
+ $config=Get-Content -LiteralPath (Join-Path $Root 'private\config.json') -Raw|ConvertFrom-Json
+ $restore=[bool]$config.profiles.$ServerID.restore_running
+ $api=Invoke-RestMethod -Uri ('http://'+$config.listen+'/api/servers/'+$ServerID) -Headers @{Authorization=('Bearer '+$config.token)}
+ $expectedAttempts=[int]$api.native_recovery.attempts_in_window;if($restore){$expectedAttempts++}
+ $state=@{expect_restore=$restore;expected_attempts=$expectedAttempts;schema_version=1;root=$Root;staging=$Staging;server_id=$ServerID;daemon_sid=$DaemonSID;game_sid=$GameSID;service_user=$ServiceCredential.UserName;protected_password=[Convert]::ToBase64String($protected);boot_utc=(Get-CimInstance Win32_OperatingSystem).LastBootUpTime.ToUniversalTime().ToString('o');version=$build.version;source_revision=$build.source_revision;daemon_sha256=(Get-FileHash -LiteralPath (Join-Path $Root 'bin\wings-windows.exe')).Hash;mock_task=$mockTask;resume_task=$resumeTask;marker=('REBOOT_MARKER_'+$suffix)}
  [IO.File]::WriteAllText((Join-Path $secret 'state.json'),($state|ConvertTo-Json),[Text.UTF8Encoding]::new($false))
  Copy-Item -LiteralPath (Join-Path $Package 'scripts\Register-EventSource.ps1') -Destination (Join-Path $Root 'bin\Register-EventSource.ps1')
  Copy-Item -LiteralPath (Join-Path $Staging 'Resume-Reboot.ps1') -Destination (Join-Path $Root 'bin\Resume-Reboot.ps1')

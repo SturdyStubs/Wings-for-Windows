@@ -85,6 +85,7 @@ func runWithReady(ctx context.Context, path, markInstalled string, ready func())
 		}
 	}()
 	ready()
+	m.RestoreRunning(ctx)
 	select {
 	case err = <-result:
 		if err == http.ErrServerClosed {

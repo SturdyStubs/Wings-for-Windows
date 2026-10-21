@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.29 - October 21, 2026
+
+- Add opt-in `restore_running`, requiring private logs and enabled persistent crash recovery. Store running/stopped power intent in guarded, synced, UUID/checksum/sequence-bound dual snapshots initialized stopped; refuse uncertain state instead of rolling back a stop.
+- Restore only after daemon readiness, with at most two startup actions, fresh launch guards and write-before-launch recovery reservations. Preserve intent on node shutdown, respect explicit stops/kills and clear clean exits. A slow intent write cannot delay killing the game tree. Expose `native_restore` status and safe storage failures.
+- Add storage/config/lifecycle/concurrency checks and extend SCM/reboot fixtures for intent-file denial, running/stopped restoration, corrupt-state refusal and automatic cold-profile game launch. Require complete cleanup flags before post-boot success. Final package/VM evidence follows separately.
+
 ## 0.1.0-alpha.28 - October 21, 2026
 
 - Add approved XML text/attribute rewrites with root/exact/wildcard paths, bounded mutation/encoding and full data-tree reparse. Reject unsupported names, DTDs/entities, namespaces, duplicate attributes, mixed content and nonempty conditions; reuse guarded batch writes.

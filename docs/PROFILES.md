@@ -59,3 +59,7 @@ Profile v1 accepts `crash_recovery` with explicit `enabled`, bounded `max_restar
 ## Optional egg text files
 
 Profile v1 accepts egg_config_files only with use_egg_process_configuration. It approves exact relative filenames for plain-text file, bounded [JSON](EGG-JSON-CONFIG.md), [properties](EGG-PROPERTIES-CONFIG.md), [INI](EGG-INI-CONFIG.md), [YAML](EGG-YAML-CONFIG.md) and [XML](EGG-XML-CONFIG.md) parsers. All targets must already exist; other parsers still fail explicitly. See [schema, bounds and partial-write limits](EGG-TEXT-CONFIG.md).
+
+## Optional running restoration
+
+`restore_running: true` requires private console storage and enabled persistent crash recovery. It records executed running/stopped intent and may start a fresh guarded process after daemon readiness/reboot, consuming a restart reservation. Defaults remain offline. See [durability, manual-stop behavior, errors and deployment limits](RUNNING-RESTORATION.md).

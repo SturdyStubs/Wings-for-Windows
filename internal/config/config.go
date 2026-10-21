@@ -17,7 +17,7 @@ import (
 	"wings-windows/internal/networkpolicy"
 )
 
-const Version = "0.1.0-alpha.28"
+const Version = "0.1.0-alpha.29"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -26,6 +26,7 @@ type TLS struct {
 	Key  string `json:"key"`
 }
 type Profile struct {
+	RestoreRunning             bool                 `json:"restore_running,omitempty"`
 	EggConfigFiles             []string             `json:"egg_config_files,omitempty"`
 	CrashRecovery              *CrashRecovery       `json:"crash_recovery,omitempty"`
 	NetworkPolicy              networkpolicy.Policy `json:"network_policy,omitempty"`
@@ -145,6 +146,9 @@ func (c *Config) Validate() error {
 	for id, p := range c.Profiles {
 		if err := p.ValidateEggFiles(); err != nil {
 			return fmt.Errorf("server %s: %w", id, err)
+		}
+		if p.RestoreRunning && (c.ConsoleLogs == nil || p.CrashRecovery == nil || !p.CrashRecovery.Enabled || !p.CrashRecovery.PersistHistory) {
+			return fmt.Errorf("server %s: restore_running requires console_logs and enabled persistent crash recovery", id)
 		}
 		if p.CrashRecovery != nil && p.CrashRecovery.PersistHistory && c.ConsoleLogs == nil {
 			return fmt.Errorf("server %s: crash_recovery.persist_history requires console_logs private storage", id)

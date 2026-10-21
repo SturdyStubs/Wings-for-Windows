@@ -2,7 +2,7 @@ package config
 
 import "fmt"
 
-// CrashRecovery applies to unexpected nonzero game exits, never daemon boot.
+// CrashRecovery bounds unexpected exits and, when restore_running opts in, startup restoration.
 type CrashRecovery struct {
 	PersistHistory bool `json:"persist_history,omitempty"`
 	Enabled        bool `json:"enabled"`

@@ -7,6 +7,7 @@ import (
 )
 
 type recoveryAttempt struct {
+	gate   chan struct{}
 	cancel context.CancelFunc
 	next   time.Time
 }
@@ -35,9 +36,10 @@ func (s *Server) pruneRecoveryLocked(now time.Time) {
 	s.recoveryHistory = kept
 }
 
-func (s *Server) scheduleRecoveryLocked() {
+func (s *Server) scheduleRecoveryLocked() { s.scheduleRecoveryLockedWithGate(nil) }
+func (s *Server) scheduleRecoveryLockedWithGate(gate chan struct{}, parents ...context.Context) {
 	policy := s.Profile.CrashRecovery
-	if policy == nil || !policy.Enabled || s.recoveryStopped || s.closing || s.settings.Suspended || s.recoveryStorageError != "" {
+	if policy == nil || !policy.Enabled || s.recoveryStopped || s.closing || s.settings.Suspended || s.recoveryStorageError != "" || s.desiredStorageError != "" || (s.desiredStore != nil && !s.desiredRunning) {
 		return
 	}
 	now := time.Now()
@@ -49,10 +51,18 @@ func (s *Server) scheduleRecoveryLocked() {
 	if s.recovery != nil {
 		s.recovery.cancel()
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	attempt := &recoveryAttempt{cancel: cancel, next: now.Add(time.Duration(policy.DelaySeconds) * time.Second)}
+	parent := context.Background()
+	if len(parents) > 0 {
+		parent = parents[0]
+	}
+	ctx, cancel := context.WithCancel(parent)
+	attempt := &recoveryAttempt{gate: gate, cancel: cancel, next: now.Add(time.Duration(policy.DelaySeconds) * time.Second)}
 	s.recovery = attempt
-	s.logLocked(fmt.Sprintf("[Windows node] unexpected exit; automatic restart scheduled in %d seconds", policy.DelaySeconds))
+	if gate != nil {
+		s.logLocked(fmt.Sprintf("[Windows node] startup restoration scheduled in %d seconds", policy.DelaySeconds))
+	} else {
+		s.logLocked(fmt.Sprintf("[Windows node] unexpected exit; automatic restart scheduled in %d seconds", policy.DelaySeconds))
+	}
 	go s.recoverProcess(ctx, attempt)
 }
 
@@ -71,6 +81,14 @@ func (s *Server) recoverProcess(ctx context.Context, attempt *recoveryAttempt) {
 	case <-ctx.Done():
 		return
 	case <-timer.C:
+	}
+	if attempt.gate != nil {
+		select {
+		case attempt.gate <- struct{}{}:
+			defer func() { <-attempt.gate }()
+		case <-ctx.Done():
+			return
+		}
 	}
 	// Bound power-lock contention independently of the normal startup timeout.
 	wait, cancel := context.WithTimeout(ctx, 30*time.Second)

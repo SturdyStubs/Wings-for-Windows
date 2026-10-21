@@ -40,6 +40,7 @@ func (s *Server) EnqueuePower(action string, waitSeconds int) error {
 	if s.powerEpoch == nil {
 		s.powerEpoch = make(chan struct{})
 	}
+	s.startupSuppressed = true
 	s.cancelRecoveryLocked(action == "stop")
 	epoch := s.powerEpoch
 	s.pendingPower++

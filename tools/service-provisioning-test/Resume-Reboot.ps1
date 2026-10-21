@@ -27,13 +27,19 @@ try{
  $service=Get-CimInstance Win32_Service -Filter "Name='WingsWindowsNative'"
  $owner=Invoke-CimMethod -InputObject (Get-CimInstance Win32_Process -Filter ('ProcessId='+$service.ProcessId)) -MethodName GetOwnerSid
  if($owner.Sid -ne $state.daemon_sid -or $service.StartMode -ne 'Auto'){throw 'Service identity/start mode mismatch'};$report.checks.delayed_automatic_nonadmin_service='passed'
+ if($state.expect_restore){
+  Wait-State 'running';$server=API
+  if(-not $server.native_restore.loaded_running -or -not $server.native_restore.desired_running){throw 'Running intent not restored'}
+  $report.checks.running_game_restored_after_boot='passed'
+ }else{
  if($server.state -ne 'offline' -or $server.native_recovery.pending){throw 'Unexpected automatic game/timer restoration'}
  foreach($process in Get-CimInstance Win32_Process -Filter "Name='wings-windows-demo.exe'"){$owner=Invoke-CimMethod -InputObject $process -MethodName GetOwnerSid;if($owner.Sid -eq $state.game_sid){throw 'Game started automatically'}}
  $report.checks.games_remain_offline_after_boot='passed'
+ }
  $stage='persistent_history'
  if('ECHO:'+$state.marker -notin (API '/logs').data -or $server.native_console_logs.restored_lines -le 0){throw 'Console history not restored'};$report.checks.console_history_after_boot='passed'
- if($server.native_recovery.attempts_in_window -ne 2 -or $server.native_recovery.restored_attempts -ne 2 -or -not $server.native_recovery.persistent_history){throw 'Budget not restored'};$report.checks.retry_budget_after_boot='passed'
- $stage='cold_game_credential';Power 'start';Wait-State 'running'
+ if($server.native_recovery.attempts_in_window -ne $state.expected_attempts -or $server.native_recovery.restored_attempts -ne ($state.expected_attempts-[int][bool]$state.expect_restore) -or -not $server.native_recovery.persistent_history){throw 'Budget not restored'};$report.checks.retry_budget_after_boot='passed'
+ $stage='cold_game_credential';if(-not $state.expect_restore){Power 'start';Wait-State 'running'}
  $owned=@();foreach($process in Get-CimInstance Win32_Process -Filter "Name='wings-windows-demo.exe'"){$owner=Invoke-CimMethod -InputObject $process -MethodName GetOwnerSid;if($owner.Sid -eq $state.game_sid){$owned+=$process.ProcessId}}
  if($owned.Count -ne 2){throw 'Cold credential did not launch separate root/child'};$report.checks.cold_profile_credential_game_launch='passed'
  Power 'stop';Wait-State 'offline';foreach($id in $owned){if(Get-Process -Id $id -ErrorAction SilentlyContinue){throw 'Game tree survived stop'}};$report.checks.post_boot_game_tree_stop='passed'
@@ -66,6 +72,7 @@ finally{
    Remove-Item -LiteralPath $secret;$report.cleanup.encrypted_cleanup_state_removed=$true
   }catch{$report.cleanup.account_or_state_error=$true;$report.passed=$false}
  }
+ foreach($required in @('credential_removed','service_removed','mock_and_reboot_tasks_removed','event_source_removed','accounts_and_rights_removed','encrypted_cleanup_state_removed')){if(-not $report.cleanup[$required]){$report.passed=$false}}
  if($credential){$credential.Password.Dispose()}
  [IO.File]::WriteAllText((Join-Path $Root 'reboot-report.json'),($report|ConvertTo-Json -Depth 8),[Text.UTF8Encoding]::new($false))
 }
