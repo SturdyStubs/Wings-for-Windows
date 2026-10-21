@@ -293,7 +293,7 @@ func (s *Server) spec() (native.Spec, error) {
 	if err != nil {
 		return native.Spec{}, err
 	}
-	return native.Spec{NetworkPolicy: s.Profile.NetworkPolicy, RunAs: s.Profile.RunAs, AccessRules: accessRules, Executable: s.Profile.Executable, Arguments: args, Environment: clean, Directory: s.Root, MemoryMB: limits.MemoryMB, CPUPercent: limits.CPUPercent}, nil
+	return native.Spec{NetworkPolicy: s.Profile.NetworkPolicy, RunAs: s.Profile.RunAs, AccessRules: accessRules, Executable: s.Profile.Executable, Arguments: args, Environment: clean, Directory: s.Root, TempDirectory: temp, RequiredFiles: append([]string(nil), s.Profile.Requirements.RequiredFiles...), MemoryMB: limits.MemoryMB, CPUPercent: limits.CPUPercent}, nil
 }
 
 var ErrSuspended = errors.New("cannot start or restart a suspended server")

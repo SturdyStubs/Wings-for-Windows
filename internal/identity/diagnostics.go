@@ -19,8 +19,8 @@ type DiagnosticReport struct {
 }
 
 func PendingAuditChecks() []DiagnosticCheck {
-	checks := make([]DiagnosticCheck, 0, 6)
-	for _, name := range []string{"identity_reference", "credential_presence", "account_token", "daemon_access", "filesystem_access", "service_privileges"} {
+	checks := make([]DiagnosticCheck, 0, 7)
+	for _, name := range []string{"identity_reference", "credential_presence", "account_token", "daemon_access", "filesystem_access", "launch_access", "service_privileges"} {
 		checks = append(checks, DiagnosticCheck{Name: name, Status: "not_run"})
 	}
 	return checks

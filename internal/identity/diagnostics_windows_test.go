@@ -13,7 +13,7 @@ func TestDiagnosticStopsBeforeLogonWhenCredentialIsMissing(t *testing.T) {
 	var random [16]byte
 	rand.Read(random[:])
 	id := fmt.Sprintf("%x-%x-%x-%x-%x", random[:4], random[4:6], random[6:8], random[8:10], random[10:])
-	checks := AuditIdentity(context.Background(), Reference{SID: "S-1-5-21-1-2-3-1001", CredentialTarget: "WingsWindows/" + id}, nil)
+	checks := AuditIdentity(context.Background(), Reference{SID: "S-1-5-21-1-2-3-1001", CredentialTarget: "WingsWindows/" + id}, nil, LaunchAccess{})
 	if checks[0].Status != "passed" || checks[1].Status != "failed" || !strings.Contains(checks[1].Error, "missing") {
 		t.Fatal(checks)
 	}
@@ -32,7 +32,7 @@ func TestDiagnosticStopsBeforeLogonWhenCredentialIsMissing(t *testing.T) {
 }
 
 func TestDiagnosticReferenceAndCancellationStopAllLaterChecks(t *testing.T) {
-	checks := AuditIdentity(context.Background(), Reference{}, nil)
+	checks := AuditIdentity(context.Background(), Reference{}, nil, LaunchAccess{})
 	if checks[0].Status != "failed" {
 		t.Fatal("invalid reference was accepted", checks)
 	}
@@ -43,7 +43,7 @@ func TestDiagnosticReferenceAndCancellationStopAllLaterChecks(t *testing.T) {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	checks = AuditIdentity(ctx, Reference{}, nil)
+	checks = AuditIdentity(ctx, Reference{}, nil, LaunchAccess{})
 	if checks[0].Status != "failed" || !strings.Contains(checks[0].Error, "canceled") {
 		t.Fatal(checks)
 	}

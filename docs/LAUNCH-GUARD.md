@@ -4,7 +4,7 @@ Alpha 13 adds a bounded startup guard to profiles using `run_as`. It reduces rep
 
 ## What is held
 
-After opening/checking the restricted token and daemon access, startup opens the executable, working directory, every nonrecursive protected rule and each ancestor through the local drive root. The rules include node secrets, daemon binaries and all configured profile executables/declared dependencies. Recursive other-server data trees are audited without retaining a handle per entry.
+After opening/checking the restricted token and daemon access, startup opens the executable, working directory, temporary directory, declared dependencies, every nonrecursive protected rule and each ancestor through the local drive root. The rules include node secrets, daemon binaries and all configured profile executables/declared dependencies. Recursive other-server data trees are audited without retaining a handle per entry.
 
 Components are opened with `GENERIC_READ`, `FILE_SHARE_READ`, `FILE_FLAG_BACKUP_SEMANTICS` and `FILE_FLAG_OPEN_REPARSE_POINT`. Read access also requests directory listing on directories; the daemon must have that access. Attribute-only handles were insufficient to enforce write sharing in local regression tests. See Microsoft's [CreateFile access and sharing contract](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew).
 
@@ -20,6 +20,6 @@ Stop installers, editors and updaters holding write/delete handles on protected 
 
 ## Remaining limits and verification
 
-This is not an atomic filesystem snapshot or a permanent boundary. It does not lock recursive data contents, freeze ACLs, invalidate earlier writable mappings/privileged handles, infer adjacent/transitive DLLs, or retain paths for delayed loading after resume. Changes to hardlinks, case/namespace behavior, mount policy and other hostile race cases still need separate validation. It does not validate that the game identity can write its intended data directories.
+This is not an atomic filesystem snapshot or a permanent boundary. It does not lock recursive data contents, freeze ACLs, invalidate earlier writable mappings/privileged handles, infer adjacent/transitive DLLs, or retain paths for delayed loading after resume. Changes to hardlinks, case/namespace behavior, mount policy and other hostile race cases still need separate validation. The separate alpha 14 [launch-permissions check](LAUNCH-ACCESS.md) verifies required grants on the working and temporary directories, without testing writes or descendant permissions.
 
 Local Windows tests exercise real write/rename conflicts after the snapshot audit returns, directory writer rejection, ordinary reads/child creation, pre-existing writers, missing-path rollback, idempotent close, cancellation, handle bounds, hardlinks and junction ancestors. Harmless fixtures launch with pins held, including a restricted token derived from the test identity. No second account, Windows Server/service deployment or adversarial race campaign has been certified. M2 remains open.

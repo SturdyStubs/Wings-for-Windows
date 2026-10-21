@@ -1,6 +1,6 @@
 # Progress toward Wings compatibility
 
-Last updated: October 18, 2026. Current version: **0.1.0-alpha.13**. Active development: **M2 — isolation and supported threat model**. M1 remains open for its live panel gate.
+Last updated: October 20, 2026. Current version: **0.1.0-alpha.14**. Active development: **M2 — isolation and supported threat model**. M1 remains open for its live panel gate.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
@@ -21,6 +21,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - Alpha 11: optional account-scoped WFP connection-blocking path before process creation, dynamic session rollback and job-aware cleanup. Contract/injected-backend and real-job/fake-lease tests pass; actual filter installation/traffic behavior is not live verified.
 - Alpha 12: explicit `--check-network-policy <UUID>` diagnostic with identity gating, owned-rule readback and independent cleanup inspection. Injected-backend success/failure/cancellation checks pass; no real filter installation or traffic result is claimed.
 - Alpha 13: read-sharing-only startup handles retain declared protected paths, executable, working directory and ancestors across ACL audit, WFP setup and suspended process creation/resume. Audit handles now request data/list access for effective no-delete sharing. Real write/rename/rollback/bound/link and pinned process-launch tests pass; runtime/ACL/mapping/loader races remain open.
+- Alpha 14: required game-identity DACL grants for executable read/execute, declared dependency reads and working/temporary-directory list/traverse/create permissions, shared between startup and the new diagnostic `launch_access` stage. Actual restricted-token file opens and allowed/denied temporary-file creation match the checks. No second-account/live-host validation is claimed.
 - HTTP inventory: handlers at **13 of upstream's 38 method/path combinations**, with partial behavior; **25 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
 - Automatic installation, full file manager/SFTP, backups/restores, transfers, strong isolation and live certification remain open.
 - Unchanged Linux eggs require a Linux execution backend. Native Windows profiles do not translate Linux images/binaries.
@@ -70,6 +71,7 @@ The seed definitions are in `docs/progress-plan.json`. `scripts/Update-Progress.
   - [x] Add opt-in SID-scoped WFP block installation/lifecycle paths with partial-install rollback and job-aware cleanup; verify injected-backend contracts and real-job/fake-lease ordering.
   - [x] Add explicit mutating WFP installation/readback/independent-cleanup diagnostic, gated by identity preflight and tested with an injected backend.
   - [x] Retain bounded startup handles for nonrecursive protected paths, executable, working directory and ancestors; reject conflicting writers and test rollback, link rejection and guarded image creation.
+  - [x] Check required executable/dependency/data-directory permissions under the game token before launch and in offline identity diagnostics; verify fixture allow/deny results against actual restricted-token file operations.
   - [ ] Verify actual WFP installation, traffic blocking, crash/restart behavior and allocation/outbound policy on a disposable host.
   - [ ] Verify successful distinct-account batch logon/launch under the intended Windows Server service identity.
   - [ ] Complete account/credential lifecycle, recursive/ancestor/link/race policy, shared executable/mount rules, daemon process-handle and network enforcement.

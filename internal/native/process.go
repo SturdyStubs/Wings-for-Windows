@@ -18,6 +18,8 @@ type Spec struct {
 	Executable             string
 	Arguments, Environment []string
 	Directory              string
+	TempDirectory          string
+	RequiredFiles          []string
 	MemoryMB, CPUPercent   int
 }
 type Stats struct {

@@ -1,6 +1,6 @@
 # Verification and release status
 
-Version `0.1.0-alpha.13`, verified locally October 18, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). No production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration was changed. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
+Version `0.1.0-alpha.14`, verified locally October 20, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). No production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration was changed. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
 
 The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed by the original tests. Alpha 2 adds upstream/panel-derived metadata fixtures and canonical route assertions, plus regression checks for the fixes below. Passing these tests is still not proof that a complete live panel/game deployment works. Current outstanding work is tracked in [ROADMAP.md](../ROADMAP.md).
 
@@ -8,7 +8,7 @@ The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed
 
 The release build runs `go test -count=1 -timeout 90s ./...` and `go vet ./...`. Tests launch harmless compiled fixture executables in temporary directories and use a mock panel API. They do not start Docker or contact a live panel.
 
-Alpha 13 local run: **175 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
+Alpha 14 local run: **191 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
 
 Coverage includes:
 
@@ -54,6 +54,8 @@ Coverage includes:
 - Missing-credential network diagnostic stops at identity preflight without opening WFP or creating server roots. No actual filters are installed by automated tests.
 - Startup guard across the completed snapshot audit: actual file writes, file/ancestor renames and directory write-handle opens fail while held; ordinary reads and child-file creation still work. Conflicting pre-existing writers fail closed. Close/partial-acquisition rollback, 1,024-handle bound, cancellation, hardlinks and junction ancestors are tested.
 - Actual Windows image creation with launch pins held, including a restricted-token fixture; pins can be released after startup. A separate no-existing-writer regression verifies audit handles themselves enforce no-delete sharing. These tests do not validate concurrent ACL changes, existing writable mappings, runtime loader paths or a hostile race campaign.
+- Required launch permissions using a real restricting SID and disposable ACL fixtures: executable execute denial, explicit denies, unreadable dependencies, root file-creation denial, read-only temporary directories, missing paths/types, cancellation and dependency bounds. Only fixture ACLs are modified.
+- Actual file read/execute opens and allowed/denied temporary-file creation under an impersonated restricted token agree with preflight results; impersonation is reverted before assertions. No account is created/logged on. Node specs preserve dependency snapshots and check the same temporary directory passed to the child. Missing-credential JSON reports leave `launch_access` as `not_run`.
 - GitHub milestones and README badge endpoints are checked against actual repository counts. Progress initialization is idempotent; closing/reopening issues remains authoritative.
 
 The build script produces the Windows amd64 daemon, demo executable, documentation, dependency licenses and a ZIP checksum. Go race-detector testing is not included; no compatible C toolchain is configured on this host.

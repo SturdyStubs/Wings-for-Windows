@@ -2,6 +2,7 @@ package node
 
 import (
 	"context"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"wings-windows/internal/config"
@@ -51,7 +52,9 @@ func CheckIdentity(ctx context.Context, c config.Config, serverID string) identi
 		return fail(2, err.Error())
 	}
 	report.Checks[2].Status = "passed"
-	copy(report.Checks[3:], identity.AuditIdentity(ctx, *profile.RunAs, rules))
+	root := filepath.Join(c.DataDirectory, report.ServerUUID)
+	launch := identity.LaunchAccess{Executable: profile.Executable, Directory: root, TempDirectory: filepath.Join(root, ".tmp"), RequiredFiles: profile.Requirements.RequiredFiles}
+	copy(report.Checks[3:], identity.AuditIdentity(ctx, *profile.RunAs, rules, launch))
 	report.Passed = true
 	for _, check := range report.Checks {
 		if check.Status != "passed" {

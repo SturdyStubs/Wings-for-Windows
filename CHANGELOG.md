@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.0-alpha.14 — October 20, 2026
+
+- Check effective game-token DACL grants for executable read/execute, declared dependency reads and working/temporary-directory list, traverse, metadata and file/subdirectory creation before network-policy installation or process creation.
+- Add the same read-only checker to `--check-identity` as the ordered `launch_access` stage. Missing directories fail; no permission repair, root creation, test write or extra account logon occurs.
+- Retain startup pins for the actual temporary directory and dependency inputs; carry a dependency snapshot from the profile into the native launch spec.
+- Verify real restricted-token file opens and allowed/denied temporary-file creation against ACL preflight results; add missing/type/cancellation/denial fixtures and node/diagnostic contracts. Full suite: 191 cases/subtests, zero skipped.
+- Document conservative traversal requirements and the remaining existing-child, inheritance, loader, race and live deployment gates. M2 remains open.
+
 ## 0.1.0-alpha.13 — October 18, 2026
 
 - Retain read-sharing-only launch handles before the identity ACL audit until network setup, suspended process creation, job assignment and resume finish. Cover nonrecursive protected paths, executable, working directory and ancestors; release on success or failure.

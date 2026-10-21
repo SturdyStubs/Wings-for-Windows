@@ -105,3 +105,27 @@ func TestIdentityRuleMergeRetainsCaseVariants(t *testing.T) {
 		t.Fatal("case-distinct declaration was dropped")
 	}
 }
+
+func TestIdentitySpecCarriesLaunchFilesAndTemporaryDirectory(t *testing.T) {
+	_, s, _ := setup(t)
+	s.Profile.RunAs = &identity.Reference{SID: "S-1-5-21-1-2-3-1001", CredentialTarget: "WingsWindows/" + testID}
+	dependency := filepath.Join(t.TempDir(), "runtime.dll")
+	s.Profile.Requirements.RequiredFiles = []string{dependency}
+	spec, err := s.spec()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if spec.TempDirectory != filepath.Join(s.Root, ".tmp") || len(spec.RequiredFiles) != 1 || spec.RequiredFiles[0] != dependency {
+		t.Fatal("launch access inputs lost", spec)
+	}
+	if info, err := os.Stat(spec.TempDirectory); err != nil || !info.IsDir() {
+		t.Fatal("temporary directory must exist before the launch guard", err)
+	}
+	if !strings.Contains(strings.Join(spec.Environment, "\n"), "TEMP="+spec.TempDirectory+"\n") {
+		t.Fatal("launch check and child TEMP disagree")
+	}
+	s.Profile.Requirements.RequiredFiles[0] = "changed after spec creation"
+	if spec.RequiredFiles[0] != dependency {
+		t.Fatal("launch input changed after snapshot")
+	}
+}

@@ -23,6 +23,10 @@ Native identities preserve direct Windows executable compatibility and avoid imp
 
 Alpha 13 adds a [bounded startup guard](LAUNCH-GUARD.md) for opt-in identities. Local Windows tests verify write/rename rejection after the snapshot audit returns, rollback after partial failure, and real image creation including a restricted-token child. It does not cover ACL mutation, existing writable mappings, recursive contents or runtime/transitive DLL loading; adversarial and live-host gates remain open.
 
+## Required launch access
+
+Alpha 14 adds a read-only [launch-permissions check](LAUNCH-ACCESS.md) using the restricted game token before WFP installation/process creation. Offline identity diagnostics run the same checker. Local fixture checks match real file opens and allowed/denied temporary-file creation under a restricting token. Existing child permissions, inheritance, successful game loading and distinct-account/service validation remain separate gates.
+
 ## Acceptance gates
 
 M2 remains open until separate credentials/policies and adversarial tests exist. Test attempts to read node secrets, open daemon process handles, access another server, traverse links, exploit case/device aliases, modify shared executables and race filesystem operations. Test console/file permissions and allocation enforcement under actual game identities.

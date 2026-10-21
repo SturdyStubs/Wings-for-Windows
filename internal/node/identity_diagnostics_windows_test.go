@@ -29,6 +29,9 @@ func TestOfflineIdentityReportNeverCreatesRootsOrContactsPanel(t *testing.T) {
 	if report.ServerUUID != id || report.Checks[4].Name != "credential_presence" || report.Checks[4].Status != "failed" {
 		t.Fatal(report)
 	}
+	if len(report.Checks) != 10 || report.Checks[8].Name != "launch_access" || report.Checks[8].Status != "not_run" {
+		t.Fatal("missing credential must leave launch readiness unverified", report)
+	}
 	for _, check := range report.Checks[5:] {
 		if check.Status != "not_run" {
 			t.Fatal("missing credential reached account logon", report)

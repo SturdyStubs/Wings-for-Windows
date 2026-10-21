@@ -10,7 +10,7 @@ import (
 
 // AuditIdentity attempts one batch logon and the launch-time access checks,
 // without creating a process, contacting the panel or changing host policy.
-func AuditIdentity(ctx context.Context, ref Reference, rules []PathRule) []DiagnosticCheck {
+func AuditIdentity(ctx context.Context, ref Reference, rules []PathRule, launch LaunchAccess) []DiagnosticCheck {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -36,6 +36,7 @@ func AuditIdentity(ctx context.Context, ref Reference, rules []PathRule) []Diagn
 		func() error { var err error; token, err = Open(ref); return err },
 		func() error { return CheckDaemonAccess(token) },
 		func() error { return CheckAccessContext(ctx, token, rules) },
+		func() error { return CheckLaunchAccessContext(ctx, token, launch) },
 		checkServicePrivileges,
 	}
 	for i, stage := range stages {

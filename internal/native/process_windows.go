@@ -36,7 +36,8 @@ func startPlatform(spec Spec) (result *Process, err error) {
 		if err = identity.CheckDaemonAccess(token); err != nil {
 			return nil, err
 		}
-		paths := []string{spec.Executable, spec.Directory}
+		paths := []string{spec.Executable, spec.Directory, spec.TempDirectory}
+		paths = append(paths, spec.RequiredFiles...)
 		for _, rule := range spec.AccessRules {
 			// Recursive other-server data stays a bounded snapshot audit;
 			// retaining one handle per data file would exhaust node resources.
@@ -50,6 +51,9 @@ func startPlatform(spec Spec) (result *Process, err error) {
 		}
 		defer guard.Close()
 		if err = identity.CheckAccessContext(spec.Context, token, spec.AccessRules); err != nil {
+			return nil, err
+		}
+		if err = identity.CheckLaunchAccessContext(spec.Context, token, identity.LaunchAccess{Executable: spec.Executable, Directory: spec.Directory, TempDirectory: spec.TempDirectory, RequiredFiles: spec.RequiredFiles}); err != nil {
 			return nil, err
 		}
 	}
