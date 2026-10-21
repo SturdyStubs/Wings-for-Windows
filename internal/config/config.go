@@ -17,7 +17,7 @@ import (
 	"wings-windows/internal/networkpolicy"
 )
 
-const Version = "0.1.0-alpha.18"
+const Version = "0.1.0-alpha.19"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -26,6 +26,7 @@ type TLS struct {
 	Key  string `json:"key"`
 }
 type Profile struct {
+	CrashRecovery              *CrashRecovery       `json:"crash_recovery,omitempty"`
 	NetworkPolicy              networkpolicy.Policy `json:"network_policy,omitempty"`
 	RunAs                      *identity.Reference  `json:"run_as,omitempty"`
 	SchemaVersion              int                  `json:"schema_version,omitempty"`
@@ -132,6 +133,11 @@ func (c *Config) Validate() error {
 	normalized := make(map[string]Profile, len(c.Profiles))
 	identities := make(map[string]bool)
 	for id, p := range c.Profiles {
+		if p.CrashRecovery != nil {
+			if err := p.CrashRecovery.Normalize(); err != nil {
+				return fmt.Errorf("%s: %w", id, err)
+			}
+		}
 		if err := p.NetworkPolicy.Validate(p.RunAs); err != nil {
 			return fmt.Errorf("%s: %w", id, err)
 		}

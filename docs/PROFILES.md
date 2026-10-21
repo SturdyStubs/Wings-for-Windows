@@ -51,3 +51,7 @@ Dependency files are checked for readable regular-file presence. Their extension
 Run checks using the daemon's eventual service account: an administrator's file access can differ. The profile preflight also runs before each actual start and before the manual installation-success callback. Startup preflight failures appear in console history and leave the game offline. Failed installation preflight sends no installation-success callback. A missing requirement is not installed automatically.
 
 Checks are snapshots. Files can change afterward; no authenticity or isolation guarantee is implied. Profiles without `run_as` run as the daemon account. An experimental [identity reference](IDENTITIES.md) can select a pinned local account with restricted-token launch and an ACL guard; complete isolation and separate-account deployment validation remain open. Keep the [current trusted-node restriction and planned isolation model](ISOLATION.md) in mind when approving executables and paths.
+
+## Optional crash recovery
+
+Profile v1 accepts `crash_recovery` with explicit `enabled`, bounded `max_restarts`, `window_seconds` and `delay_seconds`. It is disabled by default and applies only to unexpected nonzero game exits while this daemon remains active. See [behavior and limits](CRASH-RECOVERY.md).

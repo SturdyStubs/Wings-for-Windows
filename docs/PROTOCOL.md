@@ -126,3 +126,7 @@ The upstream snapshot was inspected directly in the local reference checkout. Th
 Alpha 17 adds opt-in local service-account creation, scoped LSA rights and protected initial node ACLs through [Install-Service.ps1](SERVICE-PROVISIONING.md). This changes operator setup only, with no new API routes. A Server 2022 SCM demo test uses a loopback mock panel; it does not satisfy the live panel/TLS gate.
 
 Alpha 18 adds managed-service credential create/inspect/replace/remove through a temporary password-backed task. It is an operator command, adds no daemon API routes and does not replace real-panel certification. See [credential setup](SERVICE-CREDENTIALS.md).
+
+## Game crash recovery
+
+Alpha 19 adds opt-in [bounded automatic restart](CRASH-RECOVERY.md) through the existing normal launch path. GET /api/servers/<UUID> includes native_recovery status; no new routes or standard power/status values are introduced. Operator controls cancel automatic recovery. Timers/history are not persisted across service restarts.

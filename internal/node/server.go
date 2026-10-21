@@ -46,6 +46,9 @@ type Server struct {
 	logBytes          int
 	subscribers       map[chan Event]struct{}
 	closing           bool
+	recoveryStopped   bool
+	recovery          *recoveryAttempt
+	recoveryHistory   []time.Time
 }
 type Manager struct {
 	Config  config.Config
@@ -111,6 +114,7 @@ func (m *Manager) Close() {
 	for _, s := range m.All() {
 		s.mu.Lock()
 		s.closing = true
+		s.cancelRecoveryLocked(true)
 		if s.powerEpoch != nil {
 			close(s.powerEpoch)
 			s.powerEpoch = nil
@@ -149,6 +153,9 @@ func (s *Server) setStateLocked(state string) { s.state = state; s.emitLocked("s
 func (s *Server) log(line string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	s.logLocked(line)
+}
+func (s *Server) logLocked(line string) {
 	s.logs = append(s.logs, line)
 	s.logBytes += len(line)
 	for len(s.logs) > 1000 || s.logBytes > 1<<20 {
@@ -320,6 +327,13 @@ func (s *Server) powerWithEpoch(action string, epoch chan struct{}) error {
 		s.mu.Unlock()
 		return ErrPowerCancelled
 	}
+	if (action == "start" || action == "restart") && s.settings.Suspended {
+		s.mu.Unlock()
+		return ErrSuspended
+	}
+	if epoch == nil {
+		s.cancelRecoveryLocked(action == "stop" || action == "kill")
+	}
 	if action == "kill" {
 		if s.powerEpoch != nil {
 			close(s.powerEpoch)
@@ -368,7 +382,12 @@ func (s *Server) powerWithEpoch(action string, epoch chan struct{}) error {
 	}()
 	return nil
 }
-func (s *Server) start() error { return s.startWithContext(context.Background()) }
+func (s *Server) start() error {
+	s.mu.Lock()
+	s.cancelRecoveryLocked(false)
+	s.mu.Unlock()
+	return s.startWithContext(context.Background())
+}
 func (s *Server) startWithContext(parent context.Context) error {
 	s.configurationSync.Lock()
 	defer s.configurationSync.Unlock()
@@ -463,18 +482,27 @@ func (s *Server) startWithContext(parent context.Context) error {
 		<-p.Done
 		s.mu.Lock()
 		if p.CleanupError != nil {
-			s.emitLocked("console output", "[Windows node] cleanup warning: "+p.CleanupError.Error())
+			s.logLocked("[Windows node] cleanup warning: " + p.CleanupError.Error())
 		}
 		if s.process == p {
+			unexpected := (s.state == "starting" || s.state == "running") && p.ExitCode != 0 && p.CleanupError == nil
 			s.process = nil
 			s.setStateLocked("offline")
-			s.emitLocked("console output", fmt.Sprintf("[Windows node] process exited (%d)", p.ExitCode))
+			s.logLocked(fmt.Sprintf("[Windows node] process exited (%d)", p.ExitCode))
+			if unexpected {
+				s.scheduleRecoveryLocked()
+			}
 		}
 		s.mu.Unlock()
 	}()
 	return nil
 }
-func (s *Server) stop(kill bool) error { return s.stopWithContext(context.Background(), kill) }
+func (s *Server) stop(kill bool) error {
+	s.mu.Lock()
+	s.cancelRecoveryLocked(true)
+	s.mu.Unlock()
+	return s.stopWithContext(context.Background(), kill)
+}
 func (s *Server) stopWithContext(ctx context.Context, kill bool) error {
 	s.mu.Lock()
 	p := s.process
@@ -572,7 +600,16 @@ func (s *Server) Response() map[string]any {
 		limit = s.appliedLimits.MemoryMB
 	}
 	stats := map[string]any{"state": s.state, "uptime": uptime, "memory_bytes": memory, "memory_limit_bytes": int64(limit) * 1024 * 1024, "cpu_absolute": s.cpu, "disk_bytes": 0, "network": map[string]int{"rx_bytes": 0, "tx_bytes": 0}, "native_metrics": map[string]any{"process_metrics_available": metricsAvailable, "scope": "root_process", "network_available": false, "disk_available": false}}
-	return map[string]any{"state": s.state, "is_suspended": s.settings.Suspended, "configuration": s.settings, "utilization": stats}
+	s.pruneRecoveryLocked(time.Now())
+	recovery := map[string]any{"enabled": s.Profile.CrashRecovery != nil && s.Profile.CrashRecovery.Enabled, "pending": s.recovery != nil, "attempts_in_window": len(s.recoveryHistory)}
+	if policy := s.Profile.CrashRecovery; policy != nil {
+		recovery["max_restarts"] = policy.MaxRestarts
+		recovery["window_seconds"] = policy.WindowSeconds
+	}
+	if s.recovery != nil {
+		recovery["next_attempt_at"] = s.recovery.next.UTC().Format(time.RFC3339Nano)
+	}
+	return map[string]any{"state": s.state, "is_suspended": s.settings.Suspended, "configuration": s.settings, "utilization": stats, "native_recovery": recovery}
 }
 func (s *Server) StatsJSON() string {
 	b, _ := json.Marshal(s.Response()["utilization"])

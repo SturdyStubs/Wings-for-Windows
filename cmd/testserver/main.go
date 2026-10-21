@@ -16,6 +16,9 @@ func main() {
 			time.Sleep(time.Second)
 		}
 	}
+	if len(os.Args) > 1 && os.Args[1] == "crash-on-start" {
+		os.Exit(23)
+	}
 	if len(os.Args) > 1 && os.Args[1] == "colored" {
 		fmt.Println("\x1b[32mSERVER_READY\x1b[0m")
 	} else {
@@ -39,6 +42,9 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		line := scanner.Text()
+		if line == "crash" {
+			os.Exit(23)
+		}
 		if line == "stop" {
 			fmt.Println("STOPPING")
 			return

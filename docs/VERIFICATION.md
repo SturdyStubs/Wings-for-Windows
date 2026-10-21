@@ -1,6 +1,6 @@
 # Verification and release status
 
-Version `0.1.0-alpha.18`, verified locally October 20, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). The local automated suite changes no production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration. Separate disposable VM service tests deliberately create and clean up temporary users, rights, tasks, service registration and fixture ACLs. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
+Version `0.1.0-alpha.19`, verified locally October 20, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). The local automated suite changes no production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration. Separate disposable VM service tests deliberately create and clean up temporary users, rights, tasks, service registration and fixture ACLs. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
 
 The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed by the original tests. Alpha 2 adds upstream/panel-derived metadata fixtures and canonical route assertions, plus regression checks for the fixes below. Passing these tests is still not proof that a complete live panel/game deployment works. Current outstanding work is tracked in [ROADMAP.md](../ROADMAP.md).
 
@@ -8,7 +8,7 @@ The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed
 
 The release build runs `go test -count=1 -timeout 90s ./...` and `go vet ./...`. Tests launch harmless compiled fixture executables in temporary directories and use a mock panel API. They do not start Docker or contact a live panel.
 
-Alpha 18 local run: **231 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
+Alpha 19 local run: **258 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
 
 Coverage includes:
 
@@ -112,3 +112,7 @@ The new installer/module passed a disposable Server 2022 SCM demo test using the
 Local tests cover real duplex pipe framing/peer PIDs, UTF-8 round trip, rejected zero/negative/oversize/truncated/invalid-UTF-8 frames and pure plan rejection of running/mismatched services, wrong pinned game SID, wrong targets, missing files/profiles and malformed UUIDs. Plans use mocked account/service lookup and change no users/tasks/rights. Injected scheduler/right backends also cover nonterminating registration errors, partial task creation, preserved preexisting batch rights and explicit cleanup failures without host mutation. Full development suite: 231 cases/subtests, zero skipped; vet passed.
 
 The development scripts passed a Server 2022 15-check fixture using alpha 17 runtime binaries: public create/inspect/replace/remove, accidental-overwrite and wrong-identity rejection, plus actual SCM demo identity/console/stop/restart. The final checksum-verified alpha 18 package then passed all 18 checks, adding bad-service-password cleanup, lock contention and preservation of preexisting batch rights. An independent audit found no residual test accounts, rights, tasks, services, mocks or owned processes; one final-fixture profile is retained loaded. See [evidence](evidence/server2022-alpha18-credentials.md). No cold reboot, actual account-password reset, real panel/game or WFP traffic result is claimed.
+
+## Alpha 19 game crash recovery
+
+The local suite adds policy/default validation, actual process/startup crashes and bounded loops, clean/disabled exits, queued/manual stop/kill, suspension/shutdown and active-launch cancellation, fresh-panel suspension rejection, failed preflight and rolling attempt expiry. Full suite target: 258 cases/subtests, zero skipped; release verification and Server 2022 package results are recorded separately. Reboot tests are deferred by operator instruction and remain unverified. Persistent state/logs, daemon restart policy, real game/panel and network isolation remain open.
