@@ -4,7 +4,7 @@
 
 - Add approved XML text/attribute rewrites with root/exact/wildcard paths, bounded mutation/encoding and full data-tree reparse. Reject unsupported names, DTDs/entities, namespaces, duplicate attributes, mixed content and nonempty conditions; reuse guarded batch writes.
 - Add opt-in disposable two-phase reboot preparation/resume, delayed service/mock startup and unattended cold credential/history/budget/game-tree checks and cleanup. Store temporary cleanup credentials using machine DPAPI in an Administrators/SYSTEM-only directory. The operator has authorized reboot testing; broader reboot parity remains open.
-- Extend local and combined service tests for malformed sixth-file refusal and XML text/attribute/escaping/Unicode/literal edits with retained ACLs. Final package and reboot evidence follows separately.
+- Extend local and combined service tests for malformed sixth-file refusal and XML text/attribute/escaping/Unicode/literal edits with retained ACLs. All 558 local cases/subtests, 14 native cases and 45 combined Server 2022 checks pass. A separate actual VM reboot passes seven unattended post-boot checks, with pinned SSH reconnect and verified cleanup. See [evidence and remaining gates](docs/evidence/server2022-alpha28-xml-reboot.md).
 
 ## 0.1.0-alpha.27 - October 21, 2026
 

@@ -1,0 +1,221 @@
+{
+  "schema_version": 1,
+  "version": "0.1.0-alpha.28",
+  "source_revision": "c680cb2e0028a551f952f83475130d8a5d3080c3",
+  "zip_sha256": "c2a1a39929ad7dae20367a5de1c819eed2bc33a9e99514034d2524d6ea16a79f",
+  "runtime_tests_sha256": "2f3218d6621b07a78a09aacbf4badffe923154e0233a4e218499028560acb09f",
+  "demo_sha256": "1982fcb53166a9a17a6c085a34c5e3ef40af49ba37de33401fc058d2100ccb27",
+  "host": {
+    "os": "Microsoft Windows Server 2022 Standard Evaluation",
+    "build": "20348",
+    "powershell": "5.1.20348.558"
+  },
+  "local_tests_passed": 558,
+  "local_tests_skipped": 0,
+  "packaged_vm_native_tests_passed": 14,
+  "baseline_started_utc": "2026-10-21T23:01:17.9518350Z",
+  "baseline_finished_utc": "2026-10-21T23:01:20.5364312Z",
+  "scope": "Harmless demo, separate daemon/game accounts, SCM and loopback mock panel. Six-parser preflight and XML text/attribute/ACL checks; actual operator-authorized VM reboot, pinned SSH reconnect, delayed automatic service, cold credential, persistent history/budget, stopped game tree and unattended cleanup verified. No real panel/TLS/game, immediate-start dependency-race, power-loss or WFP traffic certification.",
+  "service": {
+    "passed": true,
+    "checks": {
+      "event_source_registration_idempotent_whatif": "passed",
+      "installer_rollback": "passed",
+      "installer_start_failure_rollback": "passed",
+      "installer_account_rights_acls": "passed",
+      "public_bad_service_password_cleanup": "passed",
+      "public_operation_lock_rejected": "passed",
+      "public_preexisting_batch_right_preserved": "passed",
+      "public_credential_overwrite_rejected": "passed",
+      "public_credential_wrong_identity_rejected": "passed",
+      "public_credential_replace_inspect": "passed",
+      "credential_bootstrap": "passed",
+      "scm_service_start_and_api": "passed",
+      "actual_service_identity": "passed",
+      "egg_text_missing_file_rejects_launch": "passed",
+      "egg_json_malformed_batch_preserves_text": "passed",
+      "egg_properties_malformed_batch_preserves_targets": "passed",
+      "egg_ini_malformed_batch_preserves_targets": "passed",
+      "egg_yaml_malformed_batch_preserves_targets": "passed",
+      "egg_xml_malformed_batch_preserves_targets": "passed",
+      "separate_game_start": "passed",
+      "egg_xml_daemon_rewrite_text_attributes_acl": "passed",
+      "egg_yaml_daemon_rewrite_types_precision_acl": "passed",
+      "egg_ini_daemon_rewrite_sections_literals_acl": "passed",
+      "egg_properties_daemon_rewrite_escapes_literals_acl": "passed",
+      "egg_json_daemon_rewrite_types_precision_acl": "passed",
+      "egg_text_daemon_rewrite_preserves_acl": "passed",
+      "service_console": "passed",
+      "console_log_game_read_denied": "passed",
+      "recovery_state_game_read_denied": "passed",
+      "crash_recovery_restarts_and_cleans_old_tree": "passed",
+      "crash_recovery_manual_kill_cancels": "passed",
+      "crash_recovery_budget_stops_loop": "passed",
+      "console_log_rotation_and_size_limit": "passed",
+      "actual_game_tree_identity": "passed",
+      "scm_stop_kills_game_tree": "passed",
+      "console_log_history_restored_after_service_restart": "passed",
+      "crash_recovery_service_restart_preserves_budget": "passed",
+      "restored_budget_blocks_extra_automatic_restart": "passed",
+      "daemon_termination_preserves_recovery_budget": "passed",
+      "service_restart_and_game_stop": "passed",
+      "public_credential_remove_inspect": "passed",
+      "corrupt_recovery_state_refuses_service_start": "passed",
+      "event_source_remove_existing_service_rejected": "passed",
+      "actual_service_lifecycle_events": "passed",
+      "actual_startup_failure_event_secret_safe": "passed"
+    },
+    "error": null,
+    "cleanup": {
+      "credential_removed": true,
+      "service_removed": true,
+      "mock_stopped": true,
+      "event_source_removed": true,
+      "accounts_and_rights_removed": true
+    }
+  },
+  "independent_cleanup_audit": {
+    "retained_profiles": [
+      {
+        "loaded": 0,
+        "fixture": "scm-b891be1e",
+        "count": 1
+      },
+      {
+        "loaded": 1,
+        "fixture": "scm-d90dddfd",
+        "count": 1
+      }
+    ],
+    "explicit_rights_remaining": 0,
+    "historical_event_ids": [
+      100,
+      101,
+      102,
+      103,
+      200
+    ],
+    "passed": true,
+    "event_source_remaining": 0,
+    "tasks_remaining": 0,
+    "accounts_remaining": 0,
+    "encrypted_cleanup_states_remaining": 0,
+    "service_remaining": 0,
+    "processes_remaining": 0,
+    "mock_processes_remaining": 0
+  },
+  "retained_limits": "Two current fixture profiles retained: normal fixture unloaded after reboot, post-boot fixture loaded. No forced unload/delete. Earlier fixture/profile and alpha 19 disposable-credential limitation remain as documented.",
+  "reboot_preparation": {
+    "passed": true,
+    "checks": {
+      "event_source_registration_idempotent_whatif": "passed",
+      "installer_rollback": "passed",
+      "installer_start_failure_rollback": "passed",
+      "installer_account_rights_acls": "passed",
+      "public_bad_service_password_cleanup": "passed",
+      "public_operation_lock_rejected": "passed",
+      "public_preexisting_batch_right_preserved": "passed",
+      "public_credential_overwrite_rejected": "passed",
+      "public_credential_wrong_identity_rejected": "passed",
+      "public_credential_replace_inspect": "passed",
+      "credential_bootstrap": "passed",
+      "scm_service_start_and_api": "passed",
+      "actual_service_identity": "passed",
+      "egg_text_missing_file_rejects_launch": "passed",
+      "egg_json_malformed_batch_preserves_text": "passed",
+      "egg_properties_malformed_batch_preserves_targets": "passed",
+      "egg_ini_malformed_batch_preserves_targets": "passed",
+      "egg_yaml_malformed_batch_preserves_targets": "passed",
+      "egg_xml_malformed_batch_preserves_targets": "passed",
+      "separate_game_start": "passed",
+      "egg_xml_daemon_rewrite_text_attributes_acl": "passed",
+      "egg_yaml_daemon_rewrite_types_precision_acl": "passed",
+      "egg_ini_daemon_rewrite_sections_literals_acl": "passed",
+      "egg_properties_daemon_rewrite_escapes_literals_acl": "passed",
+      "egg_json_daemon_rewrite_types_precision_acl": "passed",
+      "egg_text_daemon_rewrite_preserves_acl": "passed",
+      "service_console": "passed",
+      "console_log_game_read_denied": "passed",
+      "recovery_state_game_read_denied": "passed",
+      "crash_recovery_restarts_and_cleans_old_tree": "passed",
+      "crash_recovery_manual_kill_cancels": "passed",
+      "crash_recovery_budget_stops_loop": "passed",
+      "console_log_rotation_and_size_limit": "passed",
+      "actual_game_tree_identity": "passed",
+      "scm_stop_kills_game_tree": "passed",
+      "console_log_history_restored_after_service_restart": "passed",
+      "crash_recovery_service_restart_preserves_budget": "passed",
+      "restored_budget_blocks_extra_automatic_restart": "passed",
+      "daemon_termination_preserves_recovery_budget": "passed",
+      "service_restart_and_game_stop": "passed"
+    },
+    "error": null,
+    "cleanup": {},
+    "reboot_prepared": true
+  },
+  "reboot": {
+    "version": "0.1.0-alpha.28",
+    "source_revision": "c680cb2e0028a551f952f83475130d8a5d3080c3",
+    "pre_boot_utc": "2026-10-21T02:56:06.8275410Z",
+    "post_boot_utc": "2026-10-21T23:04:00.1119860Z",
+    "passed": true,
+    "checks": {
+      "actual_boot_changed": "passed",
+      "delayed_automatic_nonadmin_service": "passed",
+      "games_remain_offline_after_boot": "passed",
+      "console_history_after_boot": "passed",
+      "retry_budget_after_boot": "passed",
+      "cold_profile_credential_game_launch": "passed",
+      "post_boot_game_tree_stop": "passed"
+    },
+    "error": null,
+    "cleanup": {
+      "credential_removed": true,
+      "service_removed": true,
+      "mock_and_reboot_tasks_removed": true,
+      "event_source_removed": true,
+      "accounts_and_rights_removed": true,
+      "encrypted_cleanup_state_removed": true
+    }
+  },
+  "ssh_host_check": {
+    "delayed_service_verified": true,
+    "caption": "Microsoft Windows Server 2022 Standard Evaluation",
+    "startup_tasks_verified": true,
+    "ssh_automatic": true,
+    "resume_source_hash_verified": true,
+    "cleanup_state_acl_verified": true,
+    "pre_boot_utc": "2026-10-21T02:56:06.8275410Z",
+    "ssh_reconnected": true,
+    "post_boot_utc": "2026-10-21T23:04:00.1119860Z"
+  },
+  "normal_cleanup_audit": {
+    "retained_profiles": [
+      {
+        "loaded": 1,
+        "fixture": "scm-b891be1e",
+        "count": 1
+      }
+    ],
+    "explicit_rights_remaining": 0,
+    "historical_event_ids": [
+      100,
+      101,
+      102,
+      103,
+      200
+    ],
+    "passed": true,
+    "event_source_remaining": 0,
+    "tasks_remaining": 0,
+    "accounts_remaining": 0,
+    "service_remaining": 0,
+    "processes_remaining": 0,
+    "mock_processes_remaining": 0
+  },
+  "reboot_fixture_sha256": {
+    "Test-ServiceProvisioning.ps1": "536d1bd28ae5c60cd1a3b11776b254a5df72a36f41a1e9169952c8abd0f026df",
+    "Prepare-Reboot.ps1": "ab9b5027c74a63b14140569ce093be0913343bb57c2345d99d9a2ea182495102",
+    "Resume-Reboot.ps1": "77ca3b32bbbd1e809052df7ed0e88f3ff1ffcc8445966871a10793ae9fc7f20c"
+  }
+}

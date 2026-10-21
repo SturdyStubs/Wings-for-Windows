@@ -4,7 +4,7 @@ Run native Windows game-server executables through a Pterodactyl panel. This is 
 
 **Version: 0.1.0-alpha.28. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
 
-Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). The current release adds [approved XML egg configuration](docs/EGG-XML-CONFIG.md), alongside [YAML](docs/EGG-YAML-CONFIG.md), [INI](docs/EGG-INI-CONFIG.md), [properties](docs/EGG-PROPERTIES-CONFIG.md), [JSON](docs/EGG-JSON-CONFIG.md) and [text-file rewriting](docs/EGG-TEXT-CONFIG.md) before game launch. Existing features include [persistent retry budgets](docs/RECOVERY-STATE.md), [console history](docs/CONSOLE-LOGS.md) and [managed service setup](docs/SERVICE-PROVISIONING.md). Reboot testing is now authorized; see the [two-phase VM check](docs/REBOOT-VALIDATION.md); real panel/game compatibility and full isolation gates remain open.
+Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). The current release adds [approved XML egg configuration](docs/EGG-XML-CONFIG.md), alongside [YAML](docs/EGG-YAML-CONFIG.md), [INI](docs/EGG-INI-CONFIG.md), [properties](docs/EGG-PROPERTIES-CONFIG.md), [JSON](docs/EGG-JSON-CONFIG.md) and [text-file rewriting](docs/EGG-TEXT-CONFIG.md) before game launch. Existing features include [persistent retry budgets](docs/RECOVERY-STATE.md), [console history](docs/CONSOLE-LOGS.md) and [managed service setup](docs/SERVICE-PROVISIONING.md). The [two-phase VM reboot check](docs/REBOOT-VALIDATION.md) passes for delayed service startup, cold stored credentials and persisted history/budgets; real panel/game compatibility and full isolation gates remain open.
 
 <!-- progress:start -->
 
@@ -26,7 +26,7 @@ Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.co
 GitHub Issues are the source of truth; ROADMAP.md records implementation scope and verification. Run `scripts/Update-Progress.ps1` to regenerate this section. Use `-Initialize` to add missing planned milestones/tasks; rerunning it never automatically re-closes existing issues.
 <!-- progress:end -->
 
-Alpha 27 verification: **525 local cases/subtests**, **14 packaged native cases** and **43 Server 2022 combined checks** pass. See the [evidence and remaining gates](docs/evidence/server2022-alpha27-egg-yaml.md).
+Alpha 28 verification: **558 local cases/subtests**, **14 packaged native cases**, **45 Server 2022 combined checks** and **7 actual post-reboot checks** pass. Pinned SSH reconnected and unattended fixture cleanup passed. See the [evidence and remaining gates](docs/evidence/server2022-alpha28-xml-reboot.md).
 
 ## What works
 
@@ -43,7 +43,7 @@ Alpha 27 verification: **525 local cases/subtests**, **14 packaged native cases*
 | Status | Offline, starting, running after local readiness or opted-in egg literal/regex matches with ANSI stripping, and stopping. |
 | Statistics | Root-process CPU, working-set memory and uptime. Network and disk accounting are unavailable and identified as such in `native_metrics`. |
 | File API | Wings-compatible listing URL/metadata, MIME/length/download headers, confined reads/writes up to 8 MiB and case-insensitive egg denylist checks. Contract tests pass; live panel verification remains open. |
-| Egg configuration | Opt-in text, JSON, properties, INI, YAML and XML, exact file approval, bounded parsing and protected-path checks. Other parsers remain open. |
+| Egg configuration | Opt-in text, JSON, properties, INI, YAML and XML, exact file approval, bounded parsing and protected-path checks. Broader dialects, templates and conditions remain open. |
 | Startup variables | Derived `SERVER_IP`, `SERVER_PORT`, `SERVER_MEMORY`, `STARTUP` and `TZ`, alongside explicitly allowed egg variables. |
 | Game crash recovery | Opt-in delayed restart after unexpected nonzero exits, bounded attempt window, fresh security checks and operator cancellation. Optional persistent retry budget; games remain offline after daemon restart. |
 | Persistent console logs | Optional rotated per-server JSONL, restored history, bounded queue and explicit drop/error counts. |

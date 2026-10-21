@@ -8,7 +8,7 @@ The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed
 
 The release build runs `go test -count=1 -timeout 90s ./...` and `go vet ./...`. Tests launch harmless compiled fixture executables in temporary directories and use a mock panel API. They do not start Docker or contact a live panel.
 
-Alpha 27 local run: **525 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
+Alpha 28 local run: **558 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
 
 Coverage includes:
 
@@ -151,4 +151,4 @@ Local fixtures cover YAML/yml paths, scalar types, arrays/wildcards/literal cond
 
 ## Alpha 28 XML and opt-in VM reboot fixture
 
-Local XML fixtures cover paths/attributes/wildcards/root creation, Unicode/escaping/literals, strict shapes/DTD/entity/namespace rules, bounds/mutation/output/cancellation, mixed-batch preservation and native launch. The combined fixture adds sixth-file refusal and actual XML edits. Reboot preparation retains a separate fixture and schedules unattended post-boot service/history/budget/cold-credential checks and cleanup. Exact package/VM/reboot results follow separately; preparation alone proves no reboot gate. See [XML](EGG-XML-CONFIG.md) and [reboot scope](REBOOT-VALIDATION.md).
+Local XML fixtures cover paths/attributes/wildcards/root creation, Unicode/escaping/literals, strict shapes/DTD/entity/namespace rules, bounds/mutation/output/cancellation, mixed-batch preservation and native launch. The combined fixture adds sixth-file refusal and actual XML edits. Reboot preparation retains a separate fixture and schedules unattended post-boot service/history/budget/cold-credential checks and cleanup. All 558 local cases/subtests, vet, clean release build and packaged checks pass. The exact package passes 14 native and all 45 combined service checks. A separate fixture passes 40 preparatory checks and all seven actual post-boot checks: delayed non-admin service, offline games/timers, history, budget, cold credential game launch and tree stop, with changed boot time, pinned SSH reconnect and unattended/independent cleanup. See [evidence and limits](evidence/server2022-alpha28-xml-reboot.md). Preparation alone proves no reboot gate. See [XML](EGG-XML-CONFIG.md) and [reboot scope](REBOOT-VALIDATION.md).

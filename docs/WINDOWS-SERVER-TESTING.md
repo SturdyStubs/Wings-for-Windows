@@ -64,7 +64,7 @@ For configured `block_connections`, stop workloads using the dedicated account a
 | --- | --- |
 | Windows 11 x64 build 26200, PowerShell 5.1 portable native fixture run | Local pass: 14 cases/subtests, zero skipped; Go absent from PATH. |
 | Windows Server 2022 VM native baseline | Direct alpha 16 SSH run: 14 passed, zero failed/skipped; build 20348, PowerShell 5.1, Administrator/session 0. [Evidence and limits](evidence/server2022-alpha16-ssh-identity.md). |
-| Distinct-account Windows Server logon/launch and ACL behavior | Eight native fixture stages passed with SYSTEM and non-administrator daemon batch tasks. SCM demo launch also passes; reboot/profile lifecycle and hostile policy tests remain open. |
+| Distinct-account Windows Server logon/launch and ACL behavior | Eight native fixture stages passed with SYSTEM and non-administrator daemon batch tasks. SCM demo launch and one delayed-start cold-profile VM reboot pass; broader profile/password lifecycle and hostile policy tests remain open. |
 | Windows Server SCM demo workflow | Passed using the new installer, separate daemon/game accounts and loopback mock panel. Final package evidence is tracked in VERIFICATION.md. |
 | Managed service credential provisioning | Final alpha 18 package: 18 public-helper/SCM checks passed. [Evidence](evidence/server2022-alpha18-credentials.md). |
 | Bounded game crash recovery | Final alpha 19: 22 SCM/credential/recovery checks passed; [evidence](evidence/server2022-alpha19-recovery.md). |
@@ -76,7 +76,8 @@ For configured `block_connections`, stop workloads using the dedicated account a
 | Approved properties egg configuration | Final alpha 25: 14 native cases and 39 combined checks passed; malformed third-file refusal and Unicode/literal/conditional edits preserve earlier targets and SDDL; [evidence](evidence/server2022-alpha25-egg-properties.md). |
 | Approved INI egg configuration | Final alpha 26: 14 native cases and 41 combined checks passed; malformed fourth-file refusal and exact section/Unicode/literal/path/quote edits preserve earlier targets and SDDL; [evidence](evidence/server2022-alpha26-egg-ini.md). |
 | Approved YAML egg configuration | Final alpha 27: 14 native cases and 43 combined checks passed; malformed fifth-file refusal and typed/precise/conditional/literal/Unicode edits preserve earlier targets and SDDL; [evidence](evidence/server2022-alpha27-egg-yaml.md). |
-| Reboot/profile recovery | Authorized; opt-in [two-phase fixture](REBOOT-VALIDATION.md) records exact results. Broader reboot recovery remains open. |
+| Approved XML egg configuration | Final alpha 28: 14 native cases and 45 combined checks passed; sixth-file refusal and XML text/attribute/Unicode/literal edits preserve earlier targets and SDDL; [evidence](evidence/server2022-alpha28-xml-reboot.md). |
+| Reboot/profile recovery | Actual alpha 28 VM reboot: seven post-boot checks, pinned SSH reconnect and unattended/independent cleanup pass for the delayed-start mock/demo deployment. Broader reboot recovery remains open; [evidence](evidence/server2022-alpha28-xml-reboot.md). |
 | Trusted-TLS real panel/game workflows | Pending. |
 | Real WFP installation, traffic and crash behavior | Pending. |
 | Real game's complete panel lifecycle and multi-server load | Pending. |
