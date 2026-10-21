@@ -8,7 +8,7 @@ The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed
 
 The release build runs `go test -count=1 -timeout 90s ./...` and `go vet ./...`. Tests launch harmless compiled fixture executables in temporary directories and use a mock panel API. They do not start Docker or contact a live panel.
 
-Alpha 25 local run: **446 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
+Alpha 26 local run: **483 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
 
 Coverage includes:
 
@@ -143,4 +143,4 @@ Local fixtures cover full-key conditions, escapes/Unicode/continuations, stable 
 
 ## Alpha 26 approved INI egg files
 
-Local fixtures cover default/section/bracketed paths, dotted keys, exact section ownership, scalar/legacy values, duplicates, Unicode, literal interpolation/cycles, Windows paths/quoting, stable output, unsupported rules/encoding/shapes, input/result/encoding bounds, cancellation, mixed-batch preservation and native launch. The pinned upstream dependency and Apache license are packaged. Final release/VM evidence follows separately. See [INI guide](EGG-INI-CONFIG.md). YAML/XML and broader parser/lifecycle parity remain open; reboot tests remain deferred.
+Local fixtures cover default/section/bracketed paths, dotted keys, exact section ownership, scalar/legacy values, duplicates, Unicode, literal interpolation/cycles, Windows paths/quoting, stable output, unsupported rules/encoding/shapes, input/result/encoding bounds, cancellation, mixed-batch preservation and native launch. The pinned upstream dependency and Apache license are packaged. All 483 local cases/subtests pass with zero skips; vet, clean release build and packaged checks pass. The exact package passes 14 native and all 41 combined Server 2022 checks, including fourth-file refusal preserving earlier files and actual section/Unicode/literal/path/quote rewrites with retained SDDL. See [evidence and cleanup limits](evidence/server2022-alpha26-egg-ini.md). See [INI guide](EGG-INI-CONFIG.md). YAML/XML and broader parser/lifecycle parity remain open; reboot tests remain deferred.

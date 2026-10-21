@@ -49,4 +49,4 @@ All targets are rendered before any file changes; malformed INI blocks launch wi
 
 ## Verification
 
-Local fixtures exercise path/scalar semantics, exact dotted sections, duplicates, Unicode, literal interpolation/cycles, Windows paths/quotes, stable output, malformed/encoding/shape/size/count limits, output growth, cancellation, mixed-batch preservation and actual native launch. The disposable service fixture adds fourth-file refusal and actual INI edits with retained SDDL. Final packaged Server 2022 evidence is recorded separately in [verification](VERIFICATION.md).
+Local fixtures exercise path/scalar semantics, exact dotted sections, duplicates, Unicode, literal interpolation/cycles, Windows paths/quotes, stable output, malformed/encoding/shape/size/count limits, output growth, cancellation, mixed-batch preservation and actual native launch. The disposable service fixture adds fourth-file refusal and actual INI edits with retained SDDL. All 483 local cases/subtests, 14 packaged native cases and 41 combined Server 2022 checks pass. See [evidence and cleanup limits](evidence/server2022-alpha26-egg-ini.md).

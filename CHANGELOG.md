@@ -4,7 +4,7 @@
 
 - Add approved INI egg configuration with default/section/bracketed paths, scalar/legacy values, exact section updates and literal interpolation. Disable continuations to preserve Windows backslashes; reject unsupported conditions and multiline/dialect shapes explicitly.
 - Bound input, structures and encoding; use a deterministic encoder and reparse to verify all raw data before guarded writes. Reuse mixed-batch preflight and existing ACL/identity protection. Pin upstream's gopkg.in/ini.v1 v1.67.0 and package its complete Apache-2.0 license.
-- Add contract, encoding/shape/bounds/growth/cancellation, mixed-batch and native-launch tests; extend the Server 2022 service fixture for fourth-file refusal and actual section/Unicode/literal/path edits with unchanged SDDL. Final package/VM evidence follows separately. Reboot tests remain deferred.
+- Add contract, encoding/shape/bounds/growth/cancellation, mixed-batch and native-launch tests; extend the Server 2022 service fixture for fourth-file refusal and actual section/Unicode/literal/path edits with unchanged SDDL. All 483 local cases/subtests pass with zero skips; vet, clean release build and packaged checks pass. The exact package passes 14 native and all 41 combined Server 2022 checks. Independent cleanup passes; one loaded profile is retained. See [evidence](docs/evidence/server2022-alpha26-egg-ini.md). Reboot tests remain deferred.
 
 ## 0.1.0-alpha.25 - October 21, 2026
 
