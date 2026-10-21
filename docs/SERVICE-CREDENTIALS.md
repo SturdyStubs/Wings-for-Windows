@@ -61,3 +61,5 @@ A failure after sending the request can leave a changed credential even if no su
 This command automates the password-backed provisioning context. It does not certify cold boot/profile recovery, service auto-start, full account/password lifecycle, real panel/TLS/game compatibility or WFP isolation. The [roadmap](../ROADMAP.md) and [verification](VERIFICATION.md) track these gates. Lower-level current-account operations remain available in [credential lifecycle](CREDENTIAL-LIFECYCLE.md).
 
 Windows documents the logon-session dependency of [CredWrite](https://learn.microsoft.com/en-us/windows/win32/api/wincred/nf-wincred-credwritew); an Administrator SSH session's credential store is not a substitute for the daemon account's store.
+
+The final alpha 18 package passed 18 public-helper/SCM fixture checks on Server 2022 build 20348, including failure cleanup, lock contention and preservation of existing rights. See [sanitized evidence and retained-profile limits](evidence/server2022-alpha18-credentials.md).

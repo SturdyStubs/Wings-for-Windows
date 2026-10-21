@@ -4,7 +4,7 @@ Run native Windows game-server executables through a Pterodactyl panel. This is 
 
 **Version: 0.1.0-alpha.18. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
 
-Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). Alpha 17 adds opt-in dedicated service-account creation, explicit account rights and initial node ACLs, with failure rollback. See [managed service setup](docs/SERVICE-PROVISIONING.md). Game accounts still need separate creation. Alpha 18 adds [service-account credential provisioning](docs/SERVICE-CREDENTIALS.md) for create/inspect/replace/remove through a temporary password-backed task. The portable runtime baseline needs no Go on the VM. Direct Server 2022 tests cover distinct-account batch launches and an actual non-administrator SCM service using a loopback mock panel; real panel/game, reboot/profile recovery and network isolation gates remain open. M2 remains in progress. Full Wings parity remains in progress.
+Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). Alpha 18 adds [service-account game-credential provisioning](docs/SERVICE-CREDENTIALS.md): create, inspect, deliberately replace and remove credentials through a temporary password-backed task. [Managed service setup](docs/SERVICE-PROVISIONING.md) creates the dedicated daemon account and initial rights/ACLs; game-account creation remains an operator step. The final package passed **231 local cases/subtests** and **18 credential/SCM demo checks** on Server 2022 using a loopback mock panel. See [evidence](docs/evidence/server2022-alpha18-credentials.md). Real panel/game, cold reboot/profile recovery and network isolation gates remain open. M2 remains in progress. Full Wings parity remains in progress.
 
 <!-- progress:start -->
 
@@ -42,7 +42,7 @@ GitHub Issues are the source of truth; ROADMAP.md records implementation scope a
 | Statistics | Root-process CPU, working-set memory and uptime. Network and disk accounting are unavailable and identified as such in `native_metrics`. |
 | File API | Wings-compatible listing URL/metadata, MIME/length/download headers, confined reads/writes up to 8 MiB and case-insensitive egg denylist checks. Contract tests pass; live panel verification remains open. |
 | Startup variables | Derived `SERVER_IP`, `SERVER_PORT`, `SERVER_MEMORY`, `STARTUP` and `TZ`, alongside explicitly allowed egg variables. |
-| Windows service | SCM stop/shutdown support, dedicated service-account setup and initial rights/ACL provisioning. |
+| Windows service | SCM stop/shutdown, dedicated account/initial rights/ACL setup and daemon-context game-credential create/inspect/replace/remove. |
 
 There is **no Docker dependency**. Windows runs the actual Windows executable. The panel itself still runs separately in its supported environment.
 

@@ -66,6 +66,7 @@ For configured `block_connections`, stop workloads using the dedicated account a
 | Windows Server 2022 VM native baseline | Direct alpha 16 SSH run: 14 passed, zero failed/skipped; build 20348, PowerShell 5.1, Administrator/session 0. [Evidence and limits](evidence/server2022-alpha16-ssh-identity.md). |
 | Distinct-account Windows Server logon/launch and ACL behavior | Eight native fixture stages passed with SYSTEM and non-administrator daemon batch tasks. SCM demo launch also passes; reboot/profile lifecycle and hostile policy tests remain open. |
 | Windows Server SCM demo workflow | Passed using the new installer, separate daemon/game accounts and loopback mock panel. Final package evidence is tracked in VERIFICATION.md. |
+| Managed service credential provisioning | Final alpha 18 package: 18 public-helper/SCM checks passed. [Evidence](evidence/server2022-alpha18-credentials.md). |
 | Reboot/profile recovery and trusted-TLS real panel/game workflows | Pending. |
 | Real WFP installation, traffic and crash behavior | Pending. |
 | Real game's complete panel lifecycle and multi-server load | Pending. |
