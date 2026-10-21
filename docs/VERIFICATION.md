@@ -1,6 +1,6 @@
 # Verification and release status
 
-Version `0.1.0-alpha.15`, verified locally October 20, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). No production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration was changed. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
+Version `0.1.0-alpha.16`, verified locally October 20, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). No production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration was changed. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
 
 The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed by the original tests. Alpha 2 adds upstream/panel-derived metadata fixtures and canonical route assertions, plus regression checks for the fixes below. Passing these tests is still not proof that a complete live panel/game deployment works. Current outstanding work is tracked in [ROADMAP.md](../ROADMAP.md).
 
@@ -8,7 +8,7 @@ The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed
 
 The release build runs `go test -count=1 -timeout 90s ./...` and `go vet ./...`. Tests launch harmless compiled fixture executables in temporary directories and use a mock panel API. They do not start Docker or contact a live panel.
 
-Alpha 15 local run: **192 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
+Alpha 16 local run: **192 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
 
 Coverage includes:
 
@@ -63,7 +63,9 @@ The build script produces the Windows amd64 daemon, demo executable, documentati
 
 ## Portable VM evidence
 
-Use [the Windows Server VM workflow](WINDOWS-SERVER-TESTING.md) to run the packaged native tests without Go. The local runner was checked with Windows PowerShell 5.1 and Go removed from PATH, including checksum/dirty-source/reused-output/incomplete-suite rejection. Reports record the actual OS build and invoking SID; a client-Windows pass is not relabeled as a Windows Server result. Successful local baseline: 14 cases/subtests, zero skipped. Server 2022 results are pending.
+Use [the Windows Server VM workflow](WINDOWS-SERVER-TESTING.md) to run the packaged native tests without Go. The local runner was checked with Windows PowerShell 5.1 and Go removed from PATH, including checksum/dirty-source/reused-output/incomplete-suite rejection. Reports record the actual OS build and invoking SID; a client-Windows pass is not relabeled as a Windows Server result. Successful local baseline: 14 cases/subtests, zero skipped. The operator subsequently supplied a passing alpha 15 Server 2022 report: build 20348, PowerShell 5.1.20348.558, Administrator token/session 2; 14 cases passed, zero failed/skipped. The source revision and both executable hashes match the retained alpha 15 package. See [evidence and scope](evidence/server2022-alpha15-runtime.md). This is operator-provided report evidence; the VM/full test log was not independently inspected. Remaining live gates below stay open.
+
+Alpha 16 additionally verifies the Windows PowerShell `-File` invocation with both package/output arguments omitted, including execution from outside the package. This regression now runs during every clean-source release build; dirty development builds are not certified by the host runner.
 
 ## Required live checks
 

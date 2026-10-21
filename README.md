@@ -2,9 +2,9 @@
 
 Run native Windows game-server executables through a Pterodactyl panel. This is a separate Go daemon implementing a **subset of the Wings protocol**, with Windows Job Objects replacing the Docker process runtime.
 
-**Version: 0.1.0-alpha.15. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
+**Version: 0.1.0-alpha.16. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
 
-Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). Alpha 15 packages portable runtime tests and a host-report script so a clean Windows VM can validate process, console, limits and job behavior without installing Go. Start with the [Windows Server VM guide](docs/WINDOWS-SERVER-TESTING.md). WFP installation and live traffic blocking remain unverified; no allocation allowlist is implemented. Account provisioning/recovery, full isolation and live host certification remain open. M2 remains in progress; separate-account deployment and full filesystem/network isolation are unverified. Full Wings parity remains in progress.
+Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). Alpha 16 fixes default path resolution in the portable host-report script and checks its parameter-free Windows PowerShell invocation during clean release builds. The VM can validate process, console, limits and job behavior without installing Go. Start with the [Windows Server VM guide](docs/WINDOWS-SERVER-TESTING.md). WFP installation and live traffic blocking remain unverified; no allocation allowlist is implemented. Account provisioning/recovery, full isolation and live host certification remain open. M2 remains in progress; separate-account deployment and full filesystem/network isolation are unverified. Full Wings parity remains in progress.
 
 <!-- progress:start -->
 
@@ -67,8 +67,8 @@ cd Wings-for-Windows
 If Go is not on PATH, pass `-GoExecutable C:\path\to\go.exe`. The script runs the Windows integration tests and `go vet`, then creates:
 
 ```text
-dist/wings-windows-native-0.1.0-alpha.15-windows-amd64.zip
-dist/wings-windows-native-0.1.0-alpha.15-windows-amd64.zip.sha256
+dist/wings-windows-native-0.1.0-alpha.16-windows-amd64.zip
+dist/wings-windows-native-0.1.0-alpha.16-windows-amd64.zip.sha256
 ```
 
 The archive includes the daemon, a harmless console demo executable, compiled runtime tests, a host-report script, configuration example, documentation and service script. Docker, Node, PHP and a C compiler are not needed to build it. Native integration tests compile a temporary demo executable using Go.

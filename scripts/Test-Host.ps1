@@ -1,13 +1,30 @@
 [CmdletBinding()]
 param(
-    [string]$PackageDirectory = (Split-Path -Parent $PSScriptRoot),
-    [string]$OutputDirectory = (Join-Path (Get-Location).Path ('host-validation-' + [guid]::NewGuid().ToString('N')))
+    [string]$PackageDirectory,
+    [string]$OutputDirectory
 )
 $ErrorActionPreference = 'Stop'
+
+# Resolve defaults after parameter binding. Windows PowerShell can evaluate
+# param defaults before populating $PSScriptRoot for a -File invocation.
+if ([string]::IsNullOrWhiteSpace($PackageDirectory)) {
+    $scriptDirectory = $PSScriptRoot
+    if ([string]::IsNullOrWhiteSpace($scriptDirectory)) {
+        $scriptFile = $MyInvocation.MyCommand.Path
+        if ([string]::IsNullOrWhiteSpace($scriptFile)) { throw 'Cannot locate the script. Pass -PackageDirectory explicitly.' }
+        $scriptDirectory = Split-Path -Parent $scriptFile
+    }
+    $PackageDirectory = Split-Path -Parent $scriptDirectory
+}
 
 # Executes only the packaged native test suite and harmless demo. No config,
 # panel credentials, account logon, service setup or WFP operations are used.
 $packagePath = (Resolve-Path -LiteralPath $PackageDirectory).Path
+if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
+    # Keep evidence beside the package. Windows PowerShell can start in PSHOME
+    # when the caller's directory contains wildcard characters such as brackets.
+    $OutputDirectory = Join-Path $packagePath ('host-validation-' + [guid]::NewGuid().ToString('N'))
+}
 $manifestPath = Join-Path $packagePath 'HOST-TESTS.json'
 $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
 $buildInfo = Get-Content -LiteralPath (Join-Path $packagePath 'BUILD-INFO.json') -Raw | ConvertFrom-Json

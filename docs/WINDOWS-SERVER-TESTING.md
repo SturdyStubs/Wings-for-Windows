@@ -9,7 +9,7 @@ Build from a clean checkout on the development machine using `scripts/Build.ps1`
 In Windows PowerShell inside the VM, use the actual downloaded ZIP path:
 
 ```powershell
-$archive = 'C:\Users\Administrator\Downloads\wings-windows-native-0.1.0-alpha.15-windows-amd64.zip'
+$archive = 'C:\Users\Administrator\Downloads\wings-windows-native-0.1.0-alpha.16-windows-amd64.zip'
 $expected = ((Get-Content -LiteralPath ($archive + '.sha256') -Raw).Trim() -split '\s+')[0]
 $actual = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
 if ($actual -ne $expected) { throw 'Archive checksum mismatch.' }
@@ -25,9 +25,11 @@ Extract into a new directory. The package contains `BUILD-INFO.json`, `HOST-TEST
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\Test-Host.ps1 -OutputDirectory C:\WingsEvidence\baseline
 ```
 
+Package/output defaults are resolved after parameter binding. Alpha 15 could fail before execution when Windows PowerShell evaluated `$PSScriptRoot` in a parameter initializer. On an existing alpha 15 extraction, run from its package root with `-PackageDirectory .` to bypass that default, or use alpha 16. That argument does not bypass any hash/revision/test checks.
+
 The execution-policy option applies to this PowerShell process; it changes no machine-wide policy. Run the verified package's local script. Administrator elevation is not requested by the runner. Record the invoking identity; an interactive administrator result does not establish behavior under the eventual daemon service account.
 
-The script checks both executable hashes, then runs the complete compiled `internal/native` suite using the bundled demo. It requires successful exit, every exact top-level manifest test, and zero failed/skipped tests. No Go executable, source checkout or network connection is needed. Use a new output directory each time; existing evidence is never overwritten.
+The script checks both executable hashes, then runs the complete compiled `internal/native` suite using the bundled demo. It requires successful exit, every exact top-level manifest test, and zero failed/skipped tests. No Go executable, source checkout or network connection is needed. Use a new output directory each time; existing evidence is never overwritten. When OutputDirectory is omitted, alpha 16 creates host-validation-<GUID> beside the package, regardless of the invoking working directory.
 
 The baseline currently covers 14 cases/subtests: native process creation with Job Object assignment, console/Unicode/quoting, graceful and forced stop, descendant cleanup, bounded blocked console input, actual job-limit queries/updates, cancelled launch, pinned image startup and a restricted-token child derived from the invoking identity. The network cleanup-order test uses a fake lease; it installs no filters. Invalid-identity testing fails before real credential lookup/logon.
 
@@ -61,7 +63,7 @@ For configured `block_connections`, stop workloads using the dedicated account a
 | Gate | Recorded status |
 | --- | --- |
 | Windows 11 x64 build 26200, PowerShell 5.1 portable native fixture run | Local pass: 14 cases/subtests, zero skipped; Go absent from PATH. |
-| Windows Server 2022 VM native baseline | Pending VM execution. |
+| Windows Server 2022 VM native baseline | User-provided alpha 15 report: 14 passed, zero failed/skipped; build 20348, PowerShell 5.1, Administrator token. [Evidence and limits](evidence/server2022-alpha15-runtime.md). |
 | Distinct-account Windows Server logon/launch and ACL behavior | Pending. |
 | Windows Server SCM/reboot and trusted-TLS panel workflows | Pending. |
 | Real WFP installation, traffic and crash behavior | Pending. |

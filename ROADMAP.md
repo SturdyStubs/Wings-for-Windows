@@ -1,6 +1,6 @@
 # Progress toward Wings compatibility
 
-Last updated: October 20, 2026. Current version: **0.1.0-alpha.15**. Active development: **M2 — isolation and supported threat model**. M1 remains open for its live panel gate.
+Last updated: October 20, 2026. Current version: **0.1.0-alpha.16**. Active development: **M2 — isolation and supported threat model**. M1 remains open for its live panel gate.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
@@ -23,6 +23,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - Alpha 13: read-sharing-only startup handles retain declared protected paths, executable, working directory and ancestors across ACL audit, WFP setup and suspended process creation/resume. Audit handles now request data/list access for effective no-delete sharing. Real write/rename/rollback/bound/link and pinned process-launch tests pass; runtime/ACL/mapping/loader races remain open.
 - Alpha 14: required game-identity DACL grants for executable read/execute, declared dependency reads and working/temporary-directory list/traverse/create permissions, shared between startup and the new diagnostic `launch_access` stage. Actual restricted-token file opens and allowed/denied temporary-file creation match the checks. No second-account/live-host validation is claimed.
 - Alpha 15: portable compiled native tests plus a hash/revision-checked PowerShell host-report runner and staged Windows Server VM instructions. Local no-Go execution passes 14 runtime cases/subtests with zero skipped; host evidence explicitly excludes panel, distinct-account, service and network-filter verification. Server VM results remain pending.
+- Alpha 16: resolve host-runner path defaults after parameter binding, fixing the reported Windows PowerShell `-File` failure when `$PSScriptRoot` is empty in a parameter initializer. Clean release builds exercise both omitted defaults from outside the package. The user reports 14 passing cases on the Server 2022 VM using the alpha 15 explicit-path workaround; the JSON metadata and executable hashes match the retained alpha 15 package (build 20348, Administrator token). Distinct-account/service/panel/network gates remain open.
 - HTTP inventory: handlers at **13 of upstream's 38 method/path combinations**, with partial behavior; **25 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
 - Automatic installation, full file manager/SFTP, backups/restores, transfers, strong isolation and live certification remain open.
 - Unchanged Linux eggs require a Linux execution backend. Native Windows profiles do not translate Linux images/binaries.

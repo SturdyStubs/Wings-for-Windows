@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.0-alpha.16 — October 20, 2026
+
+- Fix Test-Host.ps1 default package resolution by evaluating script-relative paths after parameter binding, with a MyInvocation fallback. Resolve the default output directory in the body beside the package, avoiding Windows PowerShell startup working-directory quirks.
+- Reproduce the parameter-free Windows PowerShell -File invocation in clean release builds, from outside the package. Previous package verification passed explicit paths and missed this failure.
+- Document the alpha 15 workaround: run from the extraction root with -PackageDirectory .; retain all existing package integrity and coverage requirements.
+- Full suite remains 192 cases/subtests, zero skipped; portable default-invocation baseline passes 14 cases/subtests. The user reports 14 passing cases on Server 2022 after using the explicit-path workaround; record the reviewed metadata and matching executable hashes without the full SID. Distinct-account/service/panel/network gates remain open.
+
 ## 0.1.0-alpha.15 — October 20, 2026
 
 - Package a compiled native runtime-test binary and exact test/hash manifest; allow an explicit existing harmless fixture so the VM needs neither Go nor repository source.

@@ -26,7 +26,7 @@ try {
     Write-Output "Tests passed: $passedTests (including subtests); skipped: $skippedTests"
     & $GoExecutable vet ./...
     if ($LASTEXITCODE -ne 0) { throw 'Go vet failed.' }
-    $version = '0.1.0-alpha.15'
+    $version = '0.1.0-alpha.16'
     $stage = Join-Path $projectRoot ('dist\stage-' + [guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $stage -Force | Out-Null
     $revision = 'unavailable'
@@ -62,6 +62,29 @@ try {
     Copy-Item -LiteralPath 'scripts\Update-Progress.ps1' -Destination (Join-Path $stage 'scripts')
     Copy-Item -LiteralPath 'scripts\Store-GameCredential.ps1' -Destination (Join-Path $stage 'scripts')
     Copy-Item -LiteralPath 'scripts\Test-Host.ps1' -Destination (Join-Path $stage 'scripts')
+    if ($dirty -eq $false) {
+        # Exercise both omitted defaults through Windows PowerShell -File,
+        # from outside the package, before publishing a clean-source ZIP.
+        $smokeDirectory = Join-Path $projectRoot ('dist\host-runner-' + [guid]::NewGuid().ToString('N'))
+        New-Item -ItemType Directory -Path $smokeDirectory -Force | Out-Null
+        Push-Location -LiteralPath $smokeDirectory
+        try {
+            $windowsPowerShell = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+            & $windowsPowerShell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $stage 'scripts\Test-Host.ps1')
+            if ($LASTEXITCODE -ne 0) { throw 'Portable host runner default-invocation regression failed.' }
+            # Preserve local evidence outside the distributable package.
+            $evidenceFolders = @(Get-ChildItem -LiteralPath $stage -Directory -Filter 'host-validation-*')
+            if ($evidenceFolders.Count -ne 1) { throw 'Unexpected host validation evidence inventory.' }
+            $sourceEvidence = [IO.Path]::GetFullPath($evidenceFolders[0].FullName)
+            $targetEvidence = [IO.Path]::GetFullPath((Join-Path $smokeDirectory 'host-evidence'))
+            $stagePrefix = [IO.Path]::GetFullPath($stage).TrimEnd('\') + '\'
+            $smokePrefix = [IO.Path]::GetFullPath($smokeDirectory).TrimEnd('\') + '\'
+            if (-not $sourceEvidence.StartsWith($stagePrefix, [StringComparison]::OrdinalIgnoreCase) -or -not $targetEvidence.StartsWith($smokePrefix, [StringComparison]::OrdinalIgnoreCase)) {
+                throw 'Host evidence paths escaped the build staging directories.'
+            }
+            Move-Item -LiteralPath $sourceEvidence -Destination $targetEvidence
+        } finally { Pop-Location }
+    }
     $archive = Join-Path $projectRoot "dist\wings-windows-native-$version-windows-amd64.zip"
     Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $archive -Force
     $hash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
