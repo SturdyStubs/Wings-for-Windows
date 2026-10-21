@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "version": "0.1.0-alpha.21",
+  "source_revision": "56a95e95398c446748d7a672f891935267838acd",
+  "zip_sha256": "5690933d0aaeba8e3d5f94b1bd3935edf89885e15aa36306ed91205ee3b8e334",
+  "runtime_tests_sha256": "2f3218d6621b07a78a09aacbf4badffe923154e0233a4e218499028560acb09f",
+  "demo_sha256": "37ae1e3381b65d221d8c0d4fdb85f1ce0ffe960590c5285f14ac487451d835ab",
+  "host": {
+    "os": "Microsoft Windows Server 2022 Standard Evaluation",
+    "build": "20348",
+    "powershell": "5.1.20348.558"
+  },
+  "local_tests_passed": 317,
+  "local_tests_skipped": 0,
+  "packaged_vm_native_tests_passed": 14,
+  "baseline_started_utc": "2026-10-21T14:13:40.7807881Z",
+  "baseline_finished_utc": "2026-10-21T14:13:43.3798551Z",
+  "scope": "Harmless demo, separate daemon/game accounts, SCM and loopback mock panel. Reboot explicitly deferred; no real panel/TLS/game or WFP traffic certification.",
+  "service": {
+    "passed": true,
+    "checks": {
+      "event_source_registration_idempotent_whatif": "passed",
+      "installer_rollback": "passed",
+      "installer_start_failure_rollback": "passed",
+      "installer_account_rights_acls": "passed",
+      "public_bad_service_password_cleanup": "passed",
+      "public_operation_lock_rejected": "passed",
+      "public_preexisting_batch_right_preserved": "passed",
+      "public_credential_overwrite_rejected": "passed",
+      "public_credential_wrong_identity_rejected": "passed",
+      "public_credential_replace_inspect": "passed",
+      "credential_bootstrap": "passed",
+      "scm_service_start_and_api": "passed",
+      "actual_service_identity": "passed",
+      "separate_game_start": "passed",
+      "service_console": "passed",
+      "console_log_game_read_denied": "passed",
+      "crash_recovery_restarts_and_cleans_old_tree": "passed",
+      "crash_recovery_manual_kill_cancels": "passed",
+      "crash_recovery_budget_stops_loop": "passed",
+      "console_log_rotation_and_size_limit": "passed",
+      "actual_game_tree_identity": "passed",
+      "scm_stop_kills_game_tree": "passed",
+      "console_log_history_restored_after_service_restart": "passed",
+      "crash_recovery_service_restart_resets_budget": "passed",
+      "service_restart_and_game_stop": "passed",
+      "public_credential_remove_inspect": "passed",
+      "event_source_remove_existing_service_rejected": "passed",
+      "actual_service_lifecycle_events": "passed",
+      "actual_startup_failure_event_secret_safe": "passed"
+    },
+    "error": null,
+    "cleanup": {
+      "credential_removed": true,
+      "service_removed": true,
+      "mock_stopped": true,
+      "event_source_removed": true,
+      "accounts_and_rights_removed": true
+    }
+  },
+  "independent_cleanup_audit": {
+    "retained_profiles": [
+      {
+        "loaded": 1,
+        "fixture": "scm-8c7aa33b",
+        "count": 1
+      }
+    ],
+    "explicit_rights_remaining": 0,
+    "historical_event_ids": [
+      100,
+      101,
+      102,
+      103,
+      200
+    ],
+    "passed": true,
+    "event_source_remaining": 0,
+    "tasks_remaining": 0,
+    "accounts_remaining": 0,
+    "service_remaining": 0,
+    "processes_remaining": 0,
+    "mock_processes_remaining": 0
+  },
+  "retained_limits": "One loaded profile retained, no force unload/delete. Earlier fixture/profile and alpha 19 disposable-credential limitation remain as previously documented."
+}

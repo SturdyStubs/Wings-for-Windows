@@ -4,7 +4,7 @@
 
 - Add fixed Windows Application service lifecycle/failure events with version/PID and allowlisted stages; exclude raw errors and configuration secrets. Offer explicit, idempotent managed source registration/removal without changing runtime privileges or clearing historical events.
 - Report SCM Running only after initial config/panel sync, TLS material loading and API listener binding. Publish pending checkpoints, honor stop during initialization and preserve current status on interrogation. Missing/failed Event Log sinks remain nonfatal.
-- Add injected service and real HTTP/HTTPS readiness regressions; extend the disposable Server 2022 fixture with registration, lifecycle and secret-safe startup-failure checks. Final build/VM evidence follows separately. Reboot tests remain deferred; persistent state/interrupted operations and broader deployment gates stay open.
+- Add injected service and real HTTP/HTTPS readiness regressions; extend the disposable Server 2022 fixture with registration, lifecycle and secret-safe startup-failure checks. All 317 local cases/subtests pass with zero skips; vet, clean release build and packaged negative checks pass. The exact package passes 14 native and 29 SCM/credential/recovery/logging/events checks on Server 2022, including actual non-administrator event writes and a secret-safe startup failure. Independent cleanup preserves historical events and one loaded profile. Reboot tests remain deferred; persistent state/interrupted operations and broader deployment gates stay open.
 
 ## 0.1.0-alpha.20 - October 21, 2026
 

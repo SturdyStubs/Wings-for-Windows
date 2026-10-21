@@ -8,7 +8,7 @@ The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed
 
 The release build runs `go test -count=1 -timeout 90s ./...` and `go vet ./...`. Tests launch harmless compiled fixture executables in temporary directories and use a mock panel API. They do not start Docker or contact a live panel.
 
-Alpha 20 local run: **294 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
+Alpha 21 local run: **317 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
 
 Coverage includes:
 
@@ -99,7 +99,7 @@ These remain open and limit the release to an experimental private node:
 
 ## Unsupported features
 
-Do not enable backups, restore, transfer, SFTP, automatic egg installation/reinstall, signed downloads/uploads or Rust Server Wiper operations on this node. This release has no network/account isolation, disk quota, automatic daemon restart, game updater. Optional game crash recovery and persistent console history are documented below.
+Do not enable backups, restore, transfer, SFTP, automatic egg installation/reinstall, signed downloads/uploads or Rust Server Wiper operations on this node. This release has no network/account isolation, disk quota, automatic daemon restart or game updater. Optional game crash recovery and persistent console history are documented below.
 
 Failures during startup are reported in recent console output. A game that never matches readiness remains starting. A daemon shutdown kills managed jobs, so plan service updates as game-server downtime.
 
@@ -123,4 +123,4 @@ New local tests cover bounded rotation/history, rejected aliases and duplicate w
 
 ## Alpha 21 Windows service diagnostics
 
-Local injected-handler and HTTP/HTTPS fixtures verify truthful SCM readiness, pending/interrogate/stop/shutdown/startup cancellation, sink failures and secret-safe failure stages. The full 317-case suite, vet and clean release build are required; exact final package/VM evidence is recorded separately. See [operator guide](SERVICE-EVENTS.md). Reboot tests remain deferred.
+Local injected-handler and HTTP/HTTPS fixtures verify truthful SCM readiness, pending/interrogate/stop/shutdown/startup cancellation, sink failures and secret-safe failure stages. The full 317-case suite passes with zero skips; vet, clean-source release build and packaged negative checks pass. The exact package passes 14 native and all 29 Server 2022 SCM/credential/recovery/logging/events checks, including real non-administrator lifecycle events and a safe malformed-configuration startup failure. See [evidence and cleanup limits](evidence/server2022-alpha21-service-events.md). See [operator guide](SERVICE-EVENTS.md). Reboot tests remain deferred.

@@ -26,7 +26,7 @@ Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.co
 GitHub Issues are the source of truth; ROADMAP.md records implementation scope and verification. Run `scripts/Update-Progress.ps1` to regenerate this section. Use `-Initialize` to add missing planned milestones/tasks; rerunning it never automatically re-closes existing issues.
 <!-- progress:end -->
 
-Alpha 20 verification: **294 local cases/subtests**, **14 packaged native cases** and **25 Server 2022 SCM/credential/recovery/logging checks** pass. See the [evidence and remaining gates](docs/evidence/server2022-alpha20-console.md).
+Alpha 21 verification: **317 local cases/subtests**, **14 packaged native cases** and **29 Server 2022 SCM/credential/recovery/logging/events checks** pass. See the [evidence and remaining gates](docs/evidence/server2022-alpha21-service-events.md).
 
 ## What works
 
@@ -46,7 +46,7 @@ Alpha 20 verification: **294 local cases/subtests**, **14 packaged native cases*
 | Startup variables | Derived `SERVER_IP`, `SERVER_PORT`, `SERVER_MEMORY`, `STARTUP` and `TZ`, alongside explicitly allowed egg variables. |
 | Game crash recovery | Opt-in delayed restart after unexpected nonzero exits, bounded attempt window, fresh security checks and operator cancellation. In-memory state only. |
 | Persistent console logs | Optional rotated per-server JSONL, restored history, bounded queue and explicit drop/error counts. |
-| Windows service | SCM stop/shutdown, dedicated account/initial rights/ACL setup and daemon-context game-credential create/inspect/replace/remove. |
+| Windows service | Listener-ready SCM state, optional secret-safe Application lifecycle/failure events, stop/shutdown, dedicated account/initial rights/ACL setup and daemon-context game-credential create/inspect/replace/remove. |
 
 There is **no Docker dependency**. Windows runs the actual Windows executable. The panel itself still runs separately in its supported environment.
 
