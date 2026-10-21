@@ -41,6 +41,9 @@ func main() {
 	if len(c.Profiles[id].EggConfigFiles) > 3 {
 		server.ProcessConfiguration.Configs = append(server.ProcessConfiguration.Configs, json.RawMessage(`{"file":"server.ini","parser":"ini","replace":[{"match":"port","replace_with":28015},{"match":"network.enabled","replace_with":true},{"match":"[parent.child].shared","replace_with":"child-only"},{"match":"[/Script.Game.Settings].Server.Name","replace_with":"Café"},{"match":"added","replace_with":"${USERNAME}"},{"match":"network.note","replace_with":"  ;# keep  "}]}`))
 	}
+	if len(c.Profiles[id].EggConfigFiles) > 4 {
+		server.ProcessConfiguration.Configs = append(server.ProcessConfiguration.Configs, json.RawMessage(`{"file":"server.yml","parser":"yaml","replace":[{"match":"network.port","replace_with":"28015"},{"match":"network.enabled","replace_with":true},{"match":"name","replace_with":"Café"},{"match":"worlds.*.mode","if_value":"old","replace_with":"new"},{"match":"added","replace_with":"${USERNAME}"}]}`))
+	}
 	if c.ConsoleLogs != nil {
 		server.Settings.Environment["LOG_PROBE_PATH"] = filepath.Join(c.ConsoleLogs.Directory, id, "console.jsonl")
 		if p := c.Profiles[id].CrashRecovery; p != nil && p.PersistHistory {

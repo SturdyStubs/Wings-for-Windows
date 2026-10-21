@@ -106,3 +106,27 @@ func TestEggINIRejectsMalformedThenLaunches(t *testing.T) {
 		t.Fatal(string(raw))
 	}
 }
+
+func TestEggYAMLRejectsMalformedThenLaunches(t *testing.T) {
+	_, s, _ := setupConfigured(t, func(remote *RemoteServer) {
+		remote.ProcessConfiguration = processFixture(t)
+		remote.ProcessConfiguration.Startup.Done = []string{"regex:^SERVER_READY$"}
+		remote.ProcessConfiguration.Configs = []json.RawMessage{json.RawMessage(`{"file":"server.yml","parser":"yaml","replace":[{"match":"port","replace_with":28015}]}`)}
+	})
+	s.Profile.UseEggProcessConfiguration = true
+	s.Profile.EggConfigFiles = []string{"server.yml"}
+	path := filepath.Join(s.Root, "server.yml")
+	os.WriteFile(path, []byte(`bad: [`), 0600)
+	if err := s.start(); err == nil || s.HasProcess() {
+		t.Fatal("launched with malformed YAML")
+	}
+	os.WriteFile(path, []byte("keep: yes\n"), 0600)
+	if err := s.start(); err != nil {
+		t.Fatal(err)
+	}
+	await(t, s, "running")
+	raw, _ := os.ReadFile(path)
+	if !strings.Contains(string(raw), "\"port\": 28015\n") || !strings.Contains(string(raw), "\"keep\": \"yes\"\n") {
+		t.Fatal(string(raw))
+	}
+}

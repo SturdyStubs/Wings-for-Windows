@@ -88,3 +88,31 @@ func TestMixedINIPreflightPreservesEarlierFile(t *testing.T) {
 		t.Fatal(string(raw))
 	}
 }
+
+func TestMixedYAMLPreflightPreservesEarlierFile(t *testing.T) {
+	root := t.TempDir()
+	textPath := filepath.Join(root, "server.cfg")
+	propPath := filepath.Join(root, "server.yml")
+	os.WriteFile(textPath, []byte("key=old\n"), 0600)
+	os.WriteFile(propPath, []byte(`bad: [`), 0600)
+	plans, err := Compile([]json.RawMessage{json.RawMessage(`{"file":"server.cfg","parser":"file","replace":[{"match":"key=","replace_with":"key=new"}]}`), json.RawMessage(`{"file":"server.yml","parser":"yaml","replace":[{"match":"port","replace_with":28015}]}`)}, []string{"server.cfg", "server.yml"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if Apply(context.Background(), root, plans, nil) == nil {
+		t.Fatal("malformed YAML accepted")
+	}
+	raw, _ := os.ReadFile(textPath)
+	if string(raw) != "key=old\n" {
+		t.Fatal("earlier target changed")
+	}
+	os.WriteFile(propPath, []byte("keep: yes\n"), 0600)
+	if err := Apply(context.Background(), root, plans, nil); err != nil {
+		t.Fatal(err)
+	}
+	raw, _ = os.ReadFile(propPath)
+	values, err := readYAML(context.Background(), raw)
+	if err != nil || values["keep"] != "yes" || values["port"] != json.Number("28015") {
+		t.Fatal(string(raw), err)
+	}
+}

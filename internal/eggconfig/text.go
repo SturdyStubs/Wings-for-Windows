@@ -90,8 +90,8 @@ func Compile(raw []json.RawMessage, allowed []string) ([]File, error) {
 			return nil, errors.New("egg configuration target is invalid, duplicated or not locally approved")
 		}
 		seen[strings.ToLower(item.Name)] = true
-		if item.Parser != "file" && item.Parser != "json" && item.Parser != "properties" && item.Parser != "ini" {
-			return nil, errors.New("only file, json, properties and ini egg parsers are supported")
+		if item.Parser != "file" && item.Parser != "json" && item.Parser != "properties" && item.Parser != "ini" && item.Parser != "yaml" && item.Parser != "yml" {
+			return nil, errors.New("only file, json, properties, ini and yaml egg parsers are supported")
 		}
 		if item.Replace == nil || len(item.Replace) > 128 {
 			return nil, errors.New("egg file requires at most 128 replacements")
@@ -115,7 +115,7 @@ func Compile(raw []json.RawMessage, allowed []string) ([]File, error) {
 			result = append(result, file)
 			continue
 		}
-		if item.Parser == "json" {
+		if item.Parser == "json" || item.Parser == "yaml" || item.Parser == "yml" {
 			var err error
 			file.JSONRules, err = compileJSONRules(item.Replace)
 			if err != nil {
@@ -158,6 +158,9 @@ func Compile(raw []json.RawMessage, allowed []string) ([]File, error) {
 // Render matches upstream file-parser prefix behavior, including ordered
 // concatenation when multiple rules match a line and LF output normalization.
 func Render(ctx context.Context, input []byte, file File) ([]byte, error) {
+	if file.Parser == "yaml" || file.Parser == "yml" {
+		return renderYAML(ctx, input, file.JSONRules)
+	}
 	if file.Parser == "ini" {
 		return renderINI(ctx, input, file.INIRules)
 	}

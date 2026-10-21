@@ -45,7 +45,7 @@ The pinned/checksummed `gopkg.in/ini.v1 v1.67.0` matches the audited upstream de
 
 Shared limits: 16 approved files, 128 KiB remote entries, 128 rules per file, 8 KiB match/value scalars and 1 MiB per input/output. INI additionally allows at most 8,192 LF-normalized newline delimiters, 512 sections including the default section, 4,096 total keys, 8 KiB names and 64 KiB decoded values. UTF-8 without BOM/NUL is required. Input and result structures are checked, output is capped while encoding, and cancellation is checked around the bounded library parse and during normalization/updates/encoding.
 
-All targets are rendered before any file changes; malformed INI blocks launch without applying earlier text/JSON/properties changes. In-place I/O failure or cancellation after writes begin may leave partial changes; later launch failures do not undo edits. There is no atomic batch, rollback journal or interrupted-operation recovery. Trusted-private-node and existing filesystem/ACL/mapping-race limits remain. YAML/XML, broader dialects/templates/conditions, real panel/game certification and isolation remain open. Reboot testing remains deferred.
+All targets are rendered before any file changes; malformed INI blocks launch without applying earlier text/JSON/properties changes. In-place I/O failure or cancellation after writes begin may leave partial changes; later launch failures do not undo edits. There is no atomic batch, rollback journal or interrupted-operation recovery. Trusted-private-node and existing filesystem/ACL/mapping-race limits remain. Alpha 27 adds [YAML](EGG-YAML-CONFIG.md); XML, broader dialects/templates/conditions, real panel/game certification and isolation remain open. Reboot testing remains deferred.
 
 ## Verification
 

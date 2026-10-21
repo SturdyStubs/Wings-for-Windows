@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.27 - October 21, 2026
+
+- Add approved YAML/yml egg configuration with shared JSON paths, arrays/wildcards, literal conditions and scalar coercion. Preserve untouched numeric spellings without floating point; support multiline strings and quote output strings explicitly.
+- Reject aliases/anchors/merges, unsupported tags/numeric forms, duplicate/non-string keys and multiple documents. Bound input/result structures and JSON mutation size, cap streaming output and reparse raw data before guarded writes. Pin upstream's gopkg.in/yaml.v3 v3.0.1 and package complete MIT/Apache notices.
+- Add contract, encoding/shape/bounds/output/cancellation, mixed-batch and native-launch tests; extend the Server 2022 service fixture for fifth-file refusal and actual typed/precise/conditional/literal/Unicode edits with unchanged SDDL. Final package/VM evidence follows separately. Reboot tests remain deferred.
+
 ## 0.1.0-alpha.26 - October 21, 2026
 
 - Add approved INI egg configuration with default/section/bracketed paths, scalar/legacy values, exact section updates and literal interpolation. Disable continuations to preserve Windows backslashes; reject unsupported conditions and multiline/dialect shapes explicitly.

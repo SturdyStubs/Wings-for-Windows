@@ -26,7 +26,7 @@ try {
     Write-Output "Tests passed: $passedTests (including subtests); skipped: $skippedTests"
     & $GoExecutable vet ./...
     if ($LASTEXITCODE -ne 0) { throw 'Go vet failed.' }
-    $version = '0.1.0-alpha.26'
+    $version = '0.1.0-alpha.27'
     $stage = Join-Path $projectRoot ('dist\stage-' + [guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $stage -Force | Out-Null
     $revision = 'unavailable'

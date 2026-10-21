@@ -11,6 +11,7 @@ Direct Go dependencies are pinned in `go.mod` and checksummed in `go.sum`:
 - [golang.org/x/sys v0.49.0](https://cs.opensource.google/go/x/sys/+/refs/tags/v0.49.0:), BSD-3-Clause.
 - [gabriel-vasile/mimetype v1.4.16](https://github.com/gabriel-vasile/mimetype/tree/v1.4.16), MIT. The retracted v1.4.15 release is not used.
 - [magiconair/properties v1.8.10](https://github.com/magiconair/properties/tree/v1.8.10), BSD-2-Clause, Frank Schroeder. Byte-buffer parsing with expansion disabled; the complete notice is packaged as licenses/properties-BSD.txt.
+- [go-yaml/yaml v3.0.1](https://github.com/go-yaml/yaml/tree/v3.0.1), MIT and Apache-2.0. Copyright Kirill Simonov and Canonical Ltd.; complete dual-license text and copyright notices: licenses/yaml-MIT-Apache.txt. Bounded node parsing without alias expansion and capped stream encoding.
 - [go-ini/ini v1.67.0](https://github.com/go-ini/ini/tree/v1.67.0), Apache-2.0, copyright 2014 Unknwon and contributors. Bounded byte-buffer INI parsing only; no interpolated reads or library writer. Complete license: licenses/ini-Apache-2.0.txt.
 - [sabhiram/go-gitignore 525f6e181f06](https://github.com/sabhiram/go-gitignore/tree/525f6e181f06), MIT.
 

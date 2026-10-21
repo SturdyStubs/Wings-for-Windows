@@ -31,7 +31,7 @@ func TestInvalidEggTextPlans(t *testing.T) {
 		`{"file":"SERVER.cfg","parser":"file","replace":[]}`,
 		`{"file":"../outside.cfg","parser":"file","replace":[]}`,
 		`{"file":"other.cfg","parser":"file","replace":[]}`,
-		`{"file":"server.cfg","parser":"yaml","replace":[]}`,
+		`{"file":"server.cfg","parser":"xml","replace":[]}`,
 		`{"file":"server.cfg","parser":"file"}`,
 		`{"file":"server.cfg","parser":"file","replace":[{"match":"","replace_with":"x"}]}`,
 		`{"file":"server.cfg","parser":"file","replace":[{"match":"x","replace_with":{}}]}`,

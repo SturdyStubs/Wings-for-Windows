@@ -1,6 +1,6 @@
 # Progress toward Wings compatibility
 
-Last updated: October 21, 2026. Current version: **0.1.0-alpha.26**. Active development: **M3 — Windows lifecycle features**. M1/M2 remain open for live panel and isolation gates.
+Last updated: October 21, 2026. Current version: **0.1.0-alpha.27**. Active development: **M3 — Windows lifecycle features**. M1/M2 remain open for live panel and isolation gates.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
@@ -35,6 +35,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - Alpha 24: approved JSON egg configuration before launch, nested keys/arrays/one wildcard level, literal conditions, scalar coercion and untouched number precision. Enforce structural, mutation and encoding bounds with mixed text/JSON preflight before writes. Full suite: 425 cases/subtests, zero skipped; exact package passes 14 native and 37 combined checks on Server 2022, including malformed mixed-batch refusal and actual typed/precise JSON edits with preserved SDDL. See [JSON guide](docs/EGG-JSON-CONFIG.md) and [evidence/cleanup limits](docs/evidence/server2022-alpha24-egg-json.md).
 - Alpha 25: approved properties parsing before launch with literal conditions, escaped keys, continuations and Unicode; disable environment/property expansion and use a bounded Java-style encoder. Reuse mixed-batch preflight and guarded writes; package the pinned dependency license. All 446 local cases/subtests pass with zero skips; exact package passes 14 native and 39 combined Server 2022 checks, including malformed third-file preservation and actual Unicode/literal/conditional edits with retained SDDL. See [properties guide](docs/EGG-PROPERTIES-CONFIG.md) and [evidence/cleanup limits](docs/evidence/server2022-alpha25-egg-properties.md).
 - Alpha 26: bounded INI parsing with default/section/bracketed paths, exact section updates and literal interpolation values. Preserve Windows backslashes, reject unsupported conditions/multiline/dialects, encode with bounds and verify round-trip data before writes. Pin the upstream INI dependency and package its Apache license. All 483 local cases/subtests pass with zero skips; exact package passes 14 native and all 41 combined Server 2022 checks, including malformed fourth-file preservation and actual section/Unicode/literal/path/quote edits with retained SDDL. See [INI guide](docs/EGG-INI-CONFIG.md) and [evidence/cleanup limits](docs/evidence/server2022-alpha26-egg-ini.md).
+- Alpha 27: approved YAML/yml parsing with JSON paths/scalar rules, exact numeric spelling, explicit alias/tag/document restrictions, input/result bounds and capped stream encoding with semantic reparse. Reuse mixed-batch preflight and guarded writes; package the pinned dependency notices. See [YAML guide](docs/EGG-YAML-CONFIG.md); final package/VM evidence follows separately.
 - HTTP inventory: handlers at **13 of upstream's 38 method/path combinations**, with partial behavior; **25 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
 - Automatic installation, full file manager/SFTP, backups/restores, transfers, strong isolation and live certification remain open.
 - Unchanged Linux eggs require a Linux execution backend. Native Windows profiles do not translate Linux images/binaries.
@@ -107,7 +108,8 @@ Current scope remains a trusted private node. File denylist/path checks are not 
   - [x] Add a bounded JSON subset with nested/array/wildcard paths, literal conditions, preserved numeric precision and shared startup integration.
   - [x] Add bounded properties parsing with literal conditions, safe escaping and disabled daemon environment/property expansion.
   - [x] Add bounded single-line INI parsing with section paths, literal values and round-trip verification.
-  - [ ] Add YAML and XML; extend supported templates and conditions.
+  - [x] Add a bounded YAML/yml subset with JSON paths, literal conditions, preserved numbers and no alias expansion.
+  - [ ] Add XML; extend supported templates and conditions.
 - [ ] Crash detection/restart policy, persistent state/logs, reboot and interrupted-operation recovery.
   - [x] Add opt-in bounded recovery for unexpected nonzero game exits with fresh launch guards, operator cancellation and status/reason reporting.
   - [x] Add opt-in persistent, bounded server console logs with restored recent history and observable storage failures.
