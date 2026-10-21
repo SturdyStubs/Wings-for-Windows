@@ -31,6 +31,9 @@ func main() {
 		server.ProcessConfiguration.Stop.Type = "command"
 		server.ProcessConfiguration.Stop.Value = "stop"
 		server.ProcessConfiguration.Configs = []json.RawMessage{json.RawMessage(`{"file":"server.cfg","parser":"file","replace":[{"match":"server.name","replace_with":"server.name \"Windows Café\""},{"match":"server.port","replace_with":"server.port 28015"}]}`)}
+		if len(c.Profiles[id].EggConfigFiles) > 1 {
+			server.ProcessConfiguration.Configs = append(server.ProcessConfiguration.Configs, json.RawMessage(`{"file":"server.json","parser":"json","replace":[{"match":"network.port","replace_with":"28015"},{"match":"network.enabled","replace_with":true},{"match":"name","replace_with":"Café"},{"match":"worlds.*.mode","if_value":"old","replace_with":"new"}]}`))
+		}
 	}
 	if c.ConsoleLogs != nil {
 		server.Settings.Environment["LOG_PROBE_PATH"] = filepath.Join(c.ConsoleLogs.Directory, id, "console.jsonl")

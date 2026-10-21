@@ -1,6 +1,6 @@
 # Progress toward Wings compatibility
 
-Last updated: October 21, 2026. Current version: **0.1.0-alpha.23**. Active development: **M3 — Windows lifecycle features**. M1/M2 remain open for live panel and isolation gates.
+Last updated: October 21, 2026. Current version: **0.1.0-alpha.24**. Active development: **M3 — Windows lifecycle features**. M1/M2 remain open for live panel and isolation gates.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
@@ -32,6 +32,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - Alpha 21: fixed, secret-safe Windows Application lifecycle/failure events, explicit managed source registration and SCM Running only after initial sync/TLS/listener setup. Source registration and log failures do not grant runtime privileges. Full suite: 317 cases/subtests, zero skipped; exact package passes 14 native and 29 SCM/credential/recovery/logging/events checks on Server 2022. See [service diagnostics](docs/SERVICE-EVENTS.md) and [evidence/cleanup limits](docs/evidence/server2022-alpha21-service-events.md).
 - Alpha 22: opt-in persistent automatic-restart reservations in the existing private log store, write-before-launch, conservative retention, fail-closed startup validation and write-error status. Games/timers are not automatically restored. Full suite: 345 cases/subtests, zero skipped; exact package passes 14 native and 33 service/persistence checks on Server 2022, including forced daemon termination and corrupt-state startup refusal. See [recovery state](docs/RECOVERY-STATE.md) and [evidence/cleanup limits](docs/evidence/server2022-alpha22-recovery-state.md).
 - Alpha 23: opt-in plain-text egg file parsing before launch with exact local target approval, bounded prefix/scalar rules, full-batch input preflight, handle-based link/code protection and in-place writes preserving ACLs. Other parsers and transaction recovery remain open. Full suite: 394 cases/subtests, zero skipped; exact package passes 14 native and 35 service/persistence/text checks on Server 2022, including missing-file startup refusal and UTF-8 edits with unchanged SDDL. See [text configuration](docs/EGG-TEXT-CONFIG.md) and [evidence/cleanup limits](docs/evidence/server2022-alpha23-egg-text.md).
+- Alpha 24: approved JSON egg configuration before launch, nested keys/arrays/one wildcard level, literal conditions, scalar coercion and untouched number precision. Enforce structural, mutation and encoding bounds with mixed text/JSON preflight before writes. See [JSON guide](docs/EGG-JSON-CONFIG.md); final package/VM evidence follows separately.
 - HTTP inventory: handlers at **13 of upstream's 38 method/path combinations**, with partial behavior; **25 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
 - Automatic installation, full file manager/SFTP, backups/restores, transfers, strong isolation and live certification remain open.
 - Unchanged Linux eggs require a Linux execution backend. Native Windows profiles do not translate Linux images/binaries.
@@ -101,7 +102,8 @@ Current scope remains a trusted private node. File denylist/path checks are not 
 - [ ] Create/delete, native install/reinstall, output/progress, cancellation, timeouts and panel callbacks.
 - [ ] Egg configuration parsers for text, JSON, YAML, INI, properties and XML.
   - [x] Add opt-in plain-text file parser with exact local approval, startup integration and bounded/guarded writes.
-  - [ ] Add JSON, YAML, INI, properties and XML; extend supported templates and conditions.
+  - [x] Add a bounded JSON subset with nested/array/wildcard paths, literal conditions, preserved numeric precision and shared startup integration.
+  - [ ] Add YAML, INI, properties and XML; extend supported templates and conditions.
 - [ ] Crash detection/restart policy, persistent state/logs, reboot and interrupted-operation recovery.
   - [x] Add opt-in bounded recovery for unexpected nonzero game exits with fresh launch guards, operator cancellation and status/reason reporting.
   - [x] Add opt-in persistent, bounded server console logs with restored recent history and observable storage failures.

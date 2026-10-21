@@ -21,8 +21,10 @@ type Replacement struct {
 	Value string
 }
 type File struct {
-	Name    string
-	Replace []Replacement
+	Name      string
+	Replace   []Replacement
+	Parser    string
+	JSONRules []jsonRule
 }
 
 func scalar(raw json.RawMessage) (string, error) {
@@ -86,13 +88,22 @@ func Compile(raw []json.RawMessage, allowed []string) ([]File, error) {
 			return nil, errors.New("egg configuration target is invalid, duplicated or not locally approved")
 		}
 		seen[strings.ToLower(item.Name)] = true
-		if item.Parser != "file" {
-			return nil, errors.New("only the plain-text file egg parser is supported")
+		if item.Parser != "file" && item.Parser != "json" {
+			return nil, errors.New("only file and json egg parsers are supported")
 		}
 		if item.Replace == nil || len(item.Replace) > 128 {
 			return nil, errors.New("egg file requires at most 128 replacements")
 		}
-		file := File{Name: item.Name}
+		file := File{Name: item.Name, Parser: item.Parser}
+		if item.Parser == "json" {
+			var err error
+			file.JSONRules, err = compileJSONRules(item.Replace)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, file)
+			continue
+		}
 		for _, rule := range item.Replace {
 			for key := range rule {
 				if key != "match" && key != "if_value" && key != "replace_with" && key != "value" {
@@ -127,6 +138,12 @@ func Compile(raw []json.RawMessage, allowed []string) ([]File, error) {
 // Render matches upstream file-parser prefix behavior, including ordered
 // concatenation when multiple rules match a line and LF output normalization.
 func Render(ctx context.Context, input []byte, file File) ([]byte, error) {
+	if file.Parser == "json" {
+		return renderJSON(ctx, input, file.JSONRules)
+	}
+	if file.Parser != "" && file.Parser != "file" {
+		return nil, errors.New("unsupported egg parser")
+	}
 	if len(input) > MaxFileBytes || !utf8.Valid(input) || bytes.ContainsRune(input, 0) || bytes.HasPrefix(input, []byte{0xef, 0xbb, 0xbf}) {
 		return nil, errors.New("egg text file must be bounded UTF-8 without BOM/NUL")
 	}

@@ -36,7 +36,7 @@ The schema and prefix behavior are based on [the pinned upstream parser](https:/
 
 String, number, boolean and null replacement scalars are supported; null becomes the literal `<nil>`. Legacy `value` is used only when `replace_with` is absent. No shell evaluation or node-environment substitution occurs. Unresolved `{{...}}` values and nonempty `if_value` conditions are explicitly rejected; the latter is not a supported conditional text parser. Unknown fields are rejected. The egg file denylist continues to protect frontend/API operations; explicit local parser approval is a separate authority to edit the target at startup.
 
-Limits: 16 files, 128 KiB combined remote entries, 128 replacements per file, 8 KiB match/value scalars, 1 MiB per input/output file and 64 directory components. Input must be valid UTF-8 without BOM or NUL. UTF-16/BOM files need an explicit operator conversion. Result size is checked before any write. JSON, YAML, INI, properties and XML parsers remain unsupported.
+Limits: 16 files, 128 KiB combined remote entries, 128 replacements per file, 8 KiB match/value scalars, 1 MiB per input/output file and 64 directory components. Input must be valid UTF-8 without BOM or NUL. UTF-16/BOM files need an explicit operator conversion. Result size is checked before any write. Alpha 24 also supports an approved [JSON subset](EGG-JSON-CONFIG.md). YAML, INI, properties and XML parsers remain unsupported.
 
 ## Safety and failure behavior
 

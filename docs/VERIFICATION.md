@@ -1,6 +1,6 @@
 # Verification and release status
 
-Version `0.1.0-alpha.23`, verified locally October 21, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). The local automated suite changes no production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration. Separate disposable VM service tests deliberately create and clean up temporary users, rights, tasks, service registration and fixture ACLs. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
+Version `0.1.0-alpha.24`, verified locally October 21, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). The local automated suite changes no production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration. Separate disposable VM service tests deliberately create and clean up temporary users, rights, tasks, service registration and fixture ACLs. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
 
 The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed by the original tests. Alpha 2 adds upstream/panel-derived metadata fixtures and canonical route assertions, plus regression checks for the fixes below. Passing these tests is still not proof that a complete live panel/game deployment works. Current outstanding work is tracked in [ROADMAP.md](../ROADMAP.md).
 
@@ -132,3 +132,7 @@ Local storage/config/node fixtures cover durable reservations, repeated reopen, 
 ## Alpha 23 approved egg text files
 
 Contract/config/Windows fixtures verify approved prefix rewriting, encoding/schema/bounds, protected identities and observed links, full-batch preflight, guard cleanup, cancellation and actual launch. All 394 local cases/subtests pass with zero skips; vet, clean release build and packaged negative checks pass. The exact package passes 14 native and all 35 Server 2022 service/persistence/text checks, including missing-file refusal and actual non-administrator UTF-8 edits with preserved SDDL. See [evidence and cleanup limits](evidence/server2022-alpha23-egg-text.md). Other parsers, full egg compatibility and interrupted-operation recovery remain open; reboot testing remains deferred. See [operator guide](EGG-TEXT-CONFIG.md).
+
+## Alpha 24 approved JSON egg files
+
+Local fixtures cover nested/array/wildcard paths, scalar types and preserved large numbers, literal conditions, malformed/duplicate/deep/oversize input, bounded growth/encoding, cancellation, mixed-batch preflight and actual native launch. Exact release/VM evidence follows separately. The remaining parsers, full egg compatibility and interrupted-operation recovery remain open. See [JSON guide](EGG-JSON-CONFIG.md). No reboot test is performed.

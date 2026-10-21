@@ -12,7 +12,7 @@ func TestApplyEggTextValidatesAllBeforeWrites(t *testing.T) {
 	root := t.TempDir()
 	first := filepath.Join(root, "server.cfg")
 	os.WriteFile(first, []byte("key=old\r\n"), 0600)
-	plans := []File{{"server.cfg", []Replacement{{"key=", "key=new"}}}, {"missing.cfg", nil}}
+	plans := []File{{Name: "server.cfg", Replace: []Replacement{{"key=", "key=new"}}}, {Name: "missing.cfg"}}
 	if Apply(context.Background(), root, plans, nil) == nil {
 		t.Fatal("missing target accepted")
 	}
@@ -66,7 +66,7 @@ func TestApplyEggTextProtectsCodeAndAliases(t *testing.T) {
 			case "cancel":
 				cancel()
 			}
-			if err := Apply(ctx, root, []File{{name, []Replacement{{"key=", "key=new"}}}}, protected); err == nil {
+			if err := Apply(ctx, root, []File{{Name: name, Replace: []Replacement{{"key=", "key=new"}}}}, protected); err == nil {
 				t.Fatal("unsafe rewrite accepted")
 			}
 			raw, _ := os.ReadFile(target)

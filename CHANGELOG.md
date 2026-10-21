@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.24 - October 21, 2026
+
+- Add approved JSON egg file parsing before launch: nested object keys, array indices, one wildcard level and literal conditions, with upstream-compatible scalar coercion and untouched number precision. Reuse exact target approval and guarded writes.
+- Reject duplicate/malformed/unsupported JSON, bound depth/node count/wildcard growth and encode through a capped writer. Validate mixed JSON/text batches before writes. Regex conditions, node templates and remaining parser types stay unsupported.
+- Add contract/bounds/shape/cancellation, mixed-batch and native-launch tests; extend the disposable VM fixture for malformed-JSON launch refusal without changing earlier text and actual typed JSON edits with preserved precision/ACLs. Final package/VM evidence follows separately. Reboot tests remain deferred.
+
 ## 0.1.0-alpha.23 - October 21, 2026
 
 - Add per-profile egg_config_files, requiring egg process configuration, and the supported plain-text file parser before launch. Validate exact local approval, scalar/legacy replacements, prefix order and bounded UTF-8/LF behavior. Unsupported parsers, conditions and unresolved templates fail explicitly.

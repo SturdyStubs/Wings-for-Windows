@@ -1,6 +1,7 @@
 #Requires -RunAsAdministrator
-param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText)
+param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON)
 $ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
+if($TestEggJSON -and -not $TestEggText){throw 'JSON fixture requires TestEggText for mixed-batch validation'}
 if($TestPersistentRecovery -and (-not $TestCrashRecovery -or -not $TestConsoleLogs)){throw 'Persistent recovery fixture requires TestCrashRecovery and TestConsoleLogs'}
 if($Root -notmatch '^C:\\WingsWindowsTesting\\scm-([0-9a-f]{8})$'){throw 'Use a fresh C:\WingsWindowsTesting\scm-<eight-hex> fixture root'}
 $suffix=$Matches[1]
@@ -85,6 +86,7 @@ try {
  if($TestConsoleLogs){$config.console_logs=@{directory=(Join-Path $Root 'logs\console');max_file_bytes=1048576;max_files=2};$profiles[$ServerID].allowed_environment=@('LOG_PROBE_PATH')}
  if($TestPersistentRecovery){$profiles[$ServerID].crash_recovery.persist_history=$true;$profiles[$ServerID].crash_recovery.window_seconds=3600;$profiles[$ServerID].allowed_environment+=@('RECOVERY_PROBE_PATH')}
  if($TestEggText){$profiles[$ServerID].use_egg_process_configuration=$true;$profiles[$ServerID].egg_config_files=@('server.cfg')}
+ if($TestEggJSON){$profiles[$ServerID].egg_config_files+=@('server.json')}
  $configuration=Join-Path $Root 'private\config.json';$config|ConvertTo-Json -Depth 10|Set-Content -LiteralPath $configuration -Encoding Ascii
  $exe=Join-Path $Root 'bin\wings-windows.exe'
  # Force a post-ACL failure once to validate compensation on real VM state.
@@ -125,7 +127,25 @@ try {
   [IO.File]::WriteAllText($eggPath,"# keep`r`nserver.name old`r`nserver.port 1`r`n",[Text.UTF8Encoding]::new($false))
   $eggACL=(Get-Acl -LiteralPath $eggPath).Sddl
  }
+ if($TestEggJSON){
+  $eggJsonPath=Join-Path $Root ('data\'+$ServerID+'\server.json')
+  [IO.File]::WriteAllText($eggJsonPath,'{"invalid":',[Text.UTF8Encoding]::new($false))
+  $textBefore=[IO.File]::ReadAllText($eggPath)
+  Set-Power 'start'
+  $until=[DateTime]::UtcNow.AddSeconds(5);$failed=$false
+  do{$failed=(@((Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data|Where-Object {$_ -like '*egg file 2 preflight failed*'}).Count -gt 0);if(-not $failed){Start-Sleep -Milliseconds 50}}while(-not $failed -and [DateTime]::UtcNow -lt $until)
+  if(-not $failed -or (Get-NodeAPI ('/api/servers/'+$ServerID)).state -ne 'offline' -or [IO.File]::ReadAllText($eggPath) -ne $textBefore){throw 'Malformed JSON did not prevent launch and preserve earlier text target'}
+  $report.checks.egg_json_malformed_batch_preserves_text='passed'
+  [IO.File]::WriteAllText($eggJsonPath,'{"network":{"port":1,"host":"127.0.0.1"},"worlds":[{"mode":"old"},{"mode":"stay"}],"untouched":"original","precise":9007199254740993}',[Text.UTF8Encoding]::new($false))
+  $eggJsonACL=(Get-Acl -LiteralPath $eggJsonPath).Sddl
+ }
  Set-Power 'start';Wait-State 'running';$report.checks.separate_game_start='passed'
+ if($TestEggJSON){
+  $jsonText=[IO.File]::ReadAllText($eggJsonPath);$jsonConfig=$jsonText|ConvertFrom-Json
+  if($jsonConfig.network.port -is [string] -or $jsonConfig.network.port -ne 28015 -or $jsonConfig.network.enabled -isnot [bool] -or -not $jsonConfig.network.enabled -or $jsonConfig.network.host -ne '127.0.0.1' -or $jsonConfig.worlds[0].mode -ne 'new' -or $jsonConfig.worlds[1].mode -ne 'stay' -or $jsonConfig.name -ne ('Caf'+[char]0xe9) -or $jsonConfig.untouched -ne 'original' -or $jsonText -notmatch '"precise": 9007199254740993' -or (Get-Acl -LiteralPath $eggJsonPath).Sddl -ne $eggJsonACL){throw 'SCM JSON rewrite type/value/precision or ACL differs'}
+  $report.checks.egg_json_daemon_rewrite_types_precision_acl='passed'
+ }
+
  if($TestEggText){
   $expected="# keep`nserver.name ""Windows Caf$([char]0xe9)""`nserver.port 28015`n"
   if([IO.File]::ReadAllText($eggPath) -ne $expected -or (Get-Acl -LiteralPath $eggPath).Sddl -ne $eggACL){throw 'SCM text rewrite content or ACL differs'}
