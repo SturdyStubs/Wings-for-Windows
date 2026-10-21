@@ -1,6 +1,8 @@
 #Requires -RunAsAdministrator
-param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML)
+param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot)
 $ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
+if($PrepareReboot -and (-not $TestPersistentRecovery -or -not $TestServiceEvents)){throw 'Reboot fixture requires persistent recovery and service events'}
+if($TestEggXML -and -not $TestEggYAML){throw 'XML fixture requires TestEggYAML for six-parser validation'}
 if($TestEggYAML -and -not $TestEggINI){throw 'YAML fixture requires TestEggINI for five-parser validation'}
 if($TestEggINI -and -not $TestEggProperties){throw 'INI fixture requires TestEggProperties for four-parser validation'}
 if($TestEggProperties -and -not $TestEggJSON){throw 'Properties fixture requires TestEggJSON for three-parser validation'}
@@ -12,7 +14,7 @@ if($GameName -ne ('WwScmG_'+$suffix) -or $DaemonName -ne ('WwScmD_'+$suffix)){th
 if($ServerID -notmatch '^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$'){throw 'Use a full random server UUID'}
 $report=[ordered]@{passed=$false;checks=[ordered]@{};error=$null;cleanup=[ordered]@{}}
 $gameCreated=$false;$serviceCreated=$false;$credentialSeeded=$false;$mock=$null;$daemonSid=$null;$gameSid=$null
-$eventSourceCreated=$false;$eventStarted=Get-Date;$eventKey='HKLM:\SYSTEM\CurrentControlSet\Services\EventLog\Application\WingsWindowsNative'
+$rebootPrepared=$false;$eventSourceCreated=$false;$eventStarted=Get-Date;$eventKey='HKLM:\SYSTEM\CurrentControlSet\Services\EventLog\Application\WingsWindowsNative'
 $eventScript=Join-Path $Package 'scripts\Register-EventSource.ps1'
 $installer=Join-Path $Staging 'Install-Service.ps1';Import-Module (Join-Path $Staging 'NodeSetup.psm1') -Force;Initialize-NodeSetupNative
 if(Get-Service WingsWindowsNative -ErrorAction SilentlyContinue){throw 'A Wings service already exists; refusing to touch it'}
@@ -93,6 +95,7 @@ try {
  if($TestEggProperties){$profiles[$ServerID].egg_config_files+=@('server.properties')}
  if($TestEggINI){$profiles[$ServerID].egg_config_files+=@('server.ini')}
  if($TestEggYAML){$profiles[$ServerID].egg_config_files+=@('server.yml')}
+ if($TestEggXML){$profiles[$ServerID].egg_config_files+=@('server.xml')}
  $configuration=Join-Path $Root 'private\config.json';$config|ConvertTo-Json -Depth 10|Set-Content -LiteralPath $configuration -Encoding Ascii
  $exe=Join-Path $Root 'bin\wings-windows.exe'
  # Force a post-ACL failure once to validate compensation on real VM state.
@@ -186,7 +189,26 @@ try {
   [IO.File]::WriteAllText($eggYamlPath,$yamlInput,[Text.UTF8Encoding]::new($false))
   $eggYamlACL=(Get-Acl -LiteralPath $eggYamlPath).Sddl
  }
+ if($TestEggXML){
+  $eggXmlPath=Join-Path $Root ('data\'+$ServerID+'\server.xml')
+  [IO.File]::WriteAllText($eggXmlPath,'<invalid>',[Text.UTF8Encoding]::new($false))
+  $earlierPaths=@($eggPath,$eggJsonPath,$eggPropertiesPath,$eggIniPath,$eggYamlPath)
+  $earlierContents=@($earlierPaths|ForEach-Object{[IO.File]::ReadAllText($_)})
+  Set-Power 'start'
+  $until=[DateTime]::UtcNow.AddSeconds(5);$failed=$false
+  do{$failed=(@((Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data|Where-Object {$_ -like '*egg file 6 preflight failed*'}).Count -gt 0);if(-not $failed){Start-Sleep -Milliseconds 50}}while(-not $failed -and [DateTime]::UtcNow -lt $until)
+  if(-not $failed -or (Get-NodeAPI ('/api/servers/'+$ServerID)).state -ne 'offline'){throw 'Malformed XML did not prevent launch'}
+  for($i=0;$i -lt $earlierPaths.Count;$i++){if([IO.File]::ReadAllText($earlierPaths[$i]) -ne $earlierContents[$i]){throw 'Malformed XML changed an earlier batch target'}}
+  $report.checks.egg_xml_malformed_batch_preserves_targets='passed'
+  [IO.File]::WriteAllText($eggXmlPath,'<server keep="yes"><port>1</port><name>old</name><worlds><world id="one"><mode>old</mode></world><world id="two"><mode>stay</mode></world></worlds></server>',[Text.UTF8Encoding]::new($false))
+  $eggXmlACL=(Get-Acl -LiteralPath $eggXmlPath).Sddl
+ }
  Set-Power 'start';Wait-State 'running';$report.checks.separate_game_start='passed'
+ if($TestEggXML){
+  $xmlText=[IO.File]::ReadAllText($eggXmlPath);$xmlConfig=[xml]$xmlText
+  if($xmlConfig.server.port -ne '28015' -or $xmlConfig.server.name -ne ('Caf'+[char]0xe9+' & <safe>') -or $xmlConfig.server.keep -ne 'yes' -or $xmlConfig.server.literal -ne '${USERNAME}' -or $xmlConfig.server.worlds.world.Count -ne 2 -or @($xmlConfig.server.worlds.world|Where-Object{$_.mode -ne 'new' -or $_.enabled -ne 'true'}).Count -ne 0 -or $xmlText -notmatch '&amp; &lt;safe&gt;' -or (Get-Acl -LiteralPath $eggXmlPath).Sddl -ne $eggXmlACL){throw 'SCM XML text/attributes/escaping/literal/Unicode content or ACL differs'}
+  $report.checks.egg_xml_daemon_rewrite_text_attributes_acl='passed'
+ }
  if($TestEggYAML){
   $expectedYAML=(@('"added": "${USERNAME}"','"fraction": 1.2300e+3','"literal": "${USERNAME}"',('"name": "Caf'+[char]0xe9+'"'),'"network":','  "enabled": true','  "host": "127.0.0.1"','  "port": 28015','"precise": 9007199254740993','"untouched": "keep"','"worlds":','  - "mode": "new"','  - "mode": "stay"') -join "`n")+"`n"
   if([IO.File]::ReadAllText($eggYamlPath) -ne $expectedYAML -or (Get-Acl -LiteralPath $eggYamlPath).Sddl -ne $eggYamlACL){throw 'SCM YAML typed/precise/conditional/literal/Unicode content or ACL differs'}
@@ -290,6 +312,14 @@ try {
    $report.checks.daemon_termination_preserves_recovery_budget='passed'
   }else{if($budget.attempts_in_window -ne 0){throw 'In-memory recovery state did not reset on service restart'};$report.checks.crash_recovery_service_restart_resets_budget='passed'}
  };Set-Power 'start';Wait-State 'running';Set-Power 'stop';Wait-State 'offline';$report.checks.service_restart_and_game_stop='passed'
+ if($PrepareReboot){
+  Set-Power 'start';Wait-State 'running'
+  Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body (@{commands=@('REBOOT_MARKER_'+$suffix)}|ConvertTo-Json)|Out-Null
+  $until=[DateTime]::UtcNow.AddSeconds(5);do{if(('ECHO:REBOOT_MARKER_'+$suffix) -in (Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data){break};Start-Sleep -Milliseconds 100}while([DateTime]::UtcNow -lt $until)
+  Set-Power 'stop';Wait-State 'offline'
+  & (Join-Path $Staging 'Prepare-Reboot.ps1') -Root $Root -Staging $Staging -Package $Package -ServerID $ServerID -DaemonSID $daemonSid -GameSID $gameSid -ServiceCredential $serviceCredential
+  $rebootPrepared=$true;$report.reboot_prepared=$true;throw 'WINGS_REBOOT_PREPARED'
+ }
  Stop-Service WingsWindowsNative
  Invoke-Bootstrap -Cleanup;$credentialSeeded=$false;$report.cleanup.credential_removed=$true
  if($TestPersistentRecovery){
@@ -321,8 +351,9 @@ try {
   }finally{[IO.File]::WriteAllText($configurationPath,$originalConfiguration);$originalConfiguration=$null}
  }
  $report.passed=$true
-} catch {$report.error=$_.Exception.Message}
+} catch {if($rebootPrepared -and $_.Exception.Message -eq 'WINGS_REBOOT_PREPARED'){$report.passed=$true}else{$report.error=$_.Exception.Message}}
 finally {
+ if(-not $rebootPrepared){
  if($credentialSeeded -and $daemonSid){try{Stop-Service WingsWindowsNative -ErrorAction Stop;Invoke-Bootstrap -Cleanup;$credentialSeeded=$false;$report.cleanup.credential_removed=$true}catch{$report.cleanup.credential_error=$_.Exception.Message;$report.passed=$false}}
  if($serviceCreated -and -not $credentialSeeded){try{Stop-Service WingsWindowsNative -ErrorAction SilentlyContinue;$s=Get-Service WingsWindowsNative;try{$s.WaitForStatus('Stopped',[TimeSpan]::FromSeconds(10))}finally{$s.Dispose()}; & "$env:SystemRoot\System32\sc.exe" delete WingsWindowsNative|Out-Null;$report.cleanup.service_removed=($LASTEXITCODE -eq 0)}catch{$report.cleanup.service_error=$_.Exception.Message;$report.passed=$false}}
  if($mock){Stop-Process -Id $mock.Id -ErrorAction SilentlyContinue;$mock.Dispose();$report.cleanup.mock_stopped=$true}
@@ -333,6 +364,7 @@ finally {
  }
  if(Get-LocalUser -Name $DaemonName -ErrorAction SilentlyContinue){Remove-LocalUser -Name $DaemonName};if($gameCreated){Remove-LocalUser -Name $GameName}
  $report.cleanup.accounts_and_rights_removed=$true
+ }
  }
  if($gamePassword){$gamePassword.Dispose()};if($daemonPassword){$daemonPassword.Dispose()}
 }

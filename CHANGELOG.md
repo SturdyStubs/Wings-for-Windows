@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.28 - October 21, 2026
+
+- Add approved XML text/attribute rewrites with root/exact/wildcard paths, bounded mutation/encoding and full data-tree reparse. Reject unsupported names, DTDs/entities, namespaces, duplicate attributes, mixed content and nonempty conditions; reuse guarded batch writes.
+- Add opt-in disposable two-phase reboot preparation/resume, delayed service/mock startup and unattended cold credential/history/budget/game-tree checks and cleanup. Store temporary cleanup credentials using machine DPAPI in an Administrators/SYSTEM-only directory. The operator has authorized reboot testing; broader reboot parity remains open.
+- Extend local and combined service tests for malformed sixth-file refusal and XML text/attribute/escaping/Unicode/literal edits with retained ACLs. Final package and reboot evidence follows separately.
+
 ## 0.1.0-alpha.27 - October 21, 2026
 
 - Add approved YAML/yml egg configuration with shared JSON paths, arrays/wildcards, literal conditions and scalar coercion. Preserve untouched numeric spellings without floating point; support multiline strings and quote output strings explicitly.

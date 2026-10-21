@@ -116,3 +116,31 @@ func TestMixedYAMLPreflightPreservesEarlierFile(t *testing.T) {
 		t.Fatal(string(raw), err)
 	}
 }
+
+func TestMixedXMLPreflightPreservesEarlierFile(t *testing.T) {
+	root := t.TempDir()
+	textPath := filepath.Join(root, "server.cfg")
+	propPath := filepath.Join(root, "server.xml")
+	os.WriteFile(textPath, []byte("key=old\n"), 0600)
+	os.WriteFile(propPath, []byte(`<invalid>`), 0600)
+	plans, err := Compile([]json.RawMessage{json.RawMessage(`{"file":"server.cfg","parser":"file","replace":[{"match":"key=","replace_with":"key=new"}]}`), json.RawMessage(`{"file":"server.xml","parser":"xml","replace":[{"match":"server.port","replace_with":28015}]}`)}, []string{"server.cfg", "server.xml"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if Apply(context.Background(), root, plans, nil) == nil {
+		t.Fatal("malformed XML accepted")
+	}
+	raw, _ := os.ReadFile(textPath)
+	if string(raw) != "key=old\n" {
+		t.Fatal("earlier target changed")
+	}
+	os.WriteFile(propPath, []byte("<server><keep>yes</keep></server>"), 0600)
+	if err := Apply(context.Background(), root, plans, nil); err != nil {
+		t.Fatal(err)
+	}
+	raw, _ = os.ReadFile(propPath)
+	values, err := readXML(context.Background(), raw)
+	if err != nil || string(values.children[0].text) != "yes" || string(values.children[1].text) != "28015" {
+		t.Fatal(string(raw), err)
+	}
+}

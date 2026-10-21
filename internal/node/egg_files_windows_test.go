@@ -130,3 +130,27 @@ func TestEggYAMLRejectsMalformedThenLaunches(t *testing.T) {
 		t.Fatal(string(raw))
 	}
 }
+
+func TestEggXMLRejectsMalformedThenLaunches(t *testing.T) {
+	_, s, _ := setupConfigured(t, func(remote *RemoteServer) {
+		remote.ProcessConfiguration = processFixture(t)
+		remote.ProcessConfiguration.Startup.Done = []string{"regex:^SERVER_READY$"}
+		remote.ProcessConfiguration.Configs = []json.RawMessage{json.RawMessage(`{"file":"server.xml","parser":"xml","replace":[{"match":"server.port","replace_with":28015}]}`)}
+	})
+	s.Profile.UseEggProcessConfiguration = true
+	s.Profile.EggConfigFiles = []string{"server.xml"}
+	path := filepath.Join(s.Root, "server.xml")
+	os.WriteFile(path, []byte(`<invalid>`), 0600)
+	if err := s.start(); err == nil || s.HasProcess() {
+		t.Fatal("launched with malformed XML")
+	}
+	os.WriteFile(path, []byte("<server><keep>yes</keep></server>"), 0600)
+	if err := s.start(); err != nil {
+		t.Fatal(err)
+	}
+	await(t, s, "running")
+	raw, _ := os.ReadFile(path)
+	if !strings.Contains(string(raw), "<port>28015</port>") || !strings.Contains(string(raw), "<keep>yes</keep>") {
+		t.Fatal(string(raw))
+	}
+}

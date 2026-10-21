@@ -45,7 +45,7 @@ Shared limits: 16 files, 128 KiB remote entries, 128 rules/file, 8 KiB match/val
 
 Cancellation is checked before/after the bounded library decode, during tree validation/mutations/output construction and on encoder writes. The library decode itself is not interrupted mid-call. Encoding stops before exceeding the output cap. Parser errors do not include configuration contents or replacement values.
 
-Every target is rendered before any file changes. Malformed YAML prevents earlier text/JSON/properties/INI edits and game launch. In-place I/O failure or cancellation after writes begin may leave partial changes; later launch failures do not undo edits. There is no atomic batch, rollback journal or interrupted-operation recovery. Trusted-private-node and existing filesystem/ACL/mapping-race limits remain. XML, broader YAML dialects/templates/conditions, real panel/game certification and isolation remain open. Reboot testing remains deferred.
+Every target is rendered before any file changes. Malformed YAML prevents earlier text/JSON/properties/INI edits and game launch. In-place I/O failure or cancellation after writes begin may leave partial changes; later launch failures do not undo edits. There is no atomic batch, rollback journal or interrupted-operation recovery. Trusted-private-node and existing filesystem/ACL/mapping-race limits remain. Alpha 28 adds [XML](EGG-XML-CONFIG.md); broader YAML dialects/templates/conditions, real panel/game certification and isolation remain open. The operator has now authorized [reboot testing](REBOOT-VALIDATION.md); exact results are recorded separately.
 
 ## Verification
 

@@ -27,6 +27,7 @@ type File struct {
 	JSONRules       []jsonRule
 	PropertiesRules []propertyRule
 	INIRules        []iniRule
+	XMLRules        []xmlRule
 }
 
 func scalar(raw json.RawMessage) (string, error) {
@@ -90,13 +91,22 @@ func Compile(raw []json.RawMessage, allowed []string) ([]File, error) {
 			return nil, errors.New("egg configuration target is invalid, duplicated or not locally approved")
 		}
 		seen[strings.ToLower(item.Name)] = true
-		if item.Parser != "file" && item.Parser != "json" && item.Parser != "properties" && item.Parser != "ini" && item.Parser != "yaml" && item.Parser != "yml" {
-			return nil, errors.New("only file, json, properties, ini and yaml egg parsers are supported")
+		if item.Parser != "file" && item.Parser != "json" && item.Parser != "properties" && item.Parser != "ini" && item.Parser != "yaml" && item.Parser != "yml" && item.Parser != "xml" {
+			return nil, errors.New("only file, json, properties, ini, yaml and xml egg parsers are supported")
 		}
 		if item.Replace == nil || len(item.Replace) > 128 {
 			return nil, errors.New("egg file requires at most 128 replacements")
 		}
 		file := File{Name: item.Name, Parser: item.Parser}
+		if item.Parser == "xml" {
+			var err error
+			file.XMLRules, err = compileXMLRules(item.Replace)
+			if err != nil {
+				return nil, err
+			}
+			result = append(result, file)
+			continue
+		}
 		if item.Parser == "ini" {
 			var err error
 			file.INIRules, err = compileINIRules(item.Replace)
@@ -158,6 +168,9 @@ func Compile(raw []json.RawMessage, allowed []string) ([]File, error) {
 // Render matches upstream file-parser prefix behavior, including ordered
 // concatenation when multiple rules match a line and LF output normalization.
 func Render(ctx context.Context, input []byte, file File) ([]byte, error) {
+	if file.Parser == "xml" {
+		return renderXML(ctx, input, file.XMLRules)
+	}
 	if file.Parser == "yaml" || file.Parser == "yml" {
 		return renderYAML(ctx, input, file.JSONRules)
 	}

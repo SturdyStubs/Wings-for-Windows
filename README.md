@@ -2,9 +2,9 @@
 
 Run native Windows game-server executables through a Pterodactyl panel. This is a separate Go daemon implementing a **subset of the Wings protocol**, with Windows Job Objects replacing the Docker process runtime.
 
-**Version: 0.1.0-alpha.27. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
+**Version: 0.1.0-alpha.28. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
 
-Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). The current release adds [approved YAML egg configuration](docs/EGG-YAML-CONFIG.md), alongside [INI](docs/EGG-INI-CONFIG.md), [properties](docs/EGG-PROPERTIES-CONFIG.md), [JSON](docs/EGG-JSON-CONFIG.md) and [text-file rewriting](docs/EGG-TEXT-CONFIG.md) before game launch. Existing features include [persistent retry budgets](docs/RECOVERY-STATE.md), [console history](docs/CONSOLE-LOGS.md) and [managed service setup](docs/SERVICE-PROVISIONING.md). Reboot testing remains deferred; real panel/game compatibility and full isolation gates remain open.
+Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). The current release adds [approved XML egg configuration](docs/EGG-XML-CONFIG.md), alongside [YAML](docs/EGG-YAML-CONFIG.md), [INI](docs/EGG-INI-CONFIG.md), [properties](docs/EGG-PROPERTIES-CONFIG.md), [JSON](docs/EGG-JSON-CONFIG.md) and [text-file rewriting](docs/EGG-TEXT-CONFIG.md) before game launch. Existing features include [persistent retry budgets](docs/RECOVERY-STATE.md), [console history](docs/CONSOLE-LOGS.md) and [managed service setup](docs/SERVICE-PROVISIONING.md). Reboot testing is now authorized; see the [two-phase VM check](docs/REBOOT-VALIDATION.md); real panel/game compatibility and full isolation gates remain open.
 
 <!-- progress:start -->
 
@@ -43,7 +43,7 @@ Alpha 27 verification: **525 local cases/subtests**, **14 packaged native cases*
 | Status | Offline, starting, running after local readiness or opted-in egg literal/regex matches with ANSI stripping, and stopping. |
 | Statistics | Root-process CPU, working-set memory and uptime. Network and disk accounting are unavailable and identified as such in `native_metrics`. |
 | File API | Wings-compatible listing URL/metadata, MIME/length/download headers, confined reads/writes up to 8 MiB and case-insensitive egg denylist checks. Contract tests pass; live panel verification remains open. |
-| Egg configuration | Opt-in text, JSON, properties, INI and YAML, exact file approval, bounded parsing and protected-path checks. Other parsers remain open. |
+| Egg configuration | Opt-in text, JSON, properties, INI, YAML and XML, exact file approval, bounded parsing and protected-path checks. Other parsers remain open. |
 | Startup variables | Derived `SERVER_IP`, `SERVER_PORT`, `SERVER_MEMORY`, `STARTUP` and `TZ`, alongside explicitly allowed egg variables. |
 | Game crash recovery | Opt-in delayed restart after unexpected nonzero exits, bounded attempt window, fresh security checks and operator cancellation. Optional persistent retry budget; games remain offline after daemon restart. |
 | Persistent console logs | Optional rotated per-server JSONL, restored history, bounded queue and explicit drop/error counts. |
@@ -72,8 +72,8 @@ cd Wings-for-Windows
 If Go is not on PATH, pass `-GoExecutable C:\path\to\go.exe`. The script runs the Windows integration tests and `go vet`, then creates:
 
 ```text
-dist/wings-windows-native-0.1.0-alpha.27-windows-amd64.zip
-dist/wings-windows-native-0.1.0-alpha.27-windows-amd64.zip.sha256
+dist/wings-windows-native-0.1.0-alpha.28-windows-amd64.zip
+dist/wings-windows-native-0.1.0-alpha.28-windows-amd64.zip.sha256
 ```
 
 The archive includes the daemon, a harmless console demo executable, compiled runtime tests, a host-report script, configuration example, documentation and service script. Docker, Node, PHP and a C compiler are not needed to build it. Native integration tests compile a temporary demo executable using Go.
