@@ -8,7 +8,7 @@ The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed
 
 The release build runs `go test -count=1 -timeout 90s ./...` and `go vet ./...`. Tests launch harmless compiled fixture executables in temporary directories and use a mock panel API. They do not start Docker or contact a live panel.
 
-Alpha 21 local run: **317 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
+Alpha 22 local run: **345 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
 
 Coverage includes:
 
@@ -127,4 +127,4 @@ Local injected-handler and HTTP/HTTPS fixtures verify truthful SCM readiness, pe
 
 ## Alpha 22 persistent recovery budgets
 
-Local storage/config/node fixtures cover durable reservations, repeated reopen, corruption/alias/ownership rejection, sticky write failures, bounded close, expired/future restoration, fail-closed sync cleanup and manual cancellation during a blocked save. Full suite/build and exact packaged VM results follow separately. No game/timer auto-restore or reboot result is claimed. See [operator guide](RECOVERY-STATE.md).
+Local storage/config/node fixtures cover durable reservations, repeated reopen, corruption/alias/ownership rejection, sticky write failures, bounded close, expired/future restoration, fail-closed sync cleanup and manual cancellation during a blocked save. All 345 local cases/subtests pass with zero skips; vet, clean release build and packaged negative checks pass. The exact package passes 14 native and all 33 Server 2022 service/persistence checks, including SCM/forced-termination preservation, actual private budget-file denial, restored exhaustion and corrupt-state startup refusal. See [evidence and cleanup limits](evidence/server2022-alpha22-recovery-state.md). No game/timer auto-restore or reboot result is claimed. See [operator guide](RECOVERY-STATE.md).

@@ -26,7 +26,7 @@ Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.co
 GitHub Issues are the source of truth; ROADMAP.md records implementation scope and verification. Run `scripts/Update-Progress.ps1` to regenerate this section. Use `-Initialize` to add missing planned milestones/tasks; rerunning it never automatically re-closes existing issues.
 <!-- progress:end -->
 
-Alpha 21 verification: **317 local cases/subtests**, **14 packaged native cases** and **29 Server 2022 SCM/credential/recovery/logging/events checks** pass. See the [evidence and remaining gates](docs/evidence/server2022-alpha21-service-events.md).
+Alpha 22 verification: **345 local cases/subtests**, **14 packaged native cases** and **33 Server 2022 service/persistence checks** pass. See the [evidence and remaining gates](docs/evidence/server2022-alpha22-recovery-state.md).
 
 ## What works
 

@@ -33,7 +33,7 @@ Event 200 stages:
 | Stage | Inspect |
 | --- | --- |
 | configuration | Run `wings-windows.exe --config C:\path\config.json --check` locally as an appropriate operator; check file access for the service identity. |
-| panel_sync | Panel availability, node assignment, credentials and trusted TLS. |
+| panel_sync | Initial discovery/initialization: panel availability, node assignment, credentials, trusted TLS, profile setup and private storage (including corrupt recovery snapshots). |
 | tls | Certificate/key existence, matching pair and service-account read access. |
 | listener | Port/address conflicts and bind permissions. |
 | http | Listener/runtime failure after initialization. |

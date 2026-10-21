@@ -4,7 +4,7 @@
 
 - Add per-profile crash_recovery.persist_history, requiring the existing protected console log store. Persist retry reservations before launch, retain the consumed budget across service/daemon restarts and keep games offline with no resumed timer.
 - Use independent writer ownership and two bounded checksummed snapshots; reject corrupt, mismatched or inconsistent state without silently resetting budgets. Expose restoration and generic write-failure status. Keep I/O outside the server lock, disable automatic retries on write failure and bound close waiting.
-- Add storage, config, restart/window/clock, reservation/cancellation/failure and cleanup regressions; extend the disposable VM fixture for actual private budget access, restart preservation, forced daemon termination and corrupt-state startup rejection. Final package/VM evidence follows separately. Reboot tests remain deferred.
+- Add storage, config, restart/window/clock, reservation/cancellation/failure and cleanup regressions; extend the disposable VM fixture for actual private budget access, restart preservation, forced daemon termination and corrupt-state startup rejection. All 345 local cases/subtests pass with zero skips; vet, clean release build and packaged negative checks pass. The exact package passes 14 native and 33 Server 2022 service/persistence checks, including actual game-token denial, restored exhaustion, forced daemon termination and corrupt-state refusal. Independent cleanup passes; one loaded profile is retained. Reboot tests remain deferred.
 
 ## 0.1.0-alpha.21 - October 21, 2026
 

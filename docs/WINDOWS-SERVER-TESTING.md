@@ -70,6 +70,7 @@ For configured `block_connections`, stop workloads using the dedicated account a
 | Bounded game crash recovery | Final alpha 19: 22 SCM/credential/recovery checks passed; [evidence](evidence/server2022-alpha19-recovery.md). |
 | Persistent console logs | Final alpha 20: 14 native cases and 25 SCM/credential/recovery/logging checks passed; [evidence](evidence/server2022-alpha20-console.md). |
 | Windows service diagnostics/readiness | Final alpha 21: 14 native cases and 29 SCM/credential/recovery/logging/events checks passed; [evidence](evidence/server2022-alpha21-service-events.md). |
+| Persistent retry budgets | Final alpha 22: 14 native cases and 33 service/persistence checks passed, including forced daemon termination and corrupt-state refusal; [evidence](evidence/server2022-alpha22-recovery-state.md). |
 | Reboot/profile recovery | Deferred at operator request; remains unverified. |
 | Trusted-TLS real panel/game workflows | Pending. |
 | Real WFP installation, traffic and crash behavior | Pending. |

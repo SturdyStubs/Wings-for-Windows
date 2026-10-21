@@ -54,4 +54,4 @@ Checks are snapshots. Files can change afterward; no authenticity or isolation g
 
 ## Optional crash recovery
 
-Profile v1 accepts `crash_recovery` with explicit `enabled`, bounded `max_restarts`, `window_seconds` and `delay_seconds`. It is disabled by default and applies only to unexpected nonzero game exits while this daemon remains active. See [behavior and limits](CRASH-RECOVERY.md).
+Profile v1 accepts `crash_recovery` with explicit `enabled`, bounded `max_restarts`, `window_seconds` and `delay_seconds`. It is disabled by default and applies only to unexpected nonzero game exits while this daemon remains active. Optional `persist_history` requires global `console_logs` and retains consumed retry reservations across daemon restarts without starting games or resuming timers; see [persistent budgets](RECOVERY-STATE.md). See [behavior and limits](CRASH-RECOVERY.md).
