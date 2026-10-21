@@ -4,7 +4,7 @@
 
 - Add opt-in `restore_running`, requiring private logs and enabled persistent crash recovery. Store running/stopped power intent in guarded, synced, UUID/checksum/sequence-bound dual snapshots initialized stopped; refuse uncertain state instead of rolling back a stop.
 - Restore only after daemon readiness, with at most two startup actions, fresh launch guards and write-before-launch recovery reservations. Preserve intent on node shutdown, respect explicit stops/kills and clear clean exits. A slow intent write cannot delay killing the game tree. Expose `native_restore` status and safe storage failures.
-- Add storage/config/lifecycle/concurrency checks and extend SCM/reboot fixtures for intent-file denial, running/stopped restoration, corrupt-state refusal and automatic cold-profile game launch. Require complete cleanup flags before post-boot success. Final package/VM evidence follows separately.
+- Add storage/config/lifecycle/concurrency checks and extend SCM/reboot fixtures for intent-file denial, running/stopped restoration, corrupt-state refusal and automatic cold-profile game launch. Require complete cleanup flags before post-boot success. All 584 local cases/subtests, 14 packaged Server 2022 cases, 49 combined service checks and seven actual post-boot checks pass. Automatic cold-profile game restoration, pinned SSH reconnect and unattended/independent cleanup verified. See [evidence and remaining gates](docs/evidence/server2022-alpha29-running-restoration.md).
 
 ## 0.1.0-alpha.28 - October 21, 2026
 

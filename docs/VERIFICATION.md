@@ -8,7 +8,7 @@ The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed
 
 The release build runs `go test -count=1 -timeout 90s ./...` and `go vet ./...`. Tests launch harmless compiled fixture executables in temporary directories and use a mock panel API. They do not start Docker or contact a live panel.
 
-Alpha 28 local run: **558 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
+Alpha 29 local run: **584 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
 
 Coverage includes:
 
@@ -155,4 +155,4 @@ Local XML fixtures cover paths/attributes/wildcards/root creation, Unicode/escap
 
 ## Alpha 29 opt-in running intent restoration
 
-Local checks cover dual snapshot initialization/transitions, corruption/missing-stop-slot/link/writer refusal, configuration prerequisites, manager restart/readiness gating, budget/cancellation, fresh panel suspension, manual/clean stops, stale exit writes and emergency kill during blocked storage. SCM/reboot fixtures add private-state denial, durable running/stopped intent, corrupt startup refusal and automatic distinct-account post-boot launch. Final release/VM evidence follows separately. See [restoration semantics and limits](RUNNING-RESTORATION.md).
+Local checks cover dual snapshot initialization/transitions, corruption/missing-stop-slot/link/writer refusal, configuration prerequisites, manager restart/readiness gating, budget/cancellation, fresh panel suspension, manual/clean stops, stale exit writes and emergency kill during blocked storage. SCM/reboot fixtures add private-state denial, durable running/stopped intent, corrupt startup refusal and automatic distinct-account post-boot launch. The clean release passes all 584 local cases/subtests and vet; its exact package passes 14 native and 49 combined Server 2022 checks. A separate fixture repeats 44 preparatory checks and passes all seven actual post-boot checks, including automatic game restoration, cold distinct-account launch and budget reservation. Pinned SSH reconnect and unattended/independent cleanup pass. See [exact evidence and limits](evidence/server2022-alpha29-running-restoration.md). See [restoration semantics and limits](RUNNING-RESTORATION.md).
