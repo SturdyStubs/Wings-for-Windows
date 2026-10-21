@@ -67,7 +67,9 @@ For configured `block_connections`, stop workloads using the dedicated account a
 | Distinct-account Windows Server logon/launch and ACL behavior | Eight native fixture stages passed with SYSTEM and non-administrator daemon batch tasks. SCM demo launch also passes; reboot/profile lifecycle and hostile policy tests remain open. |
 | Windows Server SCM demo workflow | Passed using the new installer, separate daemon/game accounts and loopback mock panel. Final package evidence is tracked in VERIFICATION.md. |
 | Managed service credential provisioning | Final alpha 18 package: 18 public-helper/SCM checks passed. [Evidence](evidence/server2022-alpha18-credentials.md). |
-| Reboot/profile recovery and trusted-TLS real panel/game workflows | Pending. |
+| Bounded game crash recovery | Final alpha 19: 22 SCM/credential/recovery checks passed; [evidence](evidence/server2022-alpha19-recovery.md). |
+| Reboot/profile recovery | Deferred at operator request; remains unverified. |
+| Trusted-TLS real panel/game workflows | Pending. |
 | Real WFP installation, traffic and crash behavior | Pending. |
 | Real game's complete panel lifecycle and multi-server load | Pending. |
 

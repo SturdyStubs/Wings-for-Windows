@@ -5,7 +5,7 @@
 - Add opt-in delayed game crash recovery for unexpected nonzero exits, with a bounded rolling attempt budget. Reuse normal power locking, fresh panel settings, executable/account/access/network checks and cancellation.
 - Cancel recovery on explicit operator power, suspension or shutdown; skip clean/manual exits and cleanup errors. Stop on launch/preflight failure or exhausted budget and log why manual start is required.
 - Expose native_recovery metadata through the existing server response and keep recovery/exit reasons in bounded in-memory console history.
-- Add policy, real process/crash-loop and cancellation tests. Recovery history is not persistent; service restart leaves games offline and clears the budget. Reboot validation is deferred at the operator's request.
+- Add 27 policy/process/cancellation cases/subtests: 258 full cases pass, zero skipped; vet and clean release build pass. Final Server 2022 package passes 14 baseline cases and all 22 SCM/credential/recovery checks. Correct developer fixture cleanup ordering after a stale mock caused startup failure; retain loaded profiles and record the earlier disposable-credential cleanup limit. Recovery history is not persistent; service restart leaves games offline and clears the budget. Reboot validation is deferred at the operator's request.
 
 ## 0.1.0-alpha.18 - October 20, 2026
 

@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "version": "0.1.0-alpha.19",
+  "source_revision": "6e3a6d2f216f40a610c91c51600b7b5daa4c9c5e",
+  "zip_sha256": "6f995f1f779515908c8d23ea6fde0914d5e61130a2627d412597d4448d78804d",
+  "runtime_tests_sha256": "2f3218d6621b07a78a09aacbf4badffe923154e0233a4e218499028560acb09f",
+  "demo_sha256": "1cea78796c1f99ac7aefb0b4c6e09bc8e05938afabc923bd784e19e78244634a",
+  "host": {
+    "os": "Windows Server 2022 Standard Evaluation",
+    "build": "20348",
+    "powershell": "5.1.20348.558"
+  },
+  "local_tests_passed": 258,
+  "local_tests_skipped": 0,
+  "packaged_vm_native_tests_passed": 14,
+  "scope": "Harmless demo, separate daemon/game users, SCM and loopback mock panel. Reboot tests explicitly deferred; no real panel/TLS/game or WFP traffic validation.",
+  "service": {
+    "passed": true,
+    "checks": {
+      "installer_rollback": "passed",
+      "installer_start_failure_rollback": "passed",
+      "installer_account_rights_acls": "passed",
+      "public_bad_service_password_cleanup": "passed",
+      "public_operation_lock_rejected": "passed",
+      "public_preexisting_batch_right_preserved": "passed",
+      "public_credential_overwrite_rejected": "passed",
+      "public_credential_wrong_identity_rejected": "passed",
+      "public_credential_replace_inspect": "passed",
+      "credential_bootstrap": "passed",
+      "scm_service_start_and_api": "passed",
+      "actual_service_identity": "passed",
+      "separate_game_start": "passed",
+      "service_console": "passed",
+      "crash_recovery_restarts_and_cleans_old_tree": "passed",
+      "crash_recovery_manual_kill_cancels": "passed",
+      "crash_recovery_budget_stops_loop": "passed",
+      "actual_game_tree_identity": "passed",
+      "scm_stop_kills_game_tree": "passed",
+      "crash_recovery_service_restart_resets_budget": "passed",
+      "service_restart_and_game_stop": "passed",
+      "public_credential_remove_inspect": "passed"
+    },
+    "error": null,
+    "cleanup": {
+      "credential_removed": true,
+      "service_removed": true,
+      "mock_stopped": true,
+      "accounts_and_rights_removed": true
+    }
+  },
+  "independent_cleanup_audit": {
+    "passed": true,
+    "accounts_remaining": 0,
+    "processes_remaining": 0,
+    "tasks_remaining": 0,
+    "service_remaining": 0,
+    "mock_processes_remaining": 0,
+    "explicit_rights_remaining": 0,
+    "final_profile_count": 1,
+    "final_loaded_profiles": 1,
+    "failed_fixture_profile_count": 1,
+    "failed_fixture_loaded_profiles": 1
+  },
+  "earlier_fixture_limit": "Stale mock rejected new config. Earlier fixture removed service before trying credential cleanup, so the disposable credential remains in a retained deleted-account profile. Fixture cleanup order is corrected; no profile was force-deleted."
+}
