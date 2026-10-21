@@ -37,7 +37,7 @@ func (s *Server) pruneRecoveryLocked(now time.Time) {
 
 func (s *Server) scheduleRecoveryLocked() {
 	policy := s.Profile.CrashRecovery
-	if policy == nil || !policy.Enabled || s.recoveryStopped || s.closing || s.settings.Suspended {
+	if policy == nil || !policy.Enabled || s.recoveryStopped || s.closing || s.settings.Suspended || s.recoveryStorageError != "" {
 		return
 	}
 	now := time.Now()
@@ -104,7 +104,29 @@ func (s *Server) recoverProcess(ctx context.Context, attempt *recoveryAttempt) {
 			s.mu.Unlock()
 			return
 		}
-		s.recoveryHistory = append(s.recoveryHistory, time.Now())
+		reservedAt := time.Now()
+		if s.recoveryStore != nil {
+			// Count through the latest permitted launch time, so a slow Sync
+			// cannot expire the reservation before the attempted launch.
+			if deadline, ok := wait.Deadline(); ok {
+				reservedAt = deadline
+			}
+		}
+		s.recoveryHistory = append(s.recoveryHistory, reservedAt)
+		history := append([]time.Time(nil), s.recoveryHistory...)
+		store := s.recoveryStore
+		s.mu.Unlock()
+		if store != nil {
+			if err := store.Save(history); err != nil {
+				s.mu.Lock()
+				s.recoveryStorageError = "reservation_write_failed"
+				s.mu.Unlock()
+				s.power.Unlock()
+				s.log("[Windows node] automatic restart disabled: recovery reservation could not be persisted; inspect storage and restart daemon")
+				return
+			}
+		}
+		s.mu.Lock()
 		s.logLocked("[Windows node] attempting automatic restart")
 		s.mu.Unlock()
 		err := s.startWithContext(wait)

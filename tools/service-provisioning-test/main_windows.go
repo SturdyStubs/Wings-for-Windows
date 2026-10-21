@@ -27,6 +27,9 @@ func main() {
 	server := node.RemoteServer{UUID: id, Settings: node.Settings{UUID: id, Environment: map[string]any{}}}
 	if c.ConsoleLogs != nil {
 		server.Settings.Environment["LOG_PROBE_PATH"] = filepath.Join(c.ConsoleLogs.Directory, id, "console.jsonl")
+		if p := c.Profiles[id].CrashRecovery; p != nil && p.PersistHistory {
+			server.Settings.Environment["RECOVERY_PROBE_PATH"] = filepath.Join(c.ConsoleLogs.Directory, id, "recovery.1.json")
+		}
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/remote/servers", func(w http.ResponseWriter, r *http.Request) {

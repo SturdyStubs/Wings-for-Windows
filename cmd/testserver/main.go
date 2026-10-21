@@ -42,15 +42,19 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if line == "probe-log-access" {
-			_, err := os.ReadFile(os.Getenv("LOG_PROBE_PATH"))
+		if line == "probe-log-access" || line == "probe-recovery-access" {
+			variable, prefix := "LOG_PROBE_PATH", "LOG_PROBE"
+			if line == "probe-recovery-access" {
+				variable, prefix = "RECOVERY_PROBE_PATH", "RECOVERY_PROBE"
+			}
+			_, err := os.ReadFile(os.Getenv(variable))
 			switch {
 			case os.IsPermission(err):
-				fmt.Println("LOG_PROBE_DENIED")
+				fmt.Println(prefix + "_DENIED")
 			case err == nil:
-				fmt.Println("LOG_PROBE_ALLOWED")
+				fmt.Println(prefix + "_ALLOWED")
 			default:
-				fmt.Println("LOG_PROBE_ERROR")
+				fmt.Println(prefix + "_ERROR")
 			}
 			continue
 		}

@@ -9,7 +9,7 @@ Build from a clean checkout on the development machine using `scripts/Build.ps1`
 In Windows PowerShell inside the VM, use the actual downloaded ZIP path:
 
 ```powershell
-$archive = 'C:\Users\Administrator\Downloads\wings-windows-native-0.1.0-alpha.21-windows-amd64.zip'
+$archive = 'C:\Users\Administrator\Downloads\wings-windows-native-0.1.0-alpha.22-windows-amd64.zip'
 $expected = ((Get-Content -LiteralPath ($archive + '.sha256') -Raw).Trim() -split '\s+')[0]
 $actual = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
 if ($actual -ne $expected) { throw 'Archive checksum mismatch.' }

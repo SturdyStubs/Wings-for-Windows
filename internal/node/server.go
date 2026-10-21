@@ -23,36 +23,43 @@ type Event struct {
 	Event string   `json:"event"`
 	Args  []string `json:"args"`
 }
+type recoveryBudget interface {
+	Save([]time.Time) error
+	Close(context.Context) error
+}
 type Server struct {
-	mu                sync.Mutex
-	configurationSync sync.Mutex
-	power             sync.Mutex
-	powerCancel       context.CancelFunc
-	powerEpoch        chan struct{}
-	pendingPower      int
-	filePolicy        *FilePolicy
-	processPolicy     *processPolicy
-	appliedLimits     native.Limits
-	write             sync.Mutex
-	settings          Settings
-	Profile           config.Profile
-	Root              string
-	panel             *Panel
-	process           *native.Process
-	state             string
-	started           time.Time
-	previousSample    time.Time
-	previousCPU       uint64
-	cpu               float64
-	logs              []string
-	logBytes          int
-	consoleStore      *consolelog.Store
-	outputWG          sync.WaitGroup
-	subscribers       map[chan Event]struct{}
-	closing           bool
-	recoveryStopped   bool
-	recovery          *recoveryAttempt
-	recoveryHistory   []time.Time
+	mu                   sync.Mutex
+	configurationSync    sync.Mutex
+	power                sync.Mutex
+	powerCancel          context.CancelFunc
+	powerEpoch           chan struct{}
+	pendingPower         int
+	filePolicy           *FilePolicy
+	processPolicy        *processPolicy
+	appliedLimits        native.Limits
+	write                sync.Mutex
+	settings             Settings
+	Profile              config.Profile
+	Root                 string
+	panel                *Panel
+	process              *native.Process
+	state                string
+	started              time.Time
+	previousSample       time.Time
+	previousCPU          uint64
+	cpu                  float64
+	logs                 []string
+	logBytes             int
+	consoleStore         *consolelog.Store
+	outputWG             sync.WaitGroup
+	subscribers          map[chan Event]struct{}
+	closing              bool
+	recoveryStopped      bool
+	recovery             *recoveryAttempt
+	recoveryHistory      []time.Time
+	recoveryStore        recoveryBudget
+	recoveryRestored     int
+	recoveryStorageError string
 }
 type Manager struct {
 	Config  config.Config
@@ -107,6 +114,19 @@ func (m *Manager) Sync(ctx context.Context) error {
 			for _, line := range history {
 				s.logBytes += len(line)
 			}
+			if profile.CrashRecovery != nil && profile.CrashRecovery.PersistHistory {
+				budget, attempts, err := consolelog.OpenRecovery(*options, id)
+				if err != nil {
+					closeCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+					store.Close(closeCtx)
+					cancel()
+					return fmt.Errorf("server %s recovery storage: %w", id, err)
+				}
+				s.recoveryStore = budget
+				s.recoveryHistory = attempts
+				s.recoveryRestored = len(attempts)
+				s.pruneRecoveryLocked(time.Now())
+			}
 		}
 		m.servers[id] = s
 	}
@@ -143,6 +163,13 @@ func (m *Manager) Close() {
 		if p != nil {
 			p.Kill()
 			<-p.Done
+		}
+		if s.recoveryStore != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			if err := s.recoveryStore.Close(ctx); err != nil {
+				log.Printf("server %s recovery storage close did not complete successfully", s.ID())
+			}
+			cancel()
 		}
 		if s.consoleStore != nil {
 			drained := make(chan struct{})
@@ -638,6 +665,11 @@ func (s *Server) Response() map[string]any {
 	stats := map[string]any{"state": s.state, "uptime": uptime, "memory_bytes": memory, "memory_limit_bytes": int64(limit) * 1024 * 1024, "cpu_absolute": s.cpu, "disk_bytes": 0, "network": map[string]int{"rx_bytes": 0, "tx_bytes": 0}, "native_metrics": map[string]any{"process_metrics_available": metricsAvailable, "scope": "root_process", "network_available": false, "disk_available": false}}
 	s.pruneRecoveryLocked(time.Now())
 	recovery := map[string]any{"enabled": s.Profile.CrashRecovery != nil && s.Profile.CrashRecovery.Enabled, "pending": s.recovery != nil, "attempts_in_window": len(s.recoveryHistory)}
+	recovery["persistent_history"] = s.recoveryStore != nil
+	recovery["restored_attempts"] = s.recoveryRestored
+	if s.recoveryStorageError != "" {
+		recovery["storage_error"] = s.recoveryStorageError
+	}
 	if policy := s.Profile.CrashRecovery; policy != nil {
 		recovery["max_restarts"] = policy.MaxRestarts
 		recovery["window_seconds"] = policy.WindowSeconds

@@ -4,10 +4,11 @@ import "fmt"
 
 // CrashRecovery applies to unexpected nonzero game exits, never daemon boot.
 type CrashRecovery struct {
-	Enabled       bool `json:"enabled"`
-	MaxRestarts   int  `json:"max_restarts,omitempty"`
-	WindowSeconds int  `json:"window_seconds,omitempty"`
-	DelaySeconds  int  `json:"delay_seconds,omitempty"`
+	PersistHistory bool `json:"persist_history,omitempty"`
+	Enabled        bool `json:"enabled"`
+	MaxRestarts    int  `json:"max_restarts,omitempty"`
+	WindowSeconds  int  `json:"window_seconds,omitempty"`
+	DelaySeconds   int  `json:"delay_seconds,omitempty"`
 }
 
 func (p *CrashRecovery) Normalize() error {

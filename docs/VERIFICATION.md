@@ -1,6 +1,6 @@
 # Verification and release status
 
-Version `0.1.0-alpha.21`, verified locally October 21, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). The local automated suite changes no production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration. Separate disposable VM service tests deliberately create and clean up temporary users, rights, tasks, service registration and fixture ACLs. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
+Version `0.1.0-alpha.22`, verified locally October 21, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). The local automated suite changes no production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration. Separate disposable VM service tests deliberately create and clean up temporary users, rights, tasks, service registration and fixture ACLs. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
 
 The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed by the original tests. Alpha 2 adds upstream/panel-derived metadata fixtures and canonical route assertions, plus regression checks for the fixes below. Passing these tests is still not proof that a complete live panel/game deployment works. Current outstanding work is tracked in [ROADMAP.md](../ROADMAP.md).
 
@@ -124,3 +124,7 @@ New local tests cover bounded rotation/history, rejected aliases and duplicate w
 ## Alpha 21 Windows service diagnostics
 
 Local injected-handler and HTTP/HTTPS fixtures verify truthful SCM readiness, pending/interrogate/stop/shutdown/startup cancellation, sink failures and secret-safe failure stages. The full 317-case suite passes with zero skips; vet, clean-source release build and packaged negative checks pass. The exact package passes 14 native and all 29 Server 2022 SCM/credential/recovery/logging/events checks, including real non-administrator lifecycle events and a safe malformed-configuration startup failure. See [evidence and cleanup limits](evidence/server2022-alpha21-service-events.md). See [operator guide](SERVICE-EVENTS.md). Reboot tests remain deferred.
+
+## Alpha 22 persistent recovery budgets
+
+Local storage/config/node fixtures cover durable reservations, repeated reopen, corruption/alias/ownership rejection, sticky write failures, bounded close, expired/future restoration, fail-closed sync cleanup and manual cancellation during a blocked save. Full suite/build and exact packaged VM results follow separately. No game/timer auto-restore or reboot result is claimed. See [operator guide](RECOVERY-STATE.md).

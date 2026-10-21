@@ -2,9 +2,9 @@
 
 Run native Windows game-server executables through a Pterodactyl panel. This is a separate Go daemon implementing a **subset of the Wings protocol**, with Windows Job Objects replacing the Docker process runtime.
 
-**Version: 0.1.0-alpha.21. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
+**Version: 0.1.0-alpha.22. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
 
-Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). Alpha 21 adds [Windows service lifecycle events](docs/SERVICE-EVENTS.md) and accurate SCM listener readiness. Alpha 20 added opt-in [persistent server console history](docs/CONSOLE-LOGS.md): bounded JSONL files, rotation, asynchronous disk writes and recent history restored after service restart. [Crash recovery](docs/CRASH-RECOVERY.md) and [managed service setup](docs/SERVICE-PROVISIONING.md) remain available. Game/account state is not restored by log loading. Reboot testing remains deferred at the operator's request; real panel/game and full isolation gates remain open. Full Wings parity remains in progress.
+Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). Alpha 22 adds opt-in [persistent automatic-restart budgets](docs/RECOVERY-STATE.md), retaining consumed attempts across daemon restarts while leaving games offline. Alpha 21 added [Windows service lifecycle events](docs/SERVICE-EVENTS.md) and accurate SCM listener readiness. Alpha 20 added opt-in [persistent server console history](docs/CONSOLE-LOGS.md): bounded JSONL files, rotation, asynchronous disk writes and recent history restored after service restart. [Crash recovery](docs/CRASH-RECOVERY.md) and [managed service setup](docs/SERVICE-PROVISIONING.md) remain available. Game/account state is not restored by log loading. Reboot testing remains deferred at the operator's request; real panel/game and full isolation gates remain open. Full Wings parity remains in progress.
 
 <!-- progress:start -->
 
@@ -44,7 +44,7 @@ Alpha 21 verification: **317 local cases/subtests**, **14 packaged native cases*
 | Statistics | Root-process CPU, working-set memory and uptime. Network and disk accounting are unavailable and identified as such in `native_metrics`. |
 | File API | Wings-compatible listing URL/metadata, MIME/length/download headers, confined reads/writes up to 8 MiB and case-insensitive egg denylist checks. Contract tests pass; live panel verification remains open. |
 | Startup variables | Derived `SERVER_IP`, `SERVER_PORT`, `SERVER_MEMORY`, `STARTUP` and `TZ`, alongside explicitly allowed egg variables. |
-| Game crash recovery | Opt-in delayed restart after unexpected nonzero exits, bounded attempt window, fresh security checks and operator cancellation. In-memory state only. |
+| Game crash recovery | Opt-in delayed restart after unexpected nonzero exits, bounded attempt window, fresh security checks and operator cancellation. Optional persistent retry budget; games remain offline after daemon restart. |
 | Persistent console logs | Optional rotated per-server JSONL, restored history, bounded queue and explicit drop/error counts. |
 | Windows service | Listener-ready SCM state, optional secret-safe Application lifecycle/failure events, stop/shutdown, dedicated account/initial rights/ACL setup and daemon-context game-credential create/inspect/replace/remove. |
 
@@ -71,8 +71,8 @@ cd Wings-for-Windows
 If Go is not on PATH, pass `-GoExecutable C:\path\to\go.exe`. The script runs the Windows integration tests and `go vet`, then creates:
 
 ```text
-dist/wings-windows-native-0.1.0-alpha.21-windows-amd64.zip
-dist/wings-windows-native-0.1.0-alpha.21-windows-amd64.zip.sha256
+dist/wings-windows-native-0.1.0-alpha.22-windows-amd64.zip
+dist/wings-windows-native-0.1.0-alpha.22-windows-amd64.zip.sha256
 ```
 
 The archive includes the daemon, a harmless console demo executable, compiled runtime tests, a host-report script, configuration example, documentation and service script. Docker, Node, PHP and a C compiler are not needed to build it. Native integration tests compile a temporary demo executable using Go.

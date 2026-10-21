@@ -1,6 +1,28 @@
 package config
 
-import "testing"
+import (
+	"path/filepath"
+	"testing"
+)
+
+func TestPersistentRecoveryRequiresPrivateConsoleStorage(t *testing.T) {
+	c := valid(t)
+	p := c.Profiles[id]
+	p.CrashRecovery = &CrashRecovery{Enabled: true, PersistHistory: true}
+	c.Profiles[id] = p
+	if c.Validate() == nil {
+		t.Fatal("persistent recovery without private storage accepted")
+	}
+	c.ConsoleLogs = &ConsoleLogs{Directory: filepath.Join(t.TempDir(), "console")}
+	if err := c.Validate(); err != nil {
+		t.Fatal(err)
+	}
+	p.CrashRecovery.Enabled = false
+	c.Profiles[id] = p
+	if err := c.Validate(); err != nil {
+		t.Fatal("disabled policy should retain its budget", err)
+	}
+}
 
 func TestCrashRecoveryPolicy(t *testing.T) {
 	for _, name := range []string{"defaults", "disabled defaults", "valid", "negative retries", "excess retries", "short window", "long window", "negative delay", "long delay", "delay outside window"} {

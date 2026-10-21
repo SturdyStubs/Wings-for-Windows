@@ -1,6 +1,6 @@
 # Bounded game crash recovery
 
-Alpha 19 adds opt-in automatic restart after an unexpected **nonzero** game-process exit. This runs inside the active daemon; it does not restart the daemon, auto-start games after boot, or restore state after a service restart. Reboot testing is deferred at the operator's request and remains unverified.
+Alpha 19 adds opt-in automatic restart after an unexpected **nonzero** game-process exit. This runs inside the active daemon; it does not restart the daemon, auto-start games after boot, or automatically restore running games after a service restart. Alpha 22 can optionally [persist the retry budget](RECOVERY-STATE.md). Reboot testing is deferred at the operator's request and remains unverified.
 
 Add this object to a local executable profile, then restart the daemon during maintenance to load the change:
 
@@ -29,6 +29,6 @@ A failed automatic start (for example, unavailable panel, missing executable, ba
 
 Recovery scheduling, attempt, failure and budget messages appear in the existing console stream and bounded in-memory log history. `GET /api/servers/<UUID>` adds native-only `native_recovery` metadata: `enabled`, `pending`, `attempts_in_window`, configured `max_restarts`/`window_seconds`, and `next_attempt_at` (UTC) while an attempt is pending. The existing standard state remains offline during the delay and starting/running during launch; no unsupported panel state is invented.
 
-Attempt history and timers are in memory. Service restart clears them and leaves games offline; there is no persistent crash ledger, watchdog, boot recovery or restart continuity claim. Strong isolation, actual WFP filtering and real-game/panel certification remain separate gates.
+By default, attempt history and timers are in memory and service restart clears them. Opt-in persist_history retains the retry budget; games remain offline and timers are never resumed. See [persistent recovery state](RECOVERY-STATE.md). There is no full crash ledger, watchdog or boot-recovery certification. Strong isolation, actual WFP filtering and real-game/panel certification remain separate gates.
 
 Local Windows fixture tests exercise nonzero and startup crashes, bounded loops, clean/disabled exits, operator/queue/suspension/shutdown cancellation, cancellation while fresh panel lookup blocks, fresh suspension rejection, failed preflight and rolling-window expiry. The final package passes 22 Server 2022 SCM/credential/recovery checks using separate daemon/game accounts and a harmless demo. See [evidence and cleanup limits](evidence/server2022-alpha19-recovery.md).

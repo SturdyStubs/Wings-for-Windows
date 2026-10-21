@@ -17,7 +17,7 @@ import (
 	"wings-windows/internal/networkpolicy"
 )
 
-const Version = "0.1.0-alpha.21"
+const Version = "0.1.0-alpha.22"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -142,6 +142,9 @@ func (c *Config) Validate() error {
 	normalized := make(map[string]Profile, len(c.Profiles))
 	identities := make(map[string]bool)
 	for id, p := range c.Profiles {
+		if p.CrashRecovery != nil && p.CrashRecovery.PersistHistory && c.ConsoleLogs == nil {
+			return fmt.Errorf("server %s: crash_recovery.persist_history requires console_logs private storage", id)
+		}
 		if c.ConsoleLogs != nil {
 			if err := c.ConsoleLogs.Protect(append([]string{c.SourcePath, c.TLS.Cert, c.TLS.Key, p.Executable}, p.Requirements.RequiredFiles...)...); err != nil {
 				return err
