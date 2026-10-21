@@ -1,6 +1,6 @@
 # Progress toward Wings compatibility
 
-Last updated: October 20, 2026. Current version: **0.1.0-alpha.16**. Active development: **M2 — isolation and supported threat model**. M1 remains open for its live panel gate.
+Last updated: October 20, 2026. Current version: **0.1.0-alpha.17**. Active development: **M2 — isolation and supported threat model**. M1 remains open for its live panel gate.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
@@ -25,6 +25,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - Alpha 15: portable compiled native tests plus a hash/revision-checked PowerShell host-report runner and staged Windows Server VM instructions. Local no-Go execution passes 14 runtime cases/subtests with zero skipped; host evidence explicitly excludes panel, distinct-account, service and network-filter verification. Server VM results remain pending.
 - Alpha 16: resolve host-runner path defaults after parameter binding, fixing the reported Windows PowerShell `-File` failure when `$PSScriptRoot` is empty in a parameter initializer. Clean release builds exercise both omitted defaults from outside the package. The user reports 14 passing cases on the Server 2022 VM using the alpha 15 explicit-path workaround; the JSON metadata and executable hashes match the retained alpha 15 package (build 20348, Administrator token). Distinct-account/service/panel/network gates remain open.
 - Server 2022 follow-up: direct alpha 16 default runner passes all 14 cases/subtests. Real separate-game-account launch passes eight fixture stages from both SYSTEM and non-administrator daemon batch tasks, including actual file/memory denial and console/stop. Key-SSH credential storage failed; password-backed batch storage worked. SCM, profile cleanup and remaining isolation gates stay open. See [evidence](docs/evidence/server2022-alpha16-ssh-identity.md).
+- Alpha 17: opt-in local service-account creation, scoped service/launch/batch rights and protected initial bin/private/data/logs ACLs. Managed setup rejects populated data, shared identities and observed links, and compensates failed service registration/start. Actual Server 2022 SCM demo start/console/stop/restart passed under a non-administrator daemon with a separate game identity and loopback mock panel. Game credentials still require credential-backed provisioning; cold boot/profile recovery, real panel/game and WFP gates remain open. See [service setup](docs/SERVICE-PROVISIONING.md).
 - HTTP inventory: handlers at **13 of upstream's 38 method/path combinations**, with partial behavior; **25 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
 - Automatic installation, full file manager/SFTP, backups/restores, transfers, strong isolation and live certification remain open.
 - Unchanged Linux eggs require a Linux execution backend. Native Windows profiles do not translate Linux images/binaries.
@@ -77,10 +78,11 @@ The seed definitions are in `docs/progress-plan.json`. `scripts/Update-Progress.
   - [x] Check required executable/dependency/data-directory permissions under the game token before launch and in offline identity diagnostics; verify fixture allow/deny results against actual restricted-token file operations.
   - [ ] Verify actual WFP installation, traffic blocking, crash/restart behavior and allocation/outbound policy on a disposable host.
   - [x] Verify a real distinct-game-account native launch from a non-administrator daemon password-backed batch task on Server 2022, with actual child SID and file/memory denial checks.
-  - [ ] Verify successful distinct-account batch logon/launch under the intended Windows Server service identity and complete profile lifecycle/recovery.
+  - [x] Verify distinct-account demo launch under a non-administrator Windows Server SCM identity, including console, job-tree stop and restart (mock panel).
+  - [ ] Complete credential/profile lifecycle, cold boot and recovery checks.
   - [ ] Complete account/credential lifecycle, recursive/ancestor/link/race policy, shared executable/mount rules, daemon process-handle and network enforcement.
 - [ ] Test cross-server/account access, credentials, hardlinks, reparse points, case aliases and filesystem races. Local fixtures now cover a denied root with an exposed child, real NTFS hardlinks/junctions, ambiguous paths, handle-pinned rename/write rejection, retained startup handles with rollback and scan/handle bounds/cancellation; live identity and adversarial race gates remain open.
-- [ ] Publish the supported Windows host/runtime/game matrix and remaining restrictions. The Server 2022 baseline and separate-account batch probes pass; SCM/game/full-policy certification remains open.
+- [ ] Publish the supported Windows host/runtime/game matrix and remaining restrictions. The Server 2022 baseline and separate-account batch probes pass; real game, reboot/profile and full-policy certification remain open.
 
 Current scope remains a trusted private node. File denylist/path checks are not process isolation.
 

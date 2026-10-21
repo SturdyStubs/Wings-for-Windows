@@ -1,6 +1,6 @@
 # Verification and release status
 
-Version `0.1.0-alpha.16`, verified locally October 20, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). No production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration was changed. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
+Version `0.1.0-alpha.17`, verified locally October 20, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). The local automated suite changes no production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration. Separate disposable VM service tests deliberately create and clean up temporary users, rights, tasks, service registration and fixture ACLs. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
 
 The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed by the original tests. Alpha 2 adds upstream/panel-derived metadata fixtures and canonical route assertions, plus regression checks for the fixes below. Passing these tests is still not proof that a complete live panel/game deployment works. Current outstanding work is tracked in [ROADMAP.md](../ROADMAP.md).
 
@@ -8,9 +8,11 @@ The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed
 
 The release build runs `go test -count=1 -timeout 90s ./...` and `go vet ./...`. Tests launch harmless compiled fixture executables in temporary directories and use a mock panel API. They do not start Docker or contact a live panel.
 
-Alpha 16 local run: **192 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
+Alpha 17 local run: **206 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
 
 Coverage includes:
+
+- Pure managed-permission planning with mocked identity lookup: canonical layout, distinct accounts, TLS/code/dependency containment, empty data/logs, hardlink/junction rejection and no planning mutations.
 
 - Public-listener TLS requirements, remote HTTP rejection, exact origins, invalid profiles, strict JSON and returned configuration defaults.
 - Node bearer direction, invalid/absent credentials, unsupported routes and invalid power actions.
@@ -98,3 +100,7 @@ These remain open and limit the release to an experimental private node:
 Do not enable backups, restore, transfer, SFTP, automatic egg installation/reinstall, signed downloads/uploads or Rust Server Wiper operations on this node. This release has no network/account isolation, disk quota, crash auto-restart, persistent console history, service Event Log integration or game updater.
 
 Failures during startup are reported in recent console output. A game that never matches readiness remains starting. A daemon shutdown kills managed jobs, so plan service updates as game-server downtime.
+
+## Alpha 17 service provisioning
+
+The new installer/module passed a disposable Server 2022 SCM demo test using the alpha 16 runtime binaries: account creation, rights/ACLs, injected registration-failure rollback, actual non-administrator service identity, separate game-account tree, API console, SCM stop and restart/game stop. The alpha 17 package and expanded start-failure rollback are being validated separately. No real panel, TLS, reboot, WFP traffic or game-server result is claimed.

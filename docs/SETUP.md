@@ -71,7 +71,7 @@ The smaller positive value of `memory_mb` and the panel memory limit becomes the
 
 ## Optional game identities
 
-See [experimental identity setup](IDENTITIES.md) before enabling `run_as`. It requires a pinned non-built-in local account SID, a per-server credential stored as the daemon account, service token privileges and suitable ACLs. The existing service installer does not provision those requirements. Use the [credential lifecycle tools](CREDENTIAL-LIFECYCLE.md) for exact-target inspection, deliberate rotation and removal; they do not create/delete Windows users or reset passwords. Default profiles retain the daemon account. Full isolation and live separate-account deployment remain unverified.
+See [experimental identity setup](IDENTITIES.md) before enabling `run_as`. It requires a pinned non-built-in local account SID, a per-server credential stored as the daemon account, service token privileges and suitable ACLs. The opt-in [managed service installer](SERVICE-PROVISIONING.md) creates a service account and initial rights/ACLs; game accounts and game credentials still require separate provisioning. Use the [credential lifecycle tools](CREDENTIAL-LIFECYCLE.md) for exact-target inspection, deliberate rotation and removal; they do not create/delete Windows users or reset passwords. Default profiles retain the daemon account. Full isolation and real game deployment remain unverified; Server 2022 SCM demo launch has passed.
 
 Use [`--check-identity <UUID>`](IDENTITY-DIAGNOSTICS.md) as the eventual daemon identity for an explicit logon/token/ACL diagnostic after provisioning. It does not launch a game or contact the panel, and successful preflight does not replace actual service/game validation.
 
@@ -95,6 +95,8 @@ No automatic Windows Firewall or NAT changes are made. Expose only the required 
 
 ## Register as a Windows service
 
+For a new node, use the [managed service setup guide](SERVICE-PROVISIONING.md) to create the service account and initial permissions. The manual registration example below assumes those permissions were provisioned separately.
+
 First validate the foreground run. Create a dedicated **non-administrator** account with **Log on as a service**, grant its required directory/file ACLs and obtain its credential. Do not use LocalSystem or an administrator account. This still does not isolate one server from another.
 
 In an elevated PowerShell terminal:
@@ -109,9 +111,9 @@ Start-Service WingsWindowsNative
 Get-Service WingsWindowsNative
 ```
 
-The script validates the configuration and registers the service with manual startup. It does not grant account rights, adjust ACLs, modify firewall rules or enable automatic recovery. Set automatic startup only after testing host reboots. The service runs the same daemon and kills its managed jobs on shutdown; it does not adopt previously running external game processes.
+The script validates the configuration and registers the service with manual startup. Without `-ConfigurePermissions`, it does not grant account rights or adjust ACLs. The opt-in managed mode grants scoped rights and initial ACLs; neither mode modifies firewall rules or enables automatic recovery. Set automatic startup only after testing host reboots. The service runs the same daemon and kills its managed jobs on shutdown; it does not adopt previously running external game processes.
 
-The SCM integration and script are implemented but have not been installed/tested against this host's Service Control Manager. Foreground logging goes to stderr; persistent service/Event Log integration remains future work.
+A disposable Server 2022 SCM test passed using separate non-administrator daemon/game accounts, a loopback mock panel and demo processes. Cold reboot, real panel/game and profile recovery remain unverified. Foreground logging goes to stderr; persistent service/Event Log integration remains future work.
 
 To update, stop the service, replace the executable and restart it. Stopping the daemon terminates managed games; arrange an appropriate maintenance window. To uninstall the service, stop it and use Windows' `sc.exe delete WingsWindowsNative`. Game files and configuration remain on disk.
 

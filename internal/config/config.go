@@ -17,7 +17,7 @@ import (
 	"wings-windows/internal/networkpolicy"
 )
 
-const Version = "0.1.0-alpha.16"
+const Version = "0.1.0-alpha.17"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 

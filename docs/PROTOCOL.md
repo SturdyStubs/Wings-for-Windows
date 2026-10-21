@@ -120,3 +120,7 @@ The package includes compiled `internal/native` tests and `scripts/Test-Host.ps1
 - [Microsoft process creation](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw)
 
 The upstream snapshot was inspected directly in the local reference checkout. The Microsoft links are supporting documentation for the Windows APIs used; this release's verification is the local test suite, not a claim of certification.
+
+## Initial Windows service provisioning
+
+Alpha 17 adds opt-in local service-account creation, scoped LSA rights and protected initial node ACLs through [Install-Service.ps1](SERVICE-PROVISIONING.md). This changes operator setup only, with no new API routes. A Server 2022 SCM demo test uses a loopback mock panel; it does not satisfy the live panel/TLS gate.

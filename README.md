@@ -2,9 +2,9 @@
 
 Run native Windows game-server executables through a Pterodactyl panel. This is a separate Go daemon implementing a **subset of the Wings protocol**, with Windows Job Objects replacing the Docker process runtime.
 
-**Version: 0.1.0-alpha.16. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
+**Version: 0.1.0-alpha.17. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
 
-Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). Alpha 16 fixes default path resolution in the portable host-report script and checks its parameter-free Windows PowerShell invocation during clean release builds. The VM can validate process, console, limits and job behavior without installing Go. Start with the [Windows Server VM guide](docs/WINDOWS-SERVER-TESTING.md). WFP installation and live traffic blocking remain unverified; no allocation allowlist is implemented. Account provisioning/recovery, full isolation and live host certification remain open. M2 remains in progress. Direct Server 2022 tests now cover the alpha 16 baseline and separate game-account launches from a non-administrator daemon batch task; SCM, profile recovery and full filesystem/network isolation remain open. See [VM evidence](docs/evidence/server2022-alpha16-ssh-identity.md). Full Wings parity remains in progress.
+Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). Alpha 17 adds opt-in dedicated service-account creation, explicit account rights and initial node ACLs, with failure rollback. See [managed service setup](docs/SERVICE-PROVISIONING.md). Game accounts and per-service-identity game credentials still need separate provisioning. The portable runtime baseline needs no Go on the VM. Direct Server 2022 tests cover distinct-account batch launches and an actual non-administrator SCM service using a loopback mock panel; real panel/game, reboot/profile recovery and network isolation gates remain open. M2 remains in progress. Full Wings parity remains in progress.
 
 <!-- progress:start -->
 
@@ -31,7 +31,7 @@ GitHub Issues are the source of truth; ROADMAP.md records implementation scope a
 | Feature | Implementation |
 | --- | --- |
 | Native executables | Versioned local profiles, PE architecture checks, optional minimum Windows build and dependency-file requirements before startup or installation acknowledgement. Argument arrays without shell expansion. |
-| Game identities | Optional per-server credential reference and pinned local SID, restricted-token launch, daemon process/token checks and bounded recursive/ancestor ACL audit with code/dependency protection, link rejection, required launch permissions and a bounded startup path guard. Real separate-account batch launch passed on Server 2022; intended SCM deployment and full isolation remain open. |
+| Game identities | Optional per-server credential reference and pinned local SID, restricted-token launch, daemon process/token checks and bounded recursive/ancestor ACL audit with code/dependency protection, link rejection, required launch permissions and a bounded startup path guard. Real separate-account batch launch passed on Server 2022; SCM demo launch passes; full isolation remains open. |
 | Network policy | Optional account-scoped WFP connection blocking, requiring `run_as`; installation/rollback paths tested with an injected backend. Live filtering is unverified. Default is unmanaged. |
 | Panel discovery | Fetches this node's assigned servers with the node credentials; only registered local profiles can run. |
 | Power controls | Start, stop, restart and forced kill; bounded asynchronous lock waits with `wait_seconds`. Kill cancels queued/active starts and restarts and interrupts graceful shutdown. Suspended start/restart requests return 400. |
@@ -42,13 +42,13 @@ GitHub Issues are the source of truth; ROADMAP.md records implementation scope a
 | Statistics | Root-process CPU, working-set memory and uptime. Network and disk accounting are unavailable and identified as such in `native_metrics`. |
 | File API | Wings-compatible listing URL/metadata, MIME/length/download headers, confined reads/writes up to 8 MiB and case-insensitive egg denylist checks. Contract tests pass; live panel verification remains open. |
 | Startup variables | Derived `SERVER_IP`, `SERVER_PORT`, `SERVER_MEMORY`, `STARTUP` and `TZ`, alongside explicitly allowed egg variables. |
-| Windows service | SCM stop/shutdown support and a service registration script. |
+| Windows service | SCM stop/shutdown support, dedicated service-account setup and initial rights/ACL provisioning. |
 
 There is **no Docker dependency**. Windows runs the actual Windows executable. The panel itself still runs separately in its supported environment.
 
 ## Boundaries
 
-Job Objects manage processes; they **do not isolate files, credentials, accounts or the network like containers**. Profiles without `run_as` still run as the daemon's Windows account and can expose credentials and other servers' files. The experimental [identity path](docs/IDENTITIES.md) adds distinct-account checks and restricted tokens, with a passing separate-account batch-task probe on Server 2022. SCM deployment and remaining filesystem/network isolation gates are open. Use this on a private node where you trust all code and all people with access to server files/console. It is unsuitable for public or mutually untrusted hosting.
+Job Objects manage processes; they **do not isolate files, credentials, accounts or the network like containers**. Profiles without `run_as` still run as the daemon's Windows account and can expose credentials and other servers' files. The experimental [identity path](docs/IDENTITIES.md) adds distinct-account checks and restricted tokens, with a passing separate-account batch-task probe on Server 2022. SCM demo launch passes; remaining filesystem/network isolation gates are open. Use this on a private node where you trust all code and all people with access to server files/console. It is unsuitable for public or mutually untrusted hosting.
 
 Linux egg installation scripts, automatic installs/updates, SFTP, signed upload/download URLs, backups, transfers, scheduled tasks that need unsupported endpoints, RCON, disk quotas and automatic crash restart are not implemented. Unsupported operations return HTTP 501. File editing works through the panel API, but its upload/download and SFTP features do not. Games that require RCON or a real interactive console instead of stdin/stdout need an additional adapter.
 
@@ -67,8 +67,8 @@ cd Wings-for-Windows
 If Go is not on PATH, pass `-GoExecutable C:\path\to\go.exe`. The script runs the Windows integration tests and `go vet`, then creates:
 
 ```text
-dist/wings-windows-native-0.1.0-alpha.16-windows-amd64.zip
-dist/wings-windows-native-0.1.0-alpha.16-windows-amd64.zip.sha256
+dist/wings-windows-native-0.1.0-alpha.17-windows-amd64.zip
+dist/wings-windows-native-0.1.0-alpha.17-windows-amd64.zip.sha256
 ```
 
 The archive includes the daemon, a harmless console demo executable, compiled runtime tests, a host-report script, configuration example, documentation and service script. Docker, Node, PHP and a C compiler are not needed to build it. Native integration tests compile a temporary demo executable using Go.

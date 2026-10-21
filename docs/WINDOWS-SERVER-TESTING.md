@@ -9,7 +9,7 @@ Build from a clean checkout on the development machine using `scripts/Build.ps1`
 In Windows PowerShell inside the VM, use the actual downloaded ZIP path:
 
 ```powershell
-$archive = 'C:\Users\Administrator\Downloads\wings-windows-native-0.1.0-alpha.16-windows-amd64.zip'
+$archive = 'C:\Users\Administrator\Downloads\wings-windows-native-0.1.0-alpha.17-windows-amd64.zip'
 $expected = ((Get-Content -LiteralPath ($archive + '.sha256') -Raw).Trim() -split '\s+')[0]
 $actual = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
 if ($actual -ne $expected) { throw 'Archive checksum mismatch.' }
@@ -64,8 +64,9 @@ For configured `block_connections`, stop workloads using the dedicated account a
 | --- | --- |
 | Windows 11 x64 build 26200, PowerShell 5.1 portable native fixture run | Local pass: 14 cases/subtests, zero skipped; Go absent from PATH. |
 | Windows Server 2022 VM native baseline | Direct alpha 16 SSH run: 14 passed, zero failed/skipped; build 20348, PowerShell 5.1, Administrator/session 0. [Evidence and limits](evidence/server2022-alpha16-ssh-identity.md). |
-| Distinct-account Windows Server logon/launch and ACL behavior | Eight native fixture stages passed with SYSTEM and non-administrator daemon batch tasks. SCM/profile lifecycle and hostile policy tests remain open. |
-| Windows Server SCM/reboot and trusted-TLS panel workflows | Pending. |
+| Distinct-account Windows Server logon/launch and ACL behavior | Eight native fixture stages passed with SYSTEM and non-administrator daemon batch tasks. SCM demo launch also passes; reboot/profile lifecycle and hostile policy tests remain open. |
+| Windows Server SCM demo workflow | Passed using the new installer, separate daemon/game accounts and loopback mock panel. Final package evidence is tracked in VERIFICATION.md. |
+| Reboot/profile recovery and trusted-TLS real panel/game workflows | Pending. |
 | Real WFP installation, traffic and crash behavior | Pending. |
 | Real game's complete panel lifecycle and multi-server load | Pending. |
 
