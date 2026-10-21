@@ -4,7 +4,7 @@
 
 - Add approved YAML/yml egg configuration with shared JSON paths, arrays/wildcards, literal conditions and scalar coercion. Preserve untouched numeric spellings without floating point; support multiline strings and quote output strings explicitly.
 - Reject aliases/anchors/merges, unsupported tags/numeric forms, duplicate/non-string keys and multiple documents. Bound input/result structures and JSON mutation size, cap streaming output and reparse raw data before guarded writes. Pin upstream's gopkg.in/yaml.v3 v3.0.1 and package complete MIT/Apache notices.
-- Add contract, encoding/shape/bounds/output/cancellation, mixed-batch and native-launch tests; extend the Server 2022 service fixture for fifth-file refusal and actual typed/precise/conditional/literal/Unicode edits with unchanged SDDL. Final package/VM evidence follows separately. Reboot tests remain deferred.
+- Add contract, encoding/shape/bounds/output/cancellation, mixed-batch and native-launch tests; extend the Server 2022 service fixture for fifth-file refusal and actual typed/precise/conditional/literal/Unicode edits with unchanged SDDL. All 525 local cases/subtests pass with zero skips; vet, clean release build and packaged checks pass. The exact package passes 14 native and all 43 combined Server 2022 checks. Independent cleanup passes; one loaded profile is retained. See [evidence](docs/evidence/server2022-alpha27-egg-yaml.md). Reboot tests remain deferred.
 
 ## 0.1.0-alpha.26 - October 21, 2026
 

@@ -8,7 +8,7 @@ The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed
 
 The release build runs `go test -count=1 -timeout 90s ./...` and `go vet ./...`. Tests launch harmless compiled fixture executables in temporary directories and use a mock panel API. They do not start Docker or contact a live panel.
 
-Alpha 26 local run: **483 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
+Alpha 27 local run: **525 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
 
 Coverage includes:
 
@@ -147,4 +147,4 @@ Local fixtures cover default/section/bracketed paths, dotted keys, exact section
 
 ## Alpha 27 approved YAML egg files
 
-Local fixtures cover YAML/yml paths, scalar types, arrays/wildcards/literal conditions, missing containers, preserved numeric spellings, multiline strings, Unicode, literal interpolation, stable quoting, duplicate/non-string keys, tags/aliases/merges/documents, encoding/depth/node/key/size/output limits, cancellation, mixed-batch preservation and native launch. The pinned upstream dependency and complete dual-license notice are packaged. Final release/VM evidence follows separately. See [YAML guide](EGG-YAML-CONFIG.md). XML and broader parser/lifecycle parity remain open; reboot tests remain deferred.
+Local fixtures cover YAML/yml paths, scalar types, arrays/wildcards/literal conditions, missing containers, preserved numeric spellings, multiline strings, Unicode, literal interpolation, stable quoting, duplicate/non-string keys, tags/aliases/merges/documents, encoding/depth/node/key/size/output limits, cancellation, mixed-batch preservation and native launch. The pinned upstream dependency and complete dual-license notice are packaged. All 525 local cases/subtests pass with zero skips; vet, clean release build and packaged checks pass. The exact package passes 14 native and all 43 combined Server 2022 checks, including fifth-file refusal preserving earlier files and actual typed/precise/conditional/literal/Unicode rewrites with retained SDDL. See [evidence and cleanup limits](evidence/server2022-alpha27-egg-yaml.md). See [YAML guide](EGG-YAML-CONFIG.md). XML and broader parser/lifecycle parity remain open; reboot tests remain deferred.
