@@ -1,6 +1,6 @@
 # Verification and release status
 
-Alpha 32 adds RCON credential references and managed service-account provisioning. Final clean-package/VM evidence follows separately; see [scope and setup](RCON-CREDENTIALS.md).
+Alpha 32 adds RCON credential references and managed service-account provisioning. The clean release passes 672 local cases/subtests and vet; its exact package passes 14 native and all 66 combined Server 2022 checks, with independent cleanup. See [exact evidence](evidence/server2022-alpha32-rcon-credentials.md) and [scope/setup](RCON-CREDENTIALS.md).
 
 Alpha 31 adds a bounded game log-file adapter with optional log-only readiness, stale-history skipping, file rotation/truncation handling and native process cancellation. The clean release passes 654 local cases/subtests and vet; its exact package passes 14 native and all 59 combined Server 2022 checks, with independent cleanup. See [exact evidence](evidence/server2022-alpha31-log-file.md) and [scope](LOG-FILE-CONSOLE.md).
 
@@ -14,7 +14,7 @@ The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed
 
 The release build runs `go test -count=1 -timeout 90s ./...` and `go vet ./...`. Tests launch harmless compiled fixture executables in temporary directories and use a mock panel API. They do not start Docker or contact a live panel.
 
-Alpha 31 local run: **654 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
+Alpha 32 local run: **672 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
 
 Coverage includes:
 

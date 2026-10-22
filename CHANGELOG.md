@@ -4,7 +4,7 @@
 
 - Add exact per-server Windows Credential Manager references for Source RCON, separate from game-account credentials. Require exactly one vault/environment reference; read the selected vault entry per command and fail without fallback if unavailable or malformed.
 - Add SecureString store/replace and metadata/remove CLI, plus a managed service-account helper using the existing protected pipe/task/operation-lock workflow. No RCON password is passed through task arguments, node JSON or environment. Preserve game-account credential management and existing transport redaction/cancellation.
-- Add namespace/config/format/rotation tests and seven optional service checks, with conservative credential cleanup after interrupted worker responses. Existing environment references remain supported. Final clean-package/VM evidence follows separately.
+- Add namespace/config/format/rotation tests and seven optional service checks, with conservative credential cleanup after interrupted worker responses. Existing environment references remain supported. Correct the inherited credential blob limit to 2560 bytes/1280 UTF-16 units before writing. All 672 local cases/subtests, 14 native cases and 66 combined Server 2022 checks pass, with independent cleanup. See [evidence](docs/evidence/server2022-alpha32-rcon-credentials.md). No real-game or new reboot certification is claimed.
 
 ## 0.1.0-alpha.31 - October 21, 2026
 

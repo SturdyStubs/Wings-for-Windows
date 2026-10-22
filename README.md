@@ -26,7 +26,7 @@ Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.co
 GitHub Issues are the source of truth; ROADMAP.md records implementation scope and verification. Run `scripts/Update-Progress.ps1` to regenerate this section. Use `-Initialize` to add missing planned milestones/tasks; rerunning it never automatically re-closes existing issues.
 <!-- progress:end -->
 
-Alpha 31 verification: **654 local cases/subtests**, **14 packaged native cases** and **59 Server 2022 combined checks** pass, including log-based readiness, stale-history skipping, rotation/truncation and pin release after kill. Independent cleanup passed. See [current evidence](docs/evidence/server2022-alpha31-log-file.md). Actual reboot restoration was verified separately in [alpha 29](docs/evidence/server2022-alpha29-running-restoration.md).
+Alpha 32 verification: **672 local cases/subtests**, **14 packaged native cases** and **66 Server 2022 combined checks** pass, including daemon-account RCON credential provisioning, rotation, scoped removal and no environment fallback. Independent cleanup passed. See [current evidence](docs/evidence/server2022-alpha32-rcon-credentials.md). Actual reboot restoration was verified separately in [alpha 29](docs/evidence/server2022-alpha29-running-restoration.md).
 
 ## What works
 
