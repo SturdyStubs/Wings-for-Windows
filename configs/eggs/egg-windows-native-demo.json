@@ -1,0 +1,31 @@
+{
+  "_comment": "Windows-native demo only. Requires Wings for Windows and an operator-approved local profile. Not a real game installer.",
+  "meta": {
+    "version": "PTDL_v2",
+    "update_url": null
+  },
+  "exported_at": "2026-10-22T00:00:00+00:00",
+  "name": "Windows Native Demo",
+  "author": "wings-windows@example.org",
+  "description": "Harmless Windows console/install fixture. Requires a local Wings for Windows profile and pre-provisioned demo EXE. Linux install intentionally fails.",
+  "features": null,
+  "docker_images": {
+    "Windows native placeholder (not pulled)": "ghcr.io/pterodactyl/yolks:alpine"
+  },
+  "file_denylist": [],
+  "startup": "WINDOWS_NATIVE_ONLY_LOCAL_PROFILE",
+  "config": {
+    "files": "{}",
+    "startup": "{\"done\": \"SERVER_READY\"}",
+    "logs": "{}",
+    "stop": "stop"
+  },
+  "scripts": {
+    "installation": {
+      "script": "#!/bin/sh\necho \"Windows native only: configure the approved local installer in Wings for Windows. Linux execution is unsupported.\" >&2\nexit 1\n",
+      "container": "ghcr.io/pterodactyl/installers:alpine",
+      "entrypoint": "sh"
+    }
+  },
+  "variables": []
+}

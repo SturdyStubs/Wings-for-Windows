@@ -50,6 +50,8 @@ Every REST response receives a generated UUID `X-Request-Id`; REST error JSON in
 
 OPTIONS returns 204 without credentials. CORS allows the exact panel origin and configured `allowed_origins`, includes credentials and exposes request IDs/file headers. Unknown origins are not reflected. Actual operations still require authentication. `allow_cors_private_network` defaults false; enable explicitly only when private-network browser preflight is needed. WebSocket upgrades carry response headers and still enforce their origin/token checks.
 
+Alpha 33 adds [locally approved native setup](NATIVE-INSTALLERS.md), including install/reinstall completion callbacks. This initializes data around pre-provisioned code, not arbitrary remote egg scripts.
+
 ## Supported routes
 
 | Route | Behavior |
@@ -58,6 +60,7 @@ OPTIONS returns 204 without credentials. CORS allows the exact panel origin and 
 | `GET /api/system?v=2` | Upstream-shaped system information with measured physical memory and Windows version. Docker is explicitly unavailable with zero container counters; separate `native` fields report server state counts, actual data filesystem and lack of container isolation. |
 | `GET /api/servers` | Locally registered, panel-assigned server state/configuration/utilization. |
 | `GET /api/servers/{uuid}` | One server's response. |
+| `POST /api/servers/{uuid}/install`, `POST /api/servers/{uuid}/reinstall` | Opt-in approved native data/setup executable; 202 asynchronous, 501 without recipe, 400 suspended, 409 busy. Reinstall stops the game. Emits installer events and callback booleans; [limits](NATIVE-INSTALLERS.md). |
 | `POST /api/servers/{uuid}/power` | JSON `action`: `start`, `stop`, `restart`, `kill`. Returns 202 when accepted asynchronously. `wait_seconds` bounds lock acquisition: omitted/zero tries once, 1–300 waits that many seconds, out-of-range values use 30. Failures/timeouts appear in console logs. At most 16 requests may await execution per server (429 when full). Kill bypasses the queue and invalidates queued actions. Suspended start/restart returns 400; shutdown rejects requests with 409. |
 | `POST /api/servers/{uuid}/commands` | JSON `commands`: up to 32 single-line commands, each at most 4096 bytes. Returns 502 without a live process, including an empty command list. |
 | `GET /api/servers/{uuid}/logs` | Most recent `size` lines, capped at 100; omitted, invalid or nonpositive values use 100. |
@@ -69,7 +72,7 @@ OPTIONS returns 204 without credentials. CORS allows the exact panel origin and 
 | `GET /api/servers/{uuid}/files/contents?file=/name` | Read a regular text file up to 8 MiB. |
 | `POST /api/servers/{uuid}/files/write?file=/name` | Write a confined text file up to 8 MiB. Parent directories must already exist. |
 
-Unknown/unsupported authenticated routes return 501, including server creation/deletion, automatic install/reinstall, file uploads/downloads, directory creation, file deletion/renaming, compression, pull, SFTP, backups and transfers. A profile that does not belong to this node is not registered and returns 404.
+Unknown/unsupported authenticated routes return 501, including server creation/deletion, automatic binary provisioning, file uploads/downloads, directory creation, file deletion/renaming, compression, pull, SFTP, backups and transfers. A profile that does not belong to this node is not registered and returns 404.
 
 Filesystem access uses Go `os.Root` for confinement across symlinks. The path parser also rejects Windows drive/UNC syntax, traversal, alternate data streams, device names and trailing-dot/space aliases. This protects HTTP file operations; it does not sandbox executable code running under the same Windows account.
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.0-alpha.33 — 2026-10-22
+
+- Add locally approved native data/setup installers through Wings install/reinstall routes, serialized with power controls. Reinstall stops a running game; kill, suspension and shutdown cancel the installer job tree. Protected game binaries must already be provisioned.
+- Reuse game-account launch guards, network policy and resource caps; protect installer code/dependencies in ACL, egg rewrite, log reader and initial managed-layout checks. Bound runtime, captured lines and total output.
+- Emit Wings installer events and authenticated completion callbacks with exact successful/reinstall flags. Expose local native_install status and notification failure separately; no automatic rerun, durable outbox or partial-data rollback.
+- Package a harmless PTDL_v2 demo egg, matching local profile and first Windows node guide. Document unsupported server creation and the remaining real-panel/game validation gate.
+
 ## 0.1.0-alpha.32 - October 21, 2026
 
 - Add exact per-server Windows Credential Manager references for Source RCON, separate from game-account credentials. Require exactly one vault/environment reference; read the selected vault entry per command and fail without fallback if unavailable or malformed.

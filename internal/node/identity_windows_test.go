@@ -60,6 +60,9 @@ func TestIdentityRulesProtectDeclaredCodeAndMergeSharedFiles(t *testing.T) {
 	s.Profile.Requirements.RequiredFiles = []string{shared, shared}
 	const other = "22222222-2222-4222-8222-222222222222"
 	otherExe := filepath.Join(t.TempDir(), "other.exe")
+	installerExe := filepath.Join(root, "setup.exe")
+	installerDependency := filepath.Join(root, "setup.dll")
+	s.Profile.Installer = &config.Installer{Executable: installerExe, Requirements: config.Requirements{RequiredFiles: []string{installerDependency}}}
 	s.panel.Config.Profiles[other] = config.Profile{Executable: otherExe, Requirements: config.Requirements{RequiredFiles: []string{shared}}}
 	rules, err := s.identityAccessRules()
 	if err != nil {
@@ -69,13 +72,13 @@ func TestIdentityRulesProtectDeclaredCodeAndMergeSharedFiles(t *testing.T) {
 	for _, rule := range rules {
 		key := strings.ToLower(rule.Path)
 		counts[key]++
-		if key == strings.ToLower(shared) || rule.Path == otherExe || rule.Path == s.Profile.Executable {
+		if key == strings.ToLower(shared) || rule.Path == otherExe || rule.Path == s.Profile.Executable || rule.Path == installerExe || rule.Path == installerDependency {
 			if rule.Forbidden&identity.WriteAccess != identity.WriteAccess {
 				t.Fatal("code not protected against writes", rule)
 			}
 		}
 	}
-	for _, path := range []string{shared, s.Profile.Executable, otherExe, filepath.Dir(shared), filepath.Dir(otherExe)} {
+	for _, path := range []string{installerExe, installerDependency, shared, s.Profile.Executable, otherExe, filepath.Dir(shared), filepath.Dir(otherExe)} {
 		if counts[strings.ToLower(path)] != 1 {
 			t.Fatal("missing or duplicated code rule", path, counts)
 		}

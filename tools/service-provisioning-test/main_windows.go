@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"wings-windows/internal/config"
 	"wings-windows/internal/node"
 )
@@ -56,6 +57,7 @@ func main() {
 			}
 		}
 	}
+	var callbackMu sync.Mutex
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/remote/servers", func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Authorization") != "Bearer "+c.TokenID+"."+c.Token {
@@ -67,6 +69,31 @@ func main() {
 	mux.HandleFunc("/api/remote/servers/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Authorization") != "Bearer "+c.TokenID+"."+c.Token {
 			w.WriteHeader(401)
+			return
+		}
+		if r.URL.Path == "/api/remote/servers/"+id+"/install" && r.Method == "POST" {
+			var result struct {
+				Successful bool `json:"successful"`
+				Reinstall  bool `json:"reinstall"`
+			}
+			if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1024)).Decode(&result); err != nil {
+				w.WriteHeader(400)
+				return
+			}
+			callbackMu.Lock()
+			defer callbackMu.Unlock()
+			file, err := os.OpenFile(filepath.Join(filepath.Dir(os.Args[1]), "install-callbacks.jsonl"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+			if err != nil {
+				w.WriteHeader(500)
+				return
+			}
+			err = json.NewEncoder(file).Encode(result)
+			closeErr := file.Close()
+			if err != nil || closeErr != nil {
+				w.WriteHeader(500)
+				return
+			}
+			w.WriteHeader(204)
 			return
 		}
 		if strings.TrimPrefix(r.URL.Path, "/api/remote/servers/") != id {

@@ -71,3 +71,7 @@ The local `source_rcon` object selects Source TCP commands and graceful stops in
 ## Optional running restoration
 
 `restore_running: true` requires private console storage and enabled persistent crash recovery. It records executed running/stopped intent and may start a fresh guarded process after daemon readiness/reboot, consuming a restart reservation. Defaults remain offline. See [durability, manual-stop behavior, errors and deployment limits](RUNNING-RESTORATION.md).
+
+## Optional data/setup installer
+
+`installer` approves a separate `.exe`, argument array, environment names, timeout, memory cap and requirements for the existing game account. Game binaries must already exist. See [full installer semantics](NATIVE-INSTALLERS.md) and the [matching demo profile](../configs/profile-windows-native-demo.json).

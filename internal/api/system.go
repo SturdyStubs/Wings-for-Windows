@@ -12,7 +12,7 @@ func (a *API) system(w http.ResponseWriter, r *http.Request) {
 		failure(w, 500, "Cannot read Windows host information")
 		return
 	}
-	capabilities := []string{"native_executable", "job_objects", "console", "power", "files_read_write", "live_resource_limits", "egg_process_opt_in"}
+	capabilities := []string{"native_executable", "job_objects", "console", "power", "files_read_write", "live_resource_limits", "egg_process_opt_in", "native_installer_opt_in"}
 	if r.URL.Query().Get("v") != "2" {
 		respond(w, 200, map[string]any{"architecture": info.Architecture, "cpu_count": info.CPUThreads, "kernel_version": info.KernelVersion, "os": info.OSType, "version": config.Version, "capabilities": capabilities})
 		return

@@ -53,6 +53,12 @@ func buildIdentityRules(c config.Config, serverID string, profile config.Profile
 		for _, file := range profile.Requirements.RequiredFiles {
 			protect(file, identity.WriteAccess)
 		}
+		if profile.Installer != nil {
+			protect(profile.Installer.Executable, identity.WriteAccess)
+			for _, file := range profile.Installer.Requirements.RequiredFiles {
+				protect(file, identity.WriteAccess)
+			}
+		}
 	}
 	protectProfile(profile)
 	for id, profile := range c.Profiles {

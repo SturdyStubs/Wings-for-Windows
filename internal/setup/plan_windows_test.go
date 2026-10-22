@@ -17,7 +17,7 @@ func TestManagedPermissionPlanRejectsUnsafeLayouts(t *testing.T) {
 		t.Fatal(err)
 	}
 	const id = "11111111-1111-4111-8111-111111111111"
-	for _, name := range []string{"valid", "external executable", "external dependency", "missing dependency", "external TLS key", "wrong data root", "unsafe profile key", "existing server data", "existing logs", "unmanaged root entry", "shared game identity", "hardlinked code", "junction code", "external console log directory"} {
+	for _, name := range []string{"valid", "external executable", "external installer", "missing installer", "external installer dependency", "external dependency", "missing dependency", "external TLS key", "wrong data root", "unsafe profile key", "existing server data", "existing logs", "unmanaged root entry", "shared game identity", "hardlinked code", "junction code", "external console log directory"} {
 		t.Run(name, func(t *testing.T) {
 			root := t.TempDir()
 			for _, dir := range []string{"bin", "private", "data"} {
@@ -37,6 +37,12 @@ func TestManagedPermissionPlanRejectsUnsafeLayouts(t *testing.T) {
 			switch name {
 			case "external executable":
 				profile["executable"] = filepath.Join(root, "private", "outside.exe")
+			case "external installer":
+				profile["installer"] = map[string]any{"executable": filepath.Join(root, "private", "setup.exe")}
+			case "missing installer":
+				profile["installer"] = map[string]any{"executable": filepath.Join(root, "bin", "missing.exe")}
+			case "external installer dependency":
+				profile["installer"] = map[string]any{"executable": game, "requirements": map[string]any{"required_files": []string{filepath.Join(root, "private", "setup.dll")}}}
 			case "external dependency":
 				profile["requirements"] = map[string]any{"required_files": []string{filepath.Join(root, "private", "outside.dll")}}
 			case "missing dependency":

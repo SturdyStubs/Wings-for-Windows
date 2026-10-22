@@ -100,5 +100,12 @@ func (p *Panel) Details(ctx context.Context, id string) (RemoteServer, error) {
 	return result, err
 }
 func (p *Panel) Installed(ctx context.Context, id string) error {
-	return p.request(ctx, "POST", "/servers/"+id+"/install", strings.NewReader(`{"successful":true,"reinstall":false}`), nil)
+	return p.InstallResult(ctx, id, true, false)
+}
+func (p *Panel) InstallResult(ctx context.Context, id string, successful, reinstall bool) error {
+	body, _ := json.Marshal(struct {
+		Successful bool `json:"successful"`
+		Reinstall  bool `json:"reinstall"`
+	}{successful, reinstall})
+	return p.request(ctx, "POST", "/servers/"+id+"/install", strings.NewReader(string(body)), nil)
 }

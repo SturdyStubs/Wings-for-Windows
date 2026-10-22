@@ -1,6 +1,6 @@
 # Progress toward Wings compatibility
 
-Last updated: October 21, 2026. Current version: **0.1.0-alpha.32**. Active development: **M3 — Windows lifecycle features**. M1/M2 remain open for live panel and isolation gates.
+Last updated: October 22, 2026. Current version: **0.1.0-alpha.33**. Active development: **M3 — Windows lifecycle features**. M1/M2 remain open for live panel and isolation gates.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
@@ -41,8 +41,9 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - Alpha 30: opt-in loopback Source TCP RCON commands and graceful stops, bounded complete replies, daemon environment secret reference, redaction, cancellation and no retry/stdin fallback. See [adapter scope](docs/SOURCE-RCON.md); 619 local cases/subtests, 14 packaged Server 2022 cases and all 54 combined service checks pass, with independent cleanup. See [evidence](docs/evidence/server2022-alpha30-source-rcon.md).
 - Alpha 31: opt-in game log-file console/readiness, stale-history skipping, bounded append/rotation/truncation polling, safe filesystem checks, native cancellation and status. See [guide](docs/LOG-FILE-CONSOLE.md); 654 local cases/subtests, 14 native cases and all 59 combined Server 2022 checks pass, with independent cleanup. See [evidence](docs/evidence/server2022-alpha31-log-file.md).
 - Alpha 32: opt-in per-server RCON vault references, scoped metadata/removal CLI and SecureString/service-account provisioning with deliberate rotation. Preserve environment compatibility and reject cross-server references or missing-secret fallback. See [guide](docs/RCON-CREDENTIALS.md); 672 local cases/subtests, 14 native cases and all 66 combined Server 2022 checks pass, with independent cleanup. See [evidence](docs/evidence/server2022-alpha32-rcon-credentials.md).
-- HTTP inventory: handlers at **13 of upstream's 38 method/path combinations**, with partial behavior; **25 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
-- Automatic installation, full file manager/SFTP, backups/restores, transfers, strong isolation and live certification remain open.
+- Alpha 33: approved native data/setup install and reinstall routes, shared lifecycle locking, restricted game identity, bounded output/time/memory, cancellation and Wings completion callbacks. Add a packaged demo egg/profile and first-node walkthrough. Protected game binaries remain operator-provisioned; server creation, binary promotion, durable installer recovery and live panel/game verification remain open. See [installer scope](docs/NATIVE-INSTALLERS.md) and [node setup](docs/PANEL-WINDOWS-SETUP.md).
+- HTTP inventory: handlers at **15 of upstream's 38 method/path combinations**, with partial behavior; **23 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
+- Automatic binary provisioning, full file manager/SFTP, backups/restores, transfers, strong isolation and live certification remain open.
 - Unchanged Linux eggs require a Linux execution backend. Native Windows profiles do not translate Linux images/binaries.
 
 ## M1: Core protocol compatibility — in progress
@@ -109,6 +110,9 @@ Current scope remains a trusted private node. File denylist/path checks are not 
 
 - [x] Versioned Windows profiles and dependency/OS checks; read-only CLI preflight and enforcement before start/manual installation acknowledgement. See [profile v1](docs/PROFILES.md).
 - [ ] Create/delete, native install/reinstall, output/progress, cancellation, timeouts and panel callbacks.
+  - [x] Execute approved native data/setup recipes with cancellation, bounded resources/output and install/reinstall callbacks using the game identity.
+  - [x] Provide an importable harmless Windows demo egg, matching local profile and node setup walkthrough.
+  - [ ] Add protected game-binary download/staging/promotion, server creation/deletion, durable interrupted-installer state and callback reconciliation.
 - [ ] Egg configuration parsers for text, JSON, YAML, INI, properties and XML.
   - [x] Add opt-in plain-text file parser with exact local approval, startup integration and bounded/guarded writes.
   - [x] Add a bounded JSON subset with nested/array/wildcard paths, literal conditions, preserved numeric precision and shared startup integration.

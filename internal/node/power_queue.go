@@ -25,6 +25,10 @@ func (s *Server) EnqueuePower(action string, waitSeconds int) error {
 	}
 	waitSeconds = normalizeWaitSeconds(waitSeconds)
 	s.mu.Lock()
+	if s.installing {
+		s.mu.Unlock()
+		return ErrInstallBusy
+	}
 	if s.closing {
 		s.mu.Unlock()
 		return errors.New("node is shutting down")

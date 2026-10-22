@@ -17,7 +17,7 @@ import (
 	"wings-windows/internal/networkpolicy"
 )
 
-const Version = "0.1.0-alpha.32"
+const Version = "0.1.0-alpha.33"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -26,6 +26,7 @@ type TLS struct {
 	Key  string `json:"key"`
 }
 type Profile struct {
+	Installer                  *Installer           `json:"installer,omitempty"`
 	LogFile                    *LogFile             `json:"log_file,omitempty"`
 	SourceRCON                 *SourceRCON          `json:"source_rcon,omitempty"`
 	RestoreRunning             bool                 `json:"restore_running,omitempty"`
@@ -147,6 +148,9 @@ func (c *Config) Validate() error {
 	identities := make(map[string]bool)
 	rconAddresses := make(map[string]bool)
 	for id, p := range c.Profiles {
+		if err := p.NormalizeInstaller(); err != nil {
+			return fmt.Errorf("server %s: %w", id, err)
+		}
 		if err := p.ValidateLogFile(); err != nil {
 			return fmt.Errorf("server %s: %w", id, err)
 		}
@@ -172,6 +176,11 @@ func (c *Config) Validate() error {
 			return fmt.Errorf("server %s: crash_recovery.persist_history requires console_logs private storage", id)
 		}
 		if c.ConsoleLogs != nil {
+			if p.Installer != nil {
+				if err := c.ConsoleLogs.Protect(append([]string{p.Installer.Executable}, p.Installer.Requirements.RequiredFiles...)...); err != nil {
+					return err
+				}
+			}
 			if err := c.ConsoleLogs.Protect(append([]string{c.SourcePath, c.TLS.Cert, c.TLS.Key, p.Executable}, p.Requirements.RequiredFiles...)...); err != nil {
 				return err
 			}

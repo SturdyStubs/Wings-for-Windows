@@ -34,6 +34,12 @@ type desiredPersistence interface {
 	Close(context.Context) error
 }
 type Server struct {
+	installing           bool
+	installerProcess     *native.Process
+	installDone          chan struct{}
+	installStage         string
+	installSuccessful    bool
+	installCallbackError string
 	logFileActive        bool
 	logFileError         string
 	desiredWrite         sync.Mutex
@@ -197,7 +203,20 @@ func (m *Manager) Close() {
 			s.powerCancel()
 		}
 		p := s.process
+		installer := s.installerProcess
+		installDone := s.installDone
 		s.mu.Unlock()
+		if installer != nil {
+			installer.Kill()
+			<-installer.Done
+		}
+		if installDone != nil {
+			select {
+			case <-installDone:
+			case <-time.After(6 * time.Second):
+				log.Printf("server installer shutdown did not drain")
+			}
+		}
 		if p != nil {
 			p.Kill()
 			<-p.Done
@@ -350,11 +369,14 @@ func effectiveLimits(settings Settings, profile config.Profile) native.Limits {
 var variable = regexp.MustCompile(`\{\{([A-Z_][A-Z0-9_]*)\}\}`)
 
 func (s *Server) spec() (native.Spec, error) {
+	return s.specForProfile(s.Profile)
+}
+func (s *Server) specForProfile(profile config.Profile) (native.Spec, error) {
 	s.mu.Lock()
 	settings := s.settings
 	s.mu.Unlock()
 	env := map[string]string{}
-	for _, key := range s.Profile.AllowedEnvironment {
+	for _, key := range profile.AllowedEnvironment {
 		if value, ok := settings.Environment[key]; ok {
 			env[key] = fmt.Sprint(value)
 		}
@@ -380,9 +402,9 @@ func (s *Server) spec() (native.Spec, error) {
 	} else {
 		env["TZ"] = "UTC"
 	}
-	args := make([]string, len(s.Profile.Arguments))
+	args := make([]string, len(profile.Arguments))
 	var missing string
-	for i, arg := range s.Profile.Arguments {
+	for i, arg := range profile.Arguments {
 		args[i] = variable.ReplaceAllStringFunc(arg, func(token string) string {
 			key := variable.FindStringSubmatch(token)[1]
 			value, ok := env[key]
@@ -403,19 +425,19 @@ func (s *Server) spec() (native.Spec, error) {
 	if systemRoot == "" {
 		return native.Spec{}, errors.New("SystemRoot is not set")
 	}
-	clean := []string{"SystemRoot=" + systemRoot, "WINDIR=" + systemRoot, "TEMP=" + temp, "TMP=" + temp, "PATH=" + filepath.Dir(s.Profile.Executable) + ";" + filepath.Join(systemRoot, "System32")}
+	clean := []string{"SystemRoot=" + systemRoot, "WINDIR=" + systemRoot, "TEMP=" + temp, "TMP=" + temp, "PATH=" + filepath.Dir(profile.Executable) + ";" + filepath.Join(systemRoot, "System32")}
 	for k, v := range env {
 		if strings.ContainsRune(v, 0) {
 			return native.Spec{}, errors.New("NUL in environment")
 		}
 		clean = append(clean, k+"="+v)
 	}
-	limits := effectiveLimits(settings, s.Profile)
+	limits := effectiveLimits(settings, profile)
 	accessRules, err := s.identityAccessRules()
 	if err != nil {
 		return native.Spec{}, err
 	}
-	return native.Spec{NetworkPolicy: s.Profile.NetworkPolicy, RunAs: s.Profile.RunAs, AccessRules: accessRules, Executable: s.Profile.Executable, Arguments: args, Environment: clean, Directory: s.Root, TempDirectory: temp, RequiredFiles: append([]string(nil), s.Profile.Requirements.RequiredFiles...), MemoryMB: limits.MemoryMB, CPUPercent: limits.CPUPercent}, nil
+	return native.Spec{NetworkPolicy: profile.NetworkPolicy, RunAs: profile.RunAs, AccessRules: accessRules, Executable: profile.Executable, Arguments: args, Environment: clean, Directory: s.Root, TempDirectory: temp, RequiredFiles: append([]string(nil), profile.Requirements.RequiredFiles...), MemoryMB: limits.MemoryMB, CPUPercent: limits.CPUPercent}, nil
 }
 
 var ErrSuspended = errors.New("cannot start or restart a suspended server")
@@ -459,15 +481,23 @@ func (s *Server) powerWithEpoch(action string, epoch chan struct{}) error {
 			s.powerCancel()
 		}
 		p := s.process
+		installer := s.installerProcess
 		if p != nil {
 			s.setStateLocked("stopping")
 		}
 		s.mu.Unlock()
 		var killErr error
+		if installer != nil {
+			killErr = installer.Kill()
+		}
 		if p != nil {
 			killErr = p.Kill()
 		}
 		return errors.Join(killErr, s.setDesired(context.Background(), false, nil))
+	}
+	if s.installing {
+		s.mu.Unlock()
+		return ErrInstallBusy
 	}
 	if (action == "start" || action == "restart") && s.settings.Suspended {
 		s.mu.Unlock()
@@ -517,6 +547,12 @@ func (s *Server) start() error {
 	return s.startWithContext(context.Background())
 }
 func (s *Server) startWithContext(parent context.Context) error {
+	s.mu.Lock()
+	installing := s.installing
+	s.mu.Unlock()
+	if installing {
+		return ErrInstallBusy
+	}
 	s.configurationSync.Lock()
 	defer s.configurationSync.Unlock()
 	s.mu.Lock()
@@ -564,6 +600,10 @@ func (s *Server) startWithContext(parent context.Context) error {
 		for _, profile := range s.panel.Config.Profiles {
 			protected = append(protected, profile.Executable)
 			protected = append(protected, profile.Requirements.RequiredFiles...)
+			if profile.Installer != nil {
+				protected = append(protected, profile.Installer.Executable)
+				protected = append(protected, profile.Installer.Requirements.RequiredFiles...)
+			}
 		}
 		if err := eggconfig.Apply(ctx, s.Root, processPolicy.configs, protected); err != nil {
 			return err
@@ -592,6 +632,10 @@ func (s *Server) startWithContext(parent context.Context) error {
 		for _, profile := range s.panel.Config.Profiles {
 			protected = append(protected, profile.Executable)
 			protected = append(protected, profile.Requirements.RequiredFiles...)
+			if profile.Installer != nil {
+				protected = append(protected, profile.Installer.Executable)
+				protected = append(protected, profile.Installer.Requirements.RequiredFiles...)
+			}
 		}
 		logReader, err = logtail.Open(ctx, s.Root, s.Profile.LogFile.Path, protected)
 		if err != nil {
@@ -731,6 +775,12 @@ func (s *Server) Command(command string) error {
 	return s.commandWithContext(context.Background(), command)
 }
 func (s *Server) commandWithContext(ctx context.Context, command string) error {
+	s.mu.Lock()
+	installing := s.installing
+	s.mu.Unlock()
+	if installing {
+		return ErrInstallBusy
+	}
 	if len(command) > 4096 || strings.ContainsAny(command, "\r\n\x00") {
 		return errors.New("command must be a single line of at most 4096 bytes")
 	}
@@ -814,7 +864,7 @@ func (s *Server) Response() map[string]any {
 	if s.consoleStore != nil {
 		consoleStatus = s.consoleStore.Status()
 	}
-	return map[string]any{"state": s.state, "is_suspended": s.settings.Suspended, "configuration": s.settings, "utilization": stats, "native_recovery": recovery, "native_restore": s.restoreStatusLocked(), "native_console_logs": consoleStatus, "native_log_file": map[string]any{"enabled": s.Profile.LogFile != nil, "active": s.process != nil && s.logFileActive, "error": s.logFileError}}
+	return map[string]any{"state": s.state, "is_suspended": s.settings.Suspended, "configuration": s.settings, "utilization": stats, "native_recovery": recovery, "native_restore": s.restoreStatusLocked(), "native_console_logs": consoleStatus, "native_install": s.installStatusLocked(), "native_log_file": map[string]any{"enabled": s.Profile.LogFile != nil, "active": s.process != nil && s.logFileActive, "error": s.logFileError}}
 }
 func (s *Server) StatsJSON() string {
 	b, _ := json.Marshal(s.Response()["utilization"])

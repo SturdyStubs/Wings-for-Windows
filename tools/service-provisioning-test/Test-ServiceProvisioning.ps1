@@ -1,6 +1,7 @@
 #Requires -RunAsAdministrator
-param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON,[switch]$TestLogFile,[switch]$TestRCONCredential)
+param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON,[switch]$TestLogFile,[switch]$TestRCONCredential,[switch]$TestNativeInstaller)
 $ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
+if($TestNativeInstaller -and (-not $TestRCONCredential -or $PrepareReboot)){throw 'Native installer fixture requires full credential fixture and cannot prepare reboot'}
 if($TestRestoreRunning -and -not $TestPersistentRecovery){throw 'Restore fixture requires persistent recovery'}
 if($TestSourceRCON -and $PrepareReboot){throw 'RCON fixture is separate from reboot preparation'}
 if($TestRCONCredential -and (-not $TestSourceRCON -or $PrepareReboot)){throw 'RCON credential fixture requires RCON and cannot prepare a reboot'}
@@ -469,6 +470,60 @@ try {
    $rejected=$false;try{Send-RCONFixture 'MISSING_VAULT_SECRET'}catch{$rejected=$true};if(-not $rejected){throw 'Missing vault reference fell back to environment'}
    Set-Power 'kill';Wait-State 'offline';$report.checks.rcon_vault_missing_secret_has_no_environment_fallback='passed'
   }finally{$rconPassword.Dispose()}
+ }
+
+ if($TestNativeInstaller){
+  $callbackFile=Join-Path $Root 'private\install-callbacks.jsonl'
+  function Set-InstallerMode([string]$Mode,[int]$Timeout=10){
+   Stop-Service WingsWindowsNative;(Get-Service WingsWindowsNative).WaitForStatus('Stopped',[TimeSpan]::FromSeconds(15))
+   $edited=Get-Content -LiteralPath $configuration -Raw|ConvertFrom-Json
+   $edited.profiles.$ServerID.PSObject.Properties.Remove('source_rcon')
+   $edited.profiles.$ServerID.arguments=@('spawn')
+   $recipe=@{executable=(Join-Path $Root 'bin\wings-windows-demo.exe');arguments=@('install',$Mode);timeout_seconds=$Timeout;memory_mb=128}
+   $edited.profiles.$ServerID|Add-Member -NotePropertyName installer -NotePropertyValue $recipe -Force
+   [IO.File]::WriteAllText($configuration,($edited|ConvertTo-Json -Depth 30),[Text.UTF8Encoding]::new($false))
+   Start-Service WingsWindowsNative;Wait-State 'offline'
+  }
+  function Start-NativeInstall([string]$Action){Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/'+$Action) -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -TimeoutSec 5|Out-Null}
+  function Wait-Install([string]$Stage){
+   $until=[DateTime]::UtcNow.AddSeconds(15)
+   do{$state=Get-NodeAPI ('/api/servers/'+$ServerID);if(-not $state.native_install.active){if($state.native_install.stage -ne $Stage -or $state.native_install.callback_error){throw ('Unexpected installer result '+($state.native_install|ConvertTo-Json -Compress))};return $state};Start-Sleep -Milliseconds 100}while([DateTime]::UtcNow -lt $until)
+   throw 'Installer completion timeout'
+  }
+  function Assert-InstallCallback([bool]$Success,[bool]$Reinstall){
+   $records=@(Get-Content -LiteralPath $callbackFile|ForEach-Object{$_|ConvertFrom-Json})
+   $last=$records[-1]
+   if($last.successful -ne $Success -or $last.reinstall -ne $Reinstall){throw 'Wrong panel callback result'}
+  }
+  Set-InstallerMode 'success';Start-NativeInstall 'install';$state=Wait-Install 'complete'
+  if($state.state -ne 'offline' -or -not $state.native_install.successful -or [IO.File]::ReadAllText((Join-Path $Root ('data\'+$ServerID+'\install.marker'))) -ne 'installed'){throw 'Approved installation marker/state invalid'}
+  Assert-InstallCallback $true $false
+  $report.checks.native_install_distinct_identity_marker_callback='passed'
+  Set-Power 'start';Wait-State 'running'
+  Start-NativeInstall 'reinstall';$state=Wait-Install 'complete';Assert-InstallCallback $true $true
+  if($state.state -ne 'offline'){throw 'Reinstall left game running'}
+  $report.checks.native_reinstall_stops_game_and_sets_callback_flag='passed'
+  Set-InstallerMode 'fail';Start-NativeInstall 'install';$state=Wait-Install 'failed';Assert-InstallCallback $false $false
+  if($state.native_install.successful){throw 'Nonzero installer reported success'}
+  $report.checks.native_install_nonzero_exit_failure_callback='passed'
+  Set-InstallerMode 'hang';Start-NativeInstall 'install'
+  $until=[DateTime]::UtcNow.AddSeconds(5)
+  do{$lines=(Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data;$childLine=@($lines|Where-Object{$_ -match '^\[Installer\] INSTALL_CHILD:\d+$'})|Select-Object -Last 1;if($childLine){$childPID=[int]($childLine.Split(':')[-1]);$child=Get-CimInstance Win32_Process -Filter ('ProcessId='+$childPID) -ErrorAction Stop;if($child){break}};Start-Sleep -Milliseconds 100}while([DateTime]::UtcNow -lt $until)
+  if(-not $child){throw 'Installer child missing'}
+  $owner=Invoke-CimMethod -InputObject $child -MethodName GetOwnerSid
+  if($owner.Sid -ne $gameSid){throw 'Installer child is not the configured game identity'}
+  $report.checks.native_install_child_uses_distinct_game_sid='passed'
+  $rejected=$false;try{Start-NativeInstall 'reinstall'}catch{if([int]$_.Exception.Response.StatusCode -eq 409){$rejected=$true}else{throw}}
+  if(-not $rejected){throw 'Concurrent reinstall allowed'}
+  $rejected=$false;try{Set-Power 'start'}catch{if([int]$_.Exception.Response.StatusCode -eq 409){$rejected=$true}else{throw}}
+  if(-not $rejected){throw 'Concurrent power action allowed'}
+  $report.checks.native_install_rejects_concurrent_power_and_install='passed'
+  Set-Power 'kill';$state=Wait-Install 'cancelled';Assert-InstallCallback $false $false
+  if(Get-Process -Id $childPID -ErrorAction SilentlyContinue){throw 'Installer child survived kill'}
+  $report.checks.native_install_kill_cancels_and_cleans_job_tree='passed'
+  Set-InstallerMode 'hang' 1;Start-NativeInstall 'install';$state=Wait-Install 'timed_out';Assert-InstallCallback $false $false
+  $report.checks.native_install_timeout_failure_callback='passed'
+  Set-InstallerMode 'success'
  }
  if($PrepareReboot){
   Set-Power 'start';Wait-State 'running'

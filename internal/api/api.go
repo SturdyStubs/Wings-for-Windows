@@ -131,6 +131,18 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case action == "" && r.Method == "GET":
 		respond(w, 200, s.Response())
+	case (action == "install" || action == "reinstall") && r.Method == "POST":
+		if err := s.EnqueueInstall(action == "reinstall"); err != nil {
+			status := 409
+			if errors.Is(err, node.ErrInstallDisabled) {
+				status = 501
+			} else if errors.Is(err, node.ErrSuspended) {
+				status = 400
+			}
+			failure(w, status, err.Error())
+			return
+		}
+		respond(w, 202, nil)
 	case action == "power" && r.Method == "POST":
 		var v struct {
 			Action      string `json:"action"`
@@ -209,6 +221,6 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case strings.HasPrefix(action, "files/"):
 		a.files(w, r, s, strings.TrimPrefix(action, "files/"))
 	default:
-		failure(w, 501, "Unsupported on Windows Native alpha: installers, reinstall, SFTP, downloads, backups, transfers and deletion require additional implementation")
+		failure(w, 501, "Unsupported on Windows Native alpha: this operation requires additional implementation")
 	}
 }

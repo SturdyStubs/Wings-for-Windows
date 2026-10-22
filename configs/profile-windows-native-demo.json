@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "executable": "C:\\WingsWindows\\bin\\wings-windows-demo.exe",
+  "arguments": [
+    "spawn"
+  ],
+  "allowed_environment": [],
+  "use_egg_process_configuration": true,
+  "ready_pattern": "^SERVER_READY$",
+  "stop_command": "stop",
+  "stop_timeout_seconds": 5,
+  "memory_mb": 128,
+  "requirements": {
+    "architecture": "amd64",
+    "minimum_windows_build": 20348,
+    "required_files": []
+  },
+  "run_as": {
+    "sid": "S-1-5-21-REPLACE_WITH_GAME_ACCOUNT_SID",
+    "credential_target": "WingsWindows/REPLACE_WITH_FULL_SERVER_UUID"
+  },
+  "installer": {
+    "executable": "C:\\WingsWindows\\bin\\wings-windows-demo.exe",
+    "arguments": [
+      "install",
+      "success"
+    ],
+    "allowed_environment": [],
+    "timeout_seconds": 60,
+    "memory_mb": 128,
+    "requirements": {
+      "architecture": "amd64",
+      "minimum_windows_build": 20348,
+      "required_files": []
+    }
+  }
+}

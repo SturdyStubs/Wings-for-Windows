@@ -239,6 +239,14 @@ func main() {
 			} else {
 				fmt.Printf("%s: profile preflight passed\n", id)
 			}
+			if profile := c.Profiles[id]; profile.Installer != nil {
+				if err := provision.Check(context.Background(), profile.InstallerProfile()); err != nil {
+					fmt.Fprintf(os.Stderr, "%s: installer FAILED: %v\n", id, err)
+					failed = true
+				} else {
+					fmt.Printf("%s: installer preflight passed\n", id)
+				}
+			}
 		}
 		if failed {
 			os.Exit(1)

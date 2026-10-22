@@ -13,6 +13,9 @@ import (
 )
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "install" {
+		runInstallerFixture()
+	}
 	if len(os.Args) > 2 && os.Args[1] == "rcon" {
 		startRCONFixture(os.Args[2])
 	}

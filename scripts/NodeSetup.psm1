@@ -99,7 +99,7 @@ function Get-NodePermissionPlan([string]$InstallationRoot,[string]$Executable,[s
         if ($checked.SID.Value -eq $DaemonSID -or $sid -in $gameSIDs) { throw 'Every game identity must be distinct from the daemon and other profiles.' }
         $gameSIDs += $sid
         if ($profile.network_policy.mode -and $profile.network_policy.mode -ne 'unmanaged') { throw 'Managed setup does not grant WFP permissions; validate that policy separately.' }
-        foreach ($path in @($profile.executable)+@($profile.requirements.required_files)) {
+        foreach ($path in @($profile.executable)+@($profile.requirements.required_files)+@($profile.installer.executable)+@($profile.installer.requirements.required_files)) {
             if (-not $path) { continue };Assert-NodeSetupPath $path
             if (-not $path.StartsWith(($bin+'\'),[StringComparison]::OrdinalIgnoreCase)) { throw 'All configured executable/dependency files must be under bin.' }
             if (-not(Test-Path -LiteralPath $path -PathType Leaf)) { throw 'Configured executable/dependency files must already exist.' }
