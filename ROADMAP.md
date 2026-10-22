@@ -1,6 +1,6 @@
 # Progress toward Wings compatibility
 
-Last updated: October 21, 2026. Current version: **0.1.0-alpha.30**. Active development: **M3 — Windows lifecycle features**. M1/M2 remain open for live panel and isolation gates.
+Last updated: October 21, 2026. Current version: **0.1.0-alpha.31**. Active development: **M3 — Windows lifecycle features**. M1/M2 remain open for live panel and isolation gates.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
@@ -39,6 +39,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - Alpha 28: bounded namespace-free XML text/attribute rewriting, exact/wildcard element paths, DTD/entity/mixed-content refusal and bounded streaming round-trip verification. Add opt-in two-phase reboot fixture with delayed startup and unattended checks/cleanup. All 558 local cases/subtests, 14 native cases, 45 combined Server 2022 checks and seven actual post-boot checks pass; pinned SSH reconnect and unattended cleanup verified. See [XML guide](docs/EGG-XML-CONFIG.md), [reboot scope](docs/REBOOT-VALIDATION.md) and [evidence](docs/evidence/server2022-alpha28-xml-reboot.md).
 - Alpha 29: opt-in persisted running/stopped intent with private dual snapshots, manual-stop preservation, readiness-gated/budgeted replay, two startup workers and fresh launch guards. Add SCM and automatic post-boot validation modes. See [restoration guide](docs/RUNNING-RESTORATION.md); 584 local cases/subtests, 14 native cases, 49 combined service checks and seven actual post-boot checks pass, with pinned SSH reconnect and unattended/independent cleanup. See [evidence](docs/evidence/server2022-alpha29-running-restoration.md).
 - Alpha 30: opt-in loopback Source TCP RCON commands and graceful stops, bounded complete replies, daemon environment secret reference, redaction, cancellation and no retry/stdin fallback. See [adapter scope](docs/SOURCE-RCON.md); 619 local cases/subtests, 14 packaged Server 2022 cases and all 54 combined service checks pass, with independent cleanup. See [evidence](docs/evidence/server2022-alpha30-source-rcon.md).
+- Alpha 31: opt-in game log-file console/readiness, stale-history skipping, bounded append/rotation/truncation polling, safe filesystem checks, native cancellation and status. See [guide](docs/LOG-FILE-CONSOLE.md); final clean-package/VM evidence follows separately.
 - HTTP inventory: handlers at **13 of upstream's 38 method/path combinations**, with partial behavior; **25 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
 - Automatic installation, full file manager/SFTP, backups/restores, transfers, strong isolation and live certification remain open.
 - Unchanged Linux eggs require a Linux execution backend. Native Windows profiles do not translate Linux images/binaries.
@@ -124,6 +125,7 @@ Current scope remains a trusted private node. File denylist/path checks are not 
   - [ ] Add broader persistent lifecycle state, daemon diagnostics and interrupted-operation recovery. The operator authorized reboot testing; a real delayed-start VM reboot passes seven scoped checks with SSH reconnect and unattended cleanup. Broader reboot recovery remains open.
 - [ ] Console/control-event, log-file or RCON adapters where required by a game.
   - [x] Add bounded opt-in Source TCP RCON command/graceful-stop delivery with local endpoint approval and lifecycle cancellation.
+  - [x] Add bounded game log-file console output and optional log-only readiness with stale-history skipping, rotation handling and cancellation.
   - [ ] Verify real games and add other RCON dialects, control events, log-tail/readiness adapters and protected secret provisioning.
 - [ ] Complete a real game's create → install → start → stop/restart → reinstall → delete workflow from the panel.
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.31 - October 21, 2026
+
+- Add opt-in locally approved UTF-8 game log-file console output and optional log-only readiness. Snapshot existing history before launch, skip stale/incomplete old lines, follow file rotation/visible truncation and retain bounded append backlog.
+- Pin local parents and reject observed links, protected paths, denylisted names and malformed text. Bound each poll, cancel on process exit and expose safe `native_log_file` status. Runtime reader failure leaves native power control available. Prevent old process stdout from publishing into a replacement generation.
+- Add reader/config/native lifecycle and combined RCON/log tests, plus an optional SCM phase. Read sharing, existing parents and supported UTF-8/newline output are required; fast truncate/regrow and hostile filesystem races remain outside the guarantee. Final clean-package/VM evidence follows separately.
+
 ## 0.1.0-alpha.30 - October 21, 2026
 
 - Add opt-in `source_rcon` for loopback Source TCP commands and graceful stops, with a daemon environment secret reference and exact password redaction across assembled reply chunks.

@@ -1,8 +1,9 @@
 #Requires -RunAsAdministrator
-param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON)
+param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON,[switch]$TestLogFile)
 $ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
 if($TestRestoreRunning -and -not $TestPersistentRecovery){throw 'Restore fixture requires persistent recovery'}
 if($TestSourceRCON -and $PrepareReboot){throw 'RCON fixture is separate from reboot preparation'}
+if($TestLogFile -and (-not $TestSourceRCON -or $PrepareReboot)){throw 'Log-file fixture requires RCON phase and cannot prepare a reboot'}
 if($PrepareReboot -and (-not $TestPersistentRecovery -or -not $TestServiceEvents)){throw 'Reboot fixture requires persistent recovery and service events'}
 if($TestEggXML -and -not $TestEggYAML){throw 'XML fixture requires TestEggYAML for six-parser validation'}
 if($TestEggYAML -and -not $TestEggINI){throw 'YAML fixture requires TestEggINI for five-parser validation'}
@@ -377,6 +378,41 @@ try {
   if(-not $authRejected -or 'RCON_COMMAND:UNAUTHENTICATED_RCON_COMMAND' -in (Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data){throw 'RCON authentication rejection failed'}
   Set-Power 'kill';Wait-State 'offline'
   $report.checks.source_rcon_bad_password_rejected='passed'
+ }
+ if($TestLogFile){
+  Stop-Service WingsWindowsNative;(Get-Service WingsWindowsNative).WaitForStatus('Stopped',[TimeSpan]::FromSeconds(15))
+  $edited=Get-Content -LiteralPath $configuration -Raw|ConvertFrom-Json
+  $edited.profiles.$ServerID|Add-Member -NotePropertyName log_file -NotePropertyValue @{path='server.log';readiness=$true}
+  [IO.File]::WriteAllText($configuration,($edited|ConvertTo-Json -Depth 30),[Text.UTF8Encoding]::new($false))
+  New-ItemProperty -LiteralPath $serviceKey -Name Environment -PropertyType MultiString -Value @('WINGS_RCON_FIXTURE=fixture-rcon-only') -Force|Out-Null
+  $serverRoot=Join-Path (Join-Path $Root 'data') $ServerID
+  [IO.File]::WriteAllText((Join-Path $serverRoot 'server.log'),"SERVER_READY`nSTALE_LOG_MUST_NOT_APPEAR`n",[Text.UTF8Encoding]::new($false))
+  function Wait-GameLog([string]$Line){$until=[DateTime]::UtcNow.AddSeconds(5);do{if($Line -in (Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data){return};Start-Sleep -Milliseconds 100}while([DateTime]::UtcNow -lt $until);throw 'Expected game log line absent'}
+  Start-Service WingsWindowsNative;Wait-State 'offline';Set-Power 'start';Wait-State 'starting';Start-Sleep -Milliseconds 350
+  $before=Get-NodeAPI ('/api/servers/'+$ServerID)
+  if($before.state -ne 'starting' -or -not $before.native_log_file.active -or '[Game log] STALE_LOG_MUST_NOT_APPEAR' -in (Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data){throw 'Stale file/stdout established log readiness'}
+  $report.checks.log_file_stale_history_and_stdout_ignored='passed'
+  Send-RCONFixture 'log-ready';Wait-State 'running';Wait-GameLog '[Game log] SERVER_READY'
+  Send-RCONFixture 'log-message';Wait-GameLog '[Game log] FILE_MESSAGE'
+  $report.checks.log_file_readiness_and_console_via_rcon='passed'
+  Send-RCONFixture 'log-rotate';Wait-GameLog '[Game log] ROTATED_MESSAGE'
+  Send-RCONFixture 'log-truncate';Wait-GameLog '[Game log] RESET'
+  $report.checks.log_file_rotation_and_truncation='passed'
+  Set-Power 'kill';Wait-State 'offline'
+  # Verify the exact disposable server directory can move after reader shutdown.
+  $probe=$serverRoot+'-pin-probe';$allowed=[IO.Path]::GetFullPath((Join-Path $Root 'data'))+'\'
+  foreach($candidate in @($serverRoot,$probe)){if(-not [IO.Path]::GetFullPath($candidate).StartsWith($allowed,[StringComparison]::OrdinalIgnoreCase)){throw 'Pin probe escaped fixture data'}}
+  $moved=$false;$until=[DateTime]::UtcNow.AddSeconds(3)
+  do{try{[IO.Directory]::Move($serverRoot,$probe);$moved=$true}catch{Start-Sleep -Milliseconds 100}}while(-not $moved -and [DateTime]::UtcNow -lt $until)
+  if(-not $moved){throw 'Log reader left directory pinned after kill'}
+  [IO.Directory]::Move($probe,$serverRoot)
+  $report.checks.log_file_kill_releases_directory_pins='passed'
+  Set-Power 'start';Wait-State 'starting';Send-RCONFixture 'log-ready';Wait-State 'running'
+  Send-RCONFixture 'log-malformed'
+  $until=[DateTime]::UtcNow.AddSeconds(5);do{$after=Get-NodeAPI ('/api/servers/'+$ServerID);if(-not $after.native_log_file.active){break};Start-Sleep -Milliseconds 100}while([DateTime]::UtcNow -lt $until)
+  if($after.state -ne 'running' -or $after.native_log_file.active -or $after.native_log_file.error -ne 'read_failed'){throw 'Malformed log failure status incorrect'}
+  if(((Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data -join "`n").Contains([string][char]0)){throw 'Malformed text reached console'}
+  Set-Power 'kill';Wait-State 'offline';$report.checks.log_file_malformed_text_stops_reader_not_game='passed'
  }
  if($PrepareReboot){
   Set-Power 'start';Wait-State 'running'

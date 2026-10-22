@@ -62,6 +62,8 @@ Profile v1 accepts egg_config_files only with use_egg_process_configuration. It 
 
 ## Optional command adapter
 
+The optional `log_file` object forwards a locally approved relative UTF-8 game log into the console. `readiness: true` selects new file lines instead of stdout for existing readiness matchers. See [configuration, rotation, stale-history handling and bounds](LOG-FILE-CONSOLE.md).
+
 The local `source_rcon` object selects Source TCP commands and graceful stops instead of stdin. It requires a loopback endpoint and daemon environment secret reference; readiness still uses stdout. See [configuration and supported protocol](SOURCE-RCON.md).
 
 ## Optional running restoration

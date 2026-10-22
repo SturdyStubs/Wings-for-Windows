@@ -17,7 +17,7 @@ import (
 	"wings-windows/internal/networkpolicy"
 )
 
-const Version = "0.1.0-alpha.30"
+const Version = "0.1.0-alpha.31"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -26,6 +26,7 @@ type TLS struct {
 	Key  string `json:"key"`
 }
 type Profile struct {
+	LogFile                    *LogFile             `json:"log_file,omitempty"`
 	SourceRCON                 *SourceRCON          `json:"source_rcon,omitempty"`
 	RestoreRunning             bool                 `json:"restore_running,omitempty"`
 	EggConfigFiles             []string             `json:"egg_config_files,omitempty"`
@@ -146,6 +147,9 @@ func (c *Config) Validate() error {
 	identities := make(map[string]bool)
 	rconAddresses := make(map[string]bool)
 	for id, p := range c.Profiles {
+		if err := p.ValidateLogFile(); err != nil {
+			return fmt.Errorf("server %s: %w", id, err)
+		}
 		if err := p.ValidateRCON(); err != nil {
 			return fmt.Errorf("server %s: %w", id, err)
 		}

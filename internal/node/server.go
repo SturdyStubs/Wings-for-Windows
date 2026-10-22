@@ -16,6 +16,7 @@ import (
 	"wings-windows/internal/config"
 	"wings-windows/internal/consolelog"
 	"wings-windows/internal/eggconfig"
+	"wings-windows/internal/logtail"
 	"wings-windows/internal/native"
 	"wings-windows/internal/provision"
 )
@@ -33,6 +34,8 @@ type desiredPersistence interface {
 	Close(context.Context) error
 }
 type Server struct {
+	logFileActive        bool
+	logFileError         string
 	desiredWrite         sync.Mutex
 	desiredStore         desiredPersistence
 	desiredRunning       bool
@@ -275,10 +278,13 @@ func (s *Server) logLocked(line string) {
 	s.emitLocked("console output", line)
 }
 func (s *Server) processLine(p *native.Process, line string) {
-	s.log(line)
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if s.process == p && s.state == "starting" && s.processPolicy.ready(line) {
+	if s.process != p || s.closing {
+		return
+	}
+	s.logLocked(line)
+	if (s.Profile.LogFile == nil || !s.Profile.LogFile.Readiness) && s.state == "starting" && s.processPolicy.ready(line) {
 		s.setStateLocked("running")
 	}
 }
@@ -577,6 +583,26 @@ func (s *Server) startWithContext(parent context.Context) error {
 	// Credential lookup/logon and ACL queries may block. Keep kill/shutdown able
 	// to cancel the launch; native creation rechecks cancellation before resume.
 	spec.Context = ctx
+	var logReader *logtail.Reader
+	if s.Profile.LogFile != nil {
+		if policy.Denied(s.Profile.LogFile.Path, false) {
+			return errors.New("approved log file is denied by the egg file policy")
+		}
+		protected := []string{s.panel.Config.SourcePath, s.panel.Config.TLS.Cert, s.panel.Config.TLS.Key}
+		for _, profile := range s.panel.Config.Profiles {
+			protected = append(protected, profile.Executable)
+			protected = append(protected, profile.Requirements.RequiredFiles...)
+		}
+		logReader, err = logtail.Open(ctx, s.Root, s.Profile.LogFile.Path, protected)
+		if err != nil {
+			return errors.New("log-file preflight failed; inspect approved path and permissions")
+		}
+		defer func() {
+			if logReader != nil {
+				logReader.Close()
+			}
+		}()
+	}
 	p, err := native.Start(spec)
 	if err != nil {
 		return fmt.Errorf("start native process: %w", err)
@@ -592,6 +618,8 @@ func (s *Server) startWithContext(parent context.Context) error {
 		return errors.New("node is shutting down")
 	}
 	s.process = p
+	s.logFileError = ""
+	s.logFileActive = logReader != nil
 	s.appliedLimits = native.Limits{MemoryMB: spec.MemoryMB, CPUPercent: spec.CPUPercent}
 	s.started = time.Now()
 	s.previousSample = s.started
@@ -599,6 +627,11 @@ func (s *Server) startWithContext(parent context.Context) error {
 	s.cpu = 0
 	s.setStateLocked("starting")
 	s.outputWG.Add(2)
+	if logReader != nil {
+		s.outputWG.Add(1)
+		go s.readLogFile(p, logReader)
+		logReader = nil // ownership transferred to the process-scoped reader
+	}
 	go func() {
 		defer s.outputWG.Done()
 		defer p.Stdout.Close()
@@ -781,7 +814,7 @@ func (s *Server) Response() map[string]any {
 	if s.consoleStore != nil {
 		consoleStatus = s.consoleStore.Status()
 	}
-	return map[string]any{"state": s.state, "is_suspended": s.settings.Suspended, "configuration": s.settings, "utilization": stats, "native_recovery": recovery, "native_restore": s.restoreStatusLocked(), "native_console_logs": consoleStatus}
+	return map[string]any{"state": s.state, "is_suspended": s.settings.Suspended, "configuration": s.settings, "utilization": stats, "native_recovery": recovery, "native_restore": s.restoreStatusLocked(), "native_console_logs": consoleStatus, "native_log_file": map[string]any{"enabled": s.Profile.LogFile != nil, "active": s.process != nil && s.logFileActive, "error": s.logFileError}}
 }
 func (s *Server) StatsJSON() string {
 	b, _ := json.Marshal(s.Response()["utilization"])

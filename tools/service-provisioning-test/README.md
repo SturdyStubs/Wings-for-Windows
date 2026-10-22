@@ -1,5 +1,7 @@
 # Developer-only service provisioning fixture
 
+`-TestLogFile` adds five checks after `-TestSourceRCON`: stale/stdout readiness exclusion, RCON-driven log readiness/console, rotation/truncation, kill releasing directory pins and safe malformed-text failure while the game remains controllable. The directory move probe validates both absolute paths stay inside the exact disposable data root. This phase cannot prepare a reboot and does not certify a real game.
+
 `-TestSourceRCON` adds a separate phase after the normal checks: a loopback Source TCP demo, daemon-only environment password reference, API command/reply, redaction, distinct game identity, graceful tree stop and bad-password rejection. Its fixed demo password is public test data. This mode cannot be combined with `-PrepareReboot`; it does not certify a real game or private service environment provisioning.
 
 Run only on a disposable, checkpointed Windows Server VM as Administrator. This is privileged test infrastructure, not a production setup/bootstrap tool. It deliberately creates temporary local users, grants their rights, replaces DACLs in a fresh owned fixture tree and registers the real `WingsWindowsNative` service. It refuses an existing service or matching account/root. Never point it at real node configuration or a populated installation.

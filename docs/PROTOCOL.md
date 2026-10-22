@@ -20,6 +20,8 @@ Windows Native ---------- node credentials -----> panel /api/remote
 
 ## Packages
 
+Alpha 31 adds optional [game log-file console/readiness](LOG-FILE-CONSOLE.md), selected locally. `native_log_file` status reports activation/failure without paths. Authorization and native process state remain unchanged.
+
 Alpha 30 adds optional [Source TCP RCON command delivery](SOURCE-RCON.md), selected only by local profile. REST/WebSocket authorization and native process status remain unchanged. No new HTTP route or real-game certification is implied.
 
 | Package | Responsibility |
@@ -31,6 +33,7 @@ Alpha 30 adds optional [Source TCP RCON command delivery](SOURCE-RCON.md), selec
 | `internal/provision` | Read-only Windows executable, architecture, OS build and declared dependency checks. |
 | `internal/node` | Panel API client, local server registry, templates, lifecycle, readiness, bounded console queues and log history. |
 | `internal/sourcercon` | Optional loopback Source TCP authentication, bounded complete replies and cancellation. |
+| `internal/logtail` | Optional pinned-parent game log polling, bounded text assembly and file-generation handling. |
 | `internal/api` | Node bearer API, confined text-file access, JWT/permission enforcement, revocation and WebSocket events. |
 | `cmd/wings-windows` | CLI, HTTP lifecycle and Windows SCM integration. |
 | `cmd/testserver` | Harmless console fixture included for reproducible local verification. |

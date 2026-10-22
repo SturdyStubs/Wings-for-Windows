@@ -45,6 +45,9 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		line := scanner.Text()
+		if writeFixtureLog(line) {
+			continue
+		}
 		if line == "probe-log-access" || line == "probe-recovery-access" || line == "probe-intent-access" {
 			variable, prefix := "LOG_PROBE_PATH", "LOG_PROBE"
 			if line == "probe-recovery-access" {
