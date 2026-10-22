@@ -87,7 +87,9 @@ func main() {
 			w.WriteHeader(401)
 			return
 		}
-		if r.URL.Path == "/api/remote/servers/"+id+"/install" && r.Method == "POST" {
+		pending := pendingServer()
+		pendingInstall := pending != nil && r.URL.Path == "/api/remote/servers/"+pending.UUID+"/install"
+		if (r.URL.Path == "/api/remote/servers/"+id+"/install" || pendingInstall) && r.Method == "POST" {
 			var result struct {
 				Successful bool `json:"successful"`
 				Reinstall  bool `json:"reinstall"`
@@ -114,6 +116,10 @@ func main() {
 				return
 			}
 			w.WriteHeader(204)
+			return
+		}
+		if pending != nil && strings.TrimPrefix(r.URL.Path, "/api/remote/servers/") == pending.UUID {
+			json.NewEncoder(w).Encode(pending)
 			return
 		}
 		if strings.TrimPrefix(r.URL.Path, "/api/remote/servers/") != id {
