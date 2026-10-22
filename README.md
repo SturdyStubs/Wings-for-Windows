@@ -26,7 +26,7 @@ Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.co
 GitHub Issues are the source of truth; ROADMAP.md records implementation scope and verification. Run `scripts/Update-Progress.ps1` to regenerate this section. Use `-Initialize` to add missing planned milestones/tasks; rerunning it never automatically re-closes existing issues.
 <!-- progress:end -->
 
-Alpha 33 verification: **707 local cases/subtests**, **14 packaged native cases** and **73 Server 2022 combined checks** pass, including native setup/reinstall callbacks, distinct game identity, cancellation/tree cleanup and timeout. Independent cleanup passed. See [current evidence](docs/evidence/server2022-alpha33-native-installers.md). Actual reboot restoration was verified separately in [alpha 29](docs/evidence/server2022-alpha29-running-restoration.md).
+Alpha 34 verification: **731 local cases/subtests**, **14 packaged native cases** and **79 combined Server 2022 checks** pass, including pending creation, zero-profile bootstrap, restart discovery and approved-profile handoff. Independent cleanup passed. See [current evidence](docs/evidence/server2022-alpha34-pending-creation.md). Actual reboot restoration was verified separately in [alpha 29](docs/evidence/server2022-alpha29-running-restoration.md).
 
 For a new panel node, start with the [Windows node and demo egg walkthrough](docs/PANEL-WINDOWS-SETUP.md). It explains the full UUID/profile binding and the manual approval requirement.
 

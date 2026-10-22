@@ -9,7 +9,7 @@ Enable this in the private node JSON and restart:
 "profiles": {}
 ```
 
-An empty profile map is valid only with this option. Existing configurations retain disabled creation by default. For a first node, run this zero-profile configuration temporarily in the foreground using the normal `--config` command. Prepare the owned empty layout and trusted TLS first. Create the server record from the panel with **Start on completion disabled**. Once you have its full UUID, stop the foreground daemon, add the approved game profile/account and complete initial managed service setup while data/logs remain empty. See the [complete walkthrough](PANEL-WINDOWS-SETUP.md). Do not run the initial permission installer over an existing populated node.
+The packaged [`config.bootstrap.example.json`](../configs/config.bootstrap.example.json) supplies this starting point. An empty profile map is valid only with this option. Existing configurations retain disabled creation by default. For a first node, run this zero-profile configuration temporarily in the foreground using the normal `--config` command. Prepare the owned empty layout and trusted TLS first. Create the server record from the panel with **Start on completion disabled**. Once you have its full UUID, stop the foreground daemon, add the approved game profile/account and complete initial managed service setup while data/logs remain empty. See the [complete walkthrough](PANEL-WINDOWS-SETUP.md). Do not run the initial permission installer over an existing populated node.
 
 ## Wire contract and validation
 
