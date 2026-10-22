@@ -1,6 +1,6 @@
 # Source RCON command adapter
 
-Alpha 30 adds optional Source TCP RCON commands and command-based graceful stops. Existing profiles continue using stdin. This does not add Rust WebRCON, BattlEye, UDP RCON, Windows control events or log-file tailing, or certify a particular real game.
+Alpha 30 adds optional Source TCP RCON commands and command-based graceful stops. Existing profiles continue using stdin. This does not add Rust WebRCON, BattlEye, UDP RCON or Windows control events, or certify a particular real game. Alpha 31 can combine it with the separate [game log-file adapter](LOG-FILE-CONSOLE.md).
 
 ## Profile
 
@@ -19,7 +19,7 @@ The password comes from the **daemon process environment**, with a name beginnin
 
 Supply the daemon environment through secure launch/deployment tooling. SCM deployments must arrange that environment and restart the service after changes. This release adds no secret provisioning command. System-wide environment variables and default service registry values may be readable by other local users; an environment variable is not a credential vault. Check access before storing private passwords. Same-account games cannot be isolated from their daemon identity. Existing private/trusted-node restrictions remain.
 
-Readiness still comes from stdout/egg matchers. A game with no useful stdout needs a future log-tail/readiness adapter. Configuration validation and preflight do not authenticate or make network requests. An unavailable password fails command delivery, rather than preventing the game from starting.
+Readiness uses the existing stdout/egg matchers, or the separately configured [log-only readiness source](LOG-FILE-CONSOLE.md) in alpha 31. RCON replies themselves never establish readiness. Configuration validation and preflight do not authenticate or make network requests. An unavailable password fails command delivery, rather than preventing the game from starting.
 
 ## Delivery, bounds and failures
 

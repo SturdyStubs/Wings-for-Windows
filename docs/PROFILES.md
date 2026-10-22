@@ -60,7 +60,7 @@ Profile v1 accepts `crash_recovery` with explicit `enabled`, bounded `max_restar
 
 Profile v1 accepts egg_config_files only with use_egg_process_configuration. It approves exact relative filenames for plain-text file, bounded [JSON](EGG-JSON-CONFIG.md), [properties](EGG-PROPERTIES-CONFIG.md), [INI](EGG-INI-CONFIG.md), [YAML](EGG-YAML-CONFIG.md) and [XML](EGG-XML-CONFIG.md) parsers. All targets must already exist; other parsers still fail explicitly. See [schema, bounds and partial-write limits](EGG-TEXT-CONFIG.md).
 
-## Optional command adapter
+## Optional console adapters
 
 The optional `log_file` object forwards a locally approved relative UTF-8 game log into the console. `readiness: true` selects new file lines instead of stdout for existing readiness matchers. See [configuration, rotation, stale-history handling and bounds](LOG-FILE-CONSOLE.md).
 

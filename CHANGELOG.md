@@ -4,7 +4,7 @@
 
 - Add opt-in locally approved UTF-8 game log-file console output and optional log-only readiness. Snapshot existing history before launch, skip stale/incomplete old lines, follow file rotation/visible truncation and retain bounded append backlog.
 - Pin local parents and reject observed links, protected paths, denylisted names and malformed text. Bound each poll, cancel on process exit and expose safe `native_log_file` status. Runtime reader failure leaves native power control available. Prevent old process stdout from publishing into a replacement generation.
-- Add reader/config/native lifecycle and combined RCON/log tests, plus an optional SCM phase. Read sharing, existing parents and supported UTF-8/newline output are required; fast truncate/regrow and hostile filesystem races remain outside the guarantee. Final clean-package/VM evidence follows separately.
+- Add reader/config/native lifecycle and combined RCON/log tests, plus an optional SCM phase. Read sharing, existing parents and supported UTF-8/newline output are required; fast truncate/regrow and hostile filesystem races remain outside the guarantee. All 654 local cases/subtests, 14 packaged native cases and 59 combined Server 2022 checks pass, with independent cleanup. See [evidence](docs/evidence/server2022-alpha31-log-file.md). No actual game or new reboot certification is claimed.
 
 ## 0.1.0-alpha.30 - October 21, 2026
 
