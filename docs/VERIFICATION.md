@@ -1,5 +1,7 @@
 # Verification and release status
 
+Alpha 36 passes 774 local cases/subtests, zero skips and vet; the exact clean package passes 14 native and all 96 combined Server 2022 checks. Incremental third-account permissions preserve populated older data/logs, permit new-UUID install/game launch and deny access to another server’s data. Independent cleanup passes with retained-profile limits. See [exact evidence](evidence/server2022-alpha36-game-permissions.md) and [operator workflow](GAME-PERMISSIONS.md).
+
 Alpha 32 adds RCON credential references and managed service-account provisioning. The clean release passes 672 local cases/subtests and vet; its exact package passes 14 native and all 66 combined Server 2022 checks, with independent cleanup. See [exact evidence](evidence/server2022-alpha32-rcon-credentials.md) and [scope/setup](RCON-CREDENTIALS.md).
 
 Alpha 31 adds a bounded game log-file adapter with optional log-only readiness, stale-history skipping, file rotation/truncation handling and native process cancellation. The clean release passes 654 local cases/subtests and vet; its exact package passes 14 native and all 59 combined Server 2022 checks, with independent cleanup. See [exact evidence](evidence/server2022-alpha31-log-file.md) and [scope](LOG-FILE-CONSOLE.md).
