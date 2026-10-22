@@ -1,8 +1,9 @@
 #Requires -RunAsAdministrator
-param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON,[switch]$TestLogFile)
+param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON,[switch]$TestLogFile,[switch]$TestRCONCredential)
 $ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
 if($TestRestoreRunning -and -not $TestPersistentRecovery){throw 'Restore fixture requires persistent recovery'}
 if($TestSourceRCON -and $PrepareReboot){throw 'RCON fixture is separate from reboot preparation'}
+if($TestRCONCredential -and (-not $TestSourceRCON -or $PrepareReboot)){throw 'RCON credential fixture requires RCON and cannot prepare a reboot'}
 if($TestLogFile -and (-not $TestSourceRCON -or $PrepareReboot)){throw 'Log-file fixture requires RCON phase and cannot prepare a reboot'}
 if($PrepareReboot -and (-not $TestPersistentRecovery -or -not $TestServiceEvents)){throw 'Reboot fixture requires persistent recovery and service events'}
 if($TestEggXML -and -not $TestEggYAML){throw 'XML fixture requires TestEggYAML for six-parser validation'}
@@ -17,7 +18,7 @@ if($GameName -ne ('WwScmG_'+$suffix) -or $DaemonName -ne ('WwScmD_'+$suffix)){th
 if($ServerID -notmatch '^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$'){throw 'Use a full random server UUID'}
 $report=[ordered]@{passed=$false;checks=[ordered]@{};error=$null;cleanup=[ordered]@{}}
 $gameCreated=$false;$serviceCreated=$false;$credentialSeeded=$false;$mock=$null;$daemonSid=$null;$gameSid=$null
-$rebootPrepared=$false;$eventSourceCreated=$false;$eventStarted=Get-Date;$eventKey='HKLM:\SYSTEM\CurrentControlSet\Services\EventLog\Application\WingsWindowsNative'
+$rebootPrepared=$false;$rconSeeded=$false;$eventSourceCreated=$false;$eventStarted=Get-Date;$eventKey='HKLM:\SYSTEM\CurrentControlSet\Services\EventLog\Application\WingsWindowsNative'
 $eventScript=Join-Path $Package 'scripts\Register-EventSource.ps1'
 $installer=Join-Path $Staging 'Install-Service.ps1';Import-Module (Join-Path $Staging 'NodeSetup.psm1') -Force;Initialize-NodeSetupNative
 if(Get-Service WingsWindowsNative -ErrorAction SilentlyContinue){throw 'A Wings service already exists; refusing to touch it'}
@@ -86,6 +87,7 @@ try {
  Copy-Item -LiteralPath (Join-Path $Package 'scripts\Store-GameCredential.ps1') -Destination (Join-Path $Root 'bin\Store-GameCredential.ps1')
  New-Item -ItemType Directory -Path (Join-Path $Root 'bin\scripts') | Out-Null
  foreach($file in @('Store-GameCredential.ps1','Set-ServiceGameCredential.ps1','CredentialBridge.psm1','CredentialTask.ps1','NodeSetup.psm1')){Copy-Item -LiteralPath (Join-Path $Staging $file) -Destination (Join-Path $Root ('bin\scripts\'+$file))}
+ foreach($file in @('Store-RCONCredential.ps1','Set-ServiceRCONCredential.ps1')){Copy-Item -LiteralPath (Join-Path $Package ('scripts\'+$file)) -Destination (Join-Path $Root ('bin\scripts\'+$file))}
  $first=[Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback,0);$second=[Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback,0);$first.Start();$second.Start();$panelPort=$first.LocalEndpoint.Port;$nodePort=$second.LocalEndpoint.Port;$first.Stop();$second.Stop()
  $b=New-Object byte[] 32;$rng=[Security.Cryptography.RandomNumberGenerator]::Create();try{$rng.GetBytes($b);$nodeToken=[Convert]::ToBase64String($b)}finally{$rng.Dispose()}
  $profiles=@{};$profiles[$ServerID]=[ordered]@{schema_version=1;executable=(Join-Path $Root 'bin\wings-windows-demo.exe');arguments=@('spawn');allowed_environment=@();stop_command='stop';ready_pattern='^SERVER_READY$';memory_mb=128;run_as=@{sid=$gameSid;credential_target=('WingsWindows/'+$ServerID)}}
@@ -414,6 +416,60 @@ try {
   if(((Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data -join "`n").Contains([string][char]0)){throw 'Malformed text reached console'}
   Set-Power 'kill';Wait-State 'offline';$report.checks.log_file_malformed_text_stops_reader_not_game='passed'
  }
+ if($TestRCONCredential){
+  Stop-Service WingsWindowsNative;(Get-Service WingsWindowsNative).WaitForStatus('Stopped',[TimeSpan]::FromSeconds(15))
+  $edited=Get-Content -LiteralPath $configuration -Raw|ConvertFrom-Json
+  $edited.profiles.$ServerID.PSObject.Properties.Remove('log_file')
+  $edited.profiles.$ServerID.source_rcon.password_environment=''
+  $edited.profiles.$ServerID.source_rcon|Add-Member -NotePropertyName password_credential_target -NotePropertyValue ('WingsWindowsRCON/'+$ServerID)
+  [IO.File]::WriteAllText($configuration,($edited|ConvertTo-Json -Depth 30),[Text.UTF8Encoding]::new($false))
+  Remove-ItemProperty -LiteralPath $serviceKey -Name Environment -ErrorAction SilentlyContinue
+  $rconCommand=Join-Path $Root 'bin\scripts\Set-ServiceRCONCredential.ps1'
+  $rconOptions=@{InstallationRoot=$Root;ServerUUID=$ServerID;ServiceCredential=$serviceCredential}
+  $rconPassword=ConvertTo-SecureString 'fixture-rcon-only' -AsPlainText -Force
+  $rconSeeded=$true # Conservatively inspect/remove even if a store response is interrupted.
+  try{
+   $rejected=$false;try{& $rconCommand @rconOptions -Password $rconPassword -Replace|Out-Null}catch{$rejected=$true}
+   if(-not $rejected){throw 'RCON replacement created missing target'}
+   $stored=& $rconCommand @rconOptions -Password $rconPassword;$rconSeeded=$true
+   $metadata=& $rconCommand @rconOptions -Inspect
+   if(-not $metadata.present -or $metadata.target -cne ('WingsWindowsRCON/'+$ServerID) -or ($metadata|ConvertTo-Json).Contains('fixture-rcon-only')){throw 'RCON metadata invalid'}
+   $rejected=$false;try{& $rconCommand @rconOptions -Password $rconPassword|Out-Null}catch{$rejected=$true}
+   if(-not $rejected){throw 'RCON overwrite allowed'}
+   $report.checks.rcon_vault_store_inspect_overwrite_rules='passed'
+   $wrongOptions=@{InstallationRoot=$Root;ServerUUID=[guid]::NewGuid().ToString();ServiceCredential=$serviceCredential}
+   $rejected=$false;try{& $rconCommand @wrongOptions -Inspect|Out-Null}catch{$rejected=$true}
+   if(-not $rejected){throw 'Unconfigured RCON target accepted'}
+   $report.checks.rcon_vault_unconfigured_server_rejected='passed'
+   Start-Service WingsWindowsNative;Wait-State 'offline';Set-Power 'start';Wait-State 'running'
+   Send-RCONFixture 'VAULT_RCON_COMMAND';Send-RCONFixture 'echo-secret'
+   $vaultLogs=(Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data
+   if('[RCON] ECHO:VAULT_RCON_COMMAND' -notin $vaultLogs -or ($vaultLogs -join "`n").Contains('fixture-rcon-only')){throw 'Vault RCON command or redaction failed'}
+   $report.checks.rcon_vault_service_authentication_without_environment='passed'
+   Send-RCONFixture ('probe-rcon-credential '+$ServerID)
+   $until=[DateTime]::UtcNow.AddSeconds(5);do{$vaultLogs=(Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data;if('RCON_CREDENTIAL_UNAVAILABLE' -in $vaultLogs){break};Start-Sleep -Milliseconds 100}while([DateTime]::UtcNow -lt $until)
+   if('RCON_CREDENTIAL_UNAVAILABLE' -notin $vaultLogs -or 'RCON_CREDENTIAL_PRESENT' -in $vaultLogs){throw 'Game context could resolve daemon credential'}
+   $report.checks.rcon_vault_unavailable_to_distinct_game_context='passed'
+   Set-Power 'kill';Wait-State 'offline';Stop-Service WingsWindowsNative
+   $wrongSecret=ConvertTo-SecureString 'wrong-fixture-password' -AsPlainText -Force
+   try{& $rconCommand @rconOptions -Password $wrongSecret -Replace|Out-Null}finally{$wrongSecret.Dispose()}
+   Start-Service WingsWindowsNative;Wait-State 'offline';Set-Power 'start';Wait-State 'running'
+   $rejected=$false;try{Send-RCONFixture 'BAD_VAULT_SECRET'}catch{$rejected=$true};if(-not $rejected){throw 'Rotated wrong secret authenticated'}
+   Set-Power 'kill';Wait-State 'offline';Stop-Service WingsWindowsNative
+   & $rconCommand @rconOptions -Password $rconPassword -Replace|Out-Null
+   $report.checks.rcon_vault_deliberate_rotation='passed'
+   $removed=& $rconCommand @rconOptions -Remove;$status=& $rconCommand @rconOptions -Inspect
+   if(-not $removed.removed -or $status.present){throw 'RCON credential removal not confirmed'}
+   $rconSeeded=$false;$report.cleanup.rcon_credential_removed=$true
+   $gameMetadata=& (Join-Path $Root 'bin\scripts\Set-ServiceGameCredential.ps1') @rconOptions -Inspect
+   if(-not $gameMetadata.present){throw 'RCON operations removed game credential'}
+   $report.checks.rcon_vault_removal_preserves_game_credential='passed'
+   New-ItemProperty -LiteralPath $serviceKey -Name Environment -PropertyType MultiString -Value @('WINGS_RCON_FIXTURE=fixture-rcon-only') -Force|Out-Null
+   Start-Service WingsWindowsNative;Wait-State 'offline';Set-Power 'start';Wait-State 'running'
+   $rejected=$false;try{Send-RCONFixture 'MISSING_VAULT_SECRET'}catch{$rejected=$true};if(-not $rejected){throw 'Missing vault reference fell back to environment'}
+   Set-Power 'kill';Wait-State 'offline';$report.checks.rcon_vault_missing_secret_has_no_environment_fallback='passed'
+  }finally{$rconPassword.Dispose()}
+ }
  if($PrepareReboot){
   Set-Power 'start';Wait-State 'running'
   Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body (@{commands=@('REBOOT_MARKER_'+$suffix)}|ConvertTo-Json)|Out-Null
@@ -456,11 +512,12 @@ try {
 } catch {if($rebootPrepared -and $_.Exception.Message -eq 'WINGS_REBOOT_PREPARED'){$report.passed=$true}else{$report.error=$_.Exception.Message}}
 finally {
  if(-not $rebootPrepared){
+ if($rconSeeded){try{Stop-Service WingsWindowsNative -ErrorAction Stop;$removed=& $rconCommand @rconOptions -Remove;$status=& $rconCommand @rconOptions -Inspect;if($status.present){throw 'RCON credential remains'};$rconSeeded=$false;$report.cleanup.rcon_credential_removed=$true}catch{$report.cleanup.rcon_credential_cleanup_failed=$true;$report.passed=$false}}
  if($credentialSeeded -and $daemonSid){try{Stop-Service WingsWindowsNative -ErrorAction Stop;Invoke-Bootstrap -Cleanup;$credentialSeeded=$false;$report.cleanup.credential_removed=$true}catch{$report.cleanup.credential_error=$_.Exception.Message;$report.passed=$false}}
- if($serviceCreated -and -not $credentialSeeded){try{Stop-Service WingsWindowsNative -ErrorAction SilentlyContinue;$s=Get-Service WingsWindowsNative;try{$s.WaitForStatus('Stopped',[TimeSpan]::FromSeconds(10))}finally{$s.Dispose()}; & "$env:SystemRoot\System32\sc.exe" delete WingsWindowsNative|Out-Null;$report.cleanup.service_removed=($LASTEXITCODE -eq 0)}catch{$report.cleanup.service_error=$_.Exception.Message;$report.passed=$false}}
+ if($serviceCreated -and -not $credentialSeeded -and -not $rconSeeded){try{Stop-Service WingsWindowsNative -ErrorAction SilentlyContinue;$s=Get-Service WingsWindowsNative;try{$s.WaitForStatus('Stopped',[TimeSpan]::FromSeconds(10))}finally{$s.Dispose()}; & "$env:SystemRoot\System32\sc.exe" delete WingsWindowsNative|Out-Null;$report.cleanup.service_removed=($LASTEXITCODE -eq 0)}catch{$report.cleanup.service_error=$_.Exception.Message;$report.passed=$false}}
  if($mock){Stop-Process -Id $mock.Id -ErrorAction SilentlyContinue;$mock.Dispose();$report.cleanup.mock_stopped=$true}
  if($eventSourceCreated){try{& $eventScript -Remove;$report.cleanup.event_source_removed=(-not (Test-Path -LiteralPath $eventKey))}catch{$report.cleanup.event_source_error=$_.Exception.Message;$report.passed=$false}}
- if($credentialSeeded -or (Get-Service WingsWindowsNative -ErrorAction SilentlyContinue)){$report.passed=$false;$report.cleanup.state_retained='Service or credential cleanup incomplete; accounts and rights retained for inspection'}else{
+ if($rconSeeded -or $credentialSeeded -or (Get-Service WingsWindowsNative -ErrorAction SilentlyContinue)){$report.passed=$false;$report.cleanup.state_retained='Service or credential cleanup incomplete; accounts and rights retained for inspection'}else{
  foreach($entry in @(@{SID=$daemonSid;Names=@('SeServiceLogonRight','SeAssignPrimaryTokenPrivilege','SeIncreaseQuotaPrivilege','SeBatchLogonRight')},@{SID=$gameSid;Names=@('SeBatchLogonRight')})){
   if($entry.SID){foreach($right in $entry.Names){if($right -in @([WingsWindows.NodeSetup]::Rights($entry.SID))){[WingsWindows.NodeSetup]::Right($entry.SID,$right,$true)}}}
  }

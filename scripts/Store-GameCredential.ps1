@@ -7,7 +7,7 @@ param(
 $ErrorActionPreference = 'Stop'
 if ($Credential.UserName -notmatch '\A\.\\[^\\/@\x00\r\n]+\z') { throw 'Use .\local-game-account as the credential username.' }
 if ($Credential.Password.Length -eq 0) { throw 'Empty game passwords are not supported.' }
-if ($Credential.Password.Length -gt 2560) { throw 'Credential password exceeds the 5120-byte storage limit.' }
+if ($Credential.Password.Length -gt 1280) { throw 'Credential password exceeds the 2560-byte storage limit.' }
 if (-not ('WingsWindows.CredentialWriterV2' -as [type])) {
     Add-Type -TypeDefinition @'
 using System;
@@ -41,7 +41,7 @@ namespace WingsWindows {
                         if (!replace) throw new InvalidOperationException("Credential already exists; use -Replace for deliberate rotation.");
                         if (!String.Equals(old.UserName, user, StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("Rotation cannot change the game account; remove the old credential and update the pinned SID explicitly.");
                     } finally {
-                        if (old.Blob != IntPtr.Zero && old.BlobSize <= 5120) for (int i=0; i<old.BlobSize; i++) Marshal.WriteByte(old.Blob, i, 0);
+                        if (old.Blob != IntPtr.Zero && old.BlobSize <= 2560) for (int i=0; i<old.BlobSize; i++) Marshal.WriteByte(old.Blob, i, 0);
                     }
                 } finally { CredFree(existing); }
             } else {

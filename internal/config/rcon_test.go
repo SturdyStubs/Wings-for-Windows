@@ -39,3 +39,27 @@ func TestRCONConfiguration(t *testing.T) {
 		})
 	}
 }
+
+func TestRCONCredentialReferenceApproval(t *testing.T) {
+	for _, mode := range []string{"valid", "both", "missing", "other-server", "game-target"} {
+		t.Run(mode, func(t *testing.T) {
+			c := valid(t)
+			p := c.Profiles[id]
+			p.SourceRCON = &SourceRCON{Address: "127.0.0.1:27015", PasswordCredentialTarget: "WingsWindowsRCON/" + id}
+			switch mode {
+			case "both":
+				p.SourceRCON.PasswordEnvironment = "WINGS_RCON_TEST"
+			case "missing":
+				p.SourceRCON.PasswordCredentialTarget = ""
+			case "other-server":
+				p.SourceRCON.PasswordCredentialTarget = "WingsWindowsRCON/22222222-2222-4222-8222-222222222222"
+			case "game-target":
+				p.SourceRCON.PasswordCredentialTarget = "WingsWindows/" + id
+			}
+			c.Profiles[id] = p
+			if err := c.Validate(); (err == nil) != (mode == "valid") {
+				t.Fatal(mode, err)
+			}
+		})
+	}
+}

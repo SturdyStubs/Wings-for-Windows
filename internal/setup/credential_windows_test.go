@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 	"wings-windows/internal/testutil"
@@ -82,7 +83,7 @@ func TestServiceCredentialPlan(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, name := range []string{"store", "inspect", "remove", "running", "daemon mismatch", "game mismatch", "wrong target", "missing worker", "wrong registration", "invalid uuid", "missing profile", "newline uuid"} {
+	for _, name := range []string{"store", "inspect", "remove", "running", "daemon mismatch", "game mismatch", "wrong target", "missing worker", "wrong registration", "invalid uuid", "missing profile", "newline uuid", "rcon store", "rcon inspect", "rcon remove", "rcon wrong target", "rcon both", "rcon missing store"} {
 		t.Run(name, func(t *testing.T) {
 			root := t.TempDir()
 			for _, dir := range []string{"bin/scripts", "private"} {
@@ -90,7 +91,7 @@ func TestServiceCredentialPlan(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			for _, file := range []string{"bin/wings-windows.exe", "bin/scripts/CredentialTask.ps1", "bin/scripts/CredentialBridge.psm1", "bin/scripts/Store-GameCredential.ps1"} {
+			for _, file := range []string{"bin/wings-windows.exe", "bin/scripts/CredentialTask.ps1", "bin/scripts/CredentialBridge.psm1", "bin/scripts/Store-GameCredential.ps1", "bin/scripts/Store-RCONCredential.ps1"} {
 				if err := os.WriteFile(filepath.Join(root, file), nil, 0600); err != nil {
 					t.Fatal(err)
 				}
@@ -101,6 +102,19 @@ func TestServiceCredentialPlan(t *testing.T) {
 				target += "-wrong"
 			}
 			profiles := map[string]any{id: map[string]any{"run_as": map[string]string{"sid": "S-1-5-21-1-2-3-1002", "credential_target": target}}}
+			if strings.HasPrefix(name, "rcon ") {
+				rcon := map[string]string{"password_credential_target": "WingsWindowsRCON/" + id}
+				if name == "rcon wrong target" {
+					rcon["password_credential_target"] += "-wrong"
+				}
+				if name == "rcon both" {
+					rcon["password_environment"] = "WINGS_RCON_TEST"
+				}
+				profiles[id].(map[string]any)["source_rcon"] = rcon
+			}
+			if name == "rcon missing store" {
+				os.Remove(filepath.Join(root, "bin/scripts/Store-RCONCredential.ps1"))
+			}
 			if name == "missing profile" {
 				profiles = map[string]any{}
 			}
@@ -137,9 +151,10 @@ $password=ConvertTo-SecureString 'FixtureOnly1!' -AsPlainText -Force
 $service=[PSCredential]::new('.\FixtureDaemon',$password);$game=[PSCredential]::new('.\FixtureGame',$password)
 $operation='Store';if($Case -eq 'inspect'){$operation='Inspect';$game=$null};if($Case -eq 'remove'){$operation='Remove';$game=$null}
 $id='11111111-1111-4111-8111-111111111111';if($Case -eq 'invalid uuid'){$id='short'};if($Case -eq 'newline uuid'){$id+=[char]10}
+$purpose='Game';if($Case -like 'rcon *'){$purpose='RCON';$game=[PSCredential]::new('.\WingsRCONSecret-v1',$password);if($Case -eq 'rcon inspect'){$operation='Inspect';$game=$null};if($Case -eq 'rcon remove'){$operation='Remove';$game=$null}}
 $before=(Get-Acl -LiteralPath $Root).Sddl
-$accepted=$false;try{$plan=Get-ServiceCredentialPlan -InstallationRoot $Root -ServerUUID $id -ServiceCredential $service -GameCredential $game -Operation $operation;$accepted=$true}catch{if($Case -in @('store','inspect','remove')){throw}}
-if($accepted -ne ($Case -in @('store','inspect','remove'))){throw 'Unexpected planner acceptance'}
+$accepted=$false;try{$plan=Get-ServiceCredentialPlan -InstallationRoot $Root -ServerUUID $id -ServiceCredential $service -GameCredential $game -Operation $operation -Purpose $purpose;$accepted=$true}catch{if($Case -in @('store','inspect','remove','rcon store','rcon inspect','rcon remove')){throw}}
+if($accepted -ne ($Case -in @('store','inspect','remove','rcon store','rcon inspect','rcon remove'))){throw 'Unexpected planner acceptance'}
 if((Get-Acl -LiteralPath $Root).Sddl -ne $before){throw 'Planning changed DACLs'}
 $password.Dispose()
 `, "-Module", module, "-Node", node, "-Root", root, "-Case", name)

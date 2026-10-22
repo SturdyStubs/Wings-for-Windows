@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.32 - October 21, 2026
+
+- Add exact per-server Windows Credential Manager references for Source RCON, separate from game-account credentials. Require exactly one vault/environment reference; read the selected vault entry per command and fail without fallback if unavailable or malformed.
+- Add SecureString store/replace and metadata/remove CLI, plus a managed service-account helper using the existing protected pipe/task/operation-lock workflow. No RCON password is passed through task arguments, node JSON or environment. Preserve game-account credential management and existing transport redaction/cancellation.
+- Add namespace/config/format/rotation tests and seven optional service checks, with conservative credential cleanup after interrupted worker responses. Existing environment references remain supported. Final clean-package/VM evidence follows separately.
+
 ## 0.1.0-alpha.31 - October 21, 2026
 
 - Add opt-in locally approved UTF-8 game log-file console output and optional log-only readiness. Snapshot existing history before launch, skip stale/incomplete old lines, follow file rotation/visible truncation and retain bounded append backlog.

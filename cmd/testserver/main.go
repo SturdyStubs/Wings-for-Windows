@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
+	"wings-windows/internal/identity"
 )
 
 func main() {
@@ -45,6 +47,9 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		line := scanner.Text()
+		if probeRCONCredential(line) {
+			continue
+		}
 		if writeFixtureLog(line) {
 			continue
 		}
@@ -76,4 +81,17 @@ func main() {
 		}
 		fmt.Println("ECHO:" + line)
 	}
+}
+
+func probeRCONCredential(line string) bool {
+	if !strings.HasPrefix(line, "probe-rcon-credential ") {
+		return false
+	}
+	status, err := identity.RCONCredentialStatus(strings.TrimPrefix(line, "probe-rcon-credential "))
+	if err == nil && status.Present {
+		fmt.Println("RCON_CREDENTIAL_PRESENT")
+	} else {
+		fmt.Println("RCON_CREDENTIAL_UNAVAILABLE")
+	}
+	return true
 }

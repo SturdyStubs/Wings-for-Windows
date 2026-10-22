@@ -30,7 +30,7 @@ namespace WingsWindows {
 '@
 }
 
-function Get-ServiceCredentialPlan([string]$InstallationRoot,[string]$ServerUUID,[PSCredential]$ServiceCredential,[PSCredential]$GameCredential,[string]$Operation) {
+function Get-ServiceCredentialPlan([string]$InstallationRoot,[string]$ServerUUID,[PSCredential]$ServiceCredential,[PSCredential]$GameCredential,[string]$Operation,[ValidateSet('Game','RCON')][string]$Purpose='Game') {
     $ErrorActionPreference='Stop'
     Initialize-NodeSetupNative
     if($ServerUUID -notmatch '\A[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}\z'){throw 'A full server UUID is required.'}
@@ -54,12 +54,20 @@ function Get-ServiceCredentialPlan([string]$InstallationRoot,[string]$ServerUUID
     $id=$ServerUUID.ToLowerInvariant();$profile=$configuration.profiles.PSObject.Properties[$id].Value
     if(-not $profile.run_as -or $profile.run_as.credential_target -cne ('WingsWindows/'+$id)){throw 'Configure the server run_as SID and exact credential target first.'}
     if($profile.run_as.sid -eq $account.SID.Value){throw 'Game identity must differ from the daemon.'}
-    if($Operation -eq 'Store'){
-        if(-not $GameCredential -or $GameCredential.Password.Length -eq 0 -or $GameCredential.Password.Length -gt 2560){throw 'A nonempty game credential within the storage limit is required.'}
-        $game=Get-NodeLocalAccount $GameCredential.UserName
-        if($game.SID.Value -ne $profile.run_as.sid){throw 'Game credential does not match the configured pinned SID.'}
+    if($Purpose -eq 'RCON'){
+        if(-not $profile.source_rcon -or $profile.source_rcon.password_credential_target -cne ('WingsWindowsRCON/'+$id) -or $profile.source_rcon.password_environment){throw 'Configure the exact server RCON credential target without an environment reference first.'}
+        $store=Join-Path $root 'bin\scripts\Store-RCONCredential.ps1'
+        & $nodeModule {param($p) Assert-NodeSetupPath $p} $store
+        if(-not(Test-Path -LiteralPath $store)){throw 'Managed RCON credential setup file is missing.'}
     }
-    return [pscustomobject]@{Root=$root;Executable=$exe;Configuration=$config;Worker=$worker;ServerUUID=$id;DaemonSID=$account.SID.Value;Operation=$Operation}
+    if($Operation -eq 'Store'){
+        if(-not $GameCredential -or $GameCredential.Password.Length -eq 0 -or $GameCredential.Password.Length -gt 1280){throw 'A nonempty game credential within the storage limit is required.'}
+        if($Purpose -eq 'Game'){
+            $game=Get-NodeLocalAccount $GameCredential.UserName
+            if($game.SID.Value -ne $profile.run_as.sid){throw 'Game credential does not match the configured pinned SID.'}
+        }elseif($GameCredential.UserName -cne '.\WingsRCONSecret-v1'){throw 'Invalid RCON secret format.'}
+    }
+    return [pscustomobject]@{Root=$root;Executable=$exe;Configuration=$config;Worker=$worker;ServerUUID=$id;DaemonSID=$account.SID.Value;Operation=$Operation;Purpose=$Purpose}
 }
 
 function Invoke-ServiceCredentialTask($Plan,[PSCredential]$ServiceCredential,[PSCredential]$GameCredential,[bool]$Replace) {
@@ -94,7 +102,8 @@ function Invoke-ServiceCredentialTask($Plan,[PSCredential]$ServiceCredential,[PS
         $process=Get-CimInstance Win32_Process -Filter ('ProcessId='+$peer) -ErrorAction Stop
         $owner=Invoke-CimMethod -InputObject $process -MethodName GetOwnerSid -ErrorAction Stop
         if($owner.Sid -ne $Plan.DaemonSID -or $hello.sid -ne $Plan.DaemonSID){throw 'Credential worker identity mismatch.'}
-        $request=[ordered]@{operation=$Plan.Operation;server=$Plan.ServerUUID;replace=$Replace;username=$null;password=$null}
+        $purpose='Game';if($Plan.Purpose){$purpose=$Plan.Purpose};if($purpose -notin @('Game','RCON')){throw 'Invalid credential purpose.'}
+        $request=[ordered]@{operation=$Plan.Operation;purpose=$purpose;server=$Plan.ServerUUID;replace=$Replace;username=$null;password=$null}
         if($Plan.Operation -eq 'Store'){$request.username=$GameCredential.UserName;$request.password=$GameCredential.GetNetworkCredential().Password}
         try{[WingsWindows.CredentialPipe]::Send($pipe,($request|ConvertTo-Json -Compress))}finally{$request.password=$null}
         $result=[WingsWindows.CredentialPipe]::Receive($pipe)|ConvertFrom-Json

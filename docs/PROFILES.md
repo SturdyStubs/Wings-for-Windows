@@ -62,6 +62,8 @@ Profile v1 accepts egg_config_files only with use_egg_process_configuration. It 
 
 ## Optional console adapters
 
+Source RCON can use either a daemon environment reference or an exact per-server `password_credential_target`. See [Windows Credential Manager provisioning and rotation](RCON-CREDENTIALS.md); secrets themselves do not belong in node JSON.
+
 The optional `log_file` object forwards a locally approved relative UTF-8 game log into the console. `readiness: true` selects new file lines instead of stdout for existing readiness matchers. See [configuration, rotation, stale-history handling and bounds](LOG-FILE-CONSOLE.md).
 
 The local `source_rcon` object selects Source TCP commands and graceful stops instead of stdin. It requires a loopback endpoint and daemon environment secret reference; readiness still uses stdout. See [configuration and supported protocol](SOURCE-RCON.md).

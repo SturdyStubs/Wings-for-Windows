@@ -10,9 +10,10 @@ import (
 
 // SourceRCON is local operator configuration, never populated from panel data.
 type SourceRCON struct {
-	Address             string `json:"address"`
-	PasswordEnvironment string `json:"password_environment"`
-	TimeoutSeconds      int    `json:"timeout_seconds,omitempty"`
+	Address                  string `json:"address"`
+	PasswordEnvironment      string `json:"password_environment,omitempty"`
+	PasswordCredentialTarget string `json:"password_credential_target,omitempty"`
+	TimeoutSeconds           int    `json:"timeout_seconds,omitempty"`
 }
 
 func (r *SourceRCON) Normalize() error {
@@ -21,8 +22,14 @@ func (r *SourceRCON) Normalize() error {
 	if err != nil || (host != "127.0.0.1" && host != "::1") || portErr != nil || n < 1 || n > 65535 || strconv.Itoa(n) != port {
 		return errors.New("source_rcon.address must use literal 127.0.0.1 or [::1] and port 1..65535")
 	}
-	if !regexp.MustCompile(`^WINGS_RCON_[A-Z0-9_]{1,100}$`).MatchString(r.PasswordEnvironment) {
+	if (r.PasswordEnvironment == "") == (r.PasswordCredentialTarget == "") {
+		return errors.New("source_rcon requires exactly one password reference")
+	}
+	if r.PasswordEnvironment != "" && !regexp.MustCompile(`^WINGS_RCON_[A-Z0-9_]{1,100}$`).MatchString(r.PasswordEnvironment) {
 		return errors.New("source_rcon.password_environment must be a WINGS_RCON_ uppercase identifier")
+	}
+	if r.PasswordCredentialTarget != "" && (!strings.HasPrefix(r.PasswordCredentialTarget, "WingsWindowsRCON/") || !UUID.MatchString(strings.TrimPrefix(r.PasswordCredentialTarget, "WingsWindowsRCON/"))) {
+		return errors.New("source_rcon credential target must use WingsWindowsRCON/<server UUID>")
 	}
 	if r.TimeoutSeconds == 0 {
 		r.TimeoutSeconds = 3

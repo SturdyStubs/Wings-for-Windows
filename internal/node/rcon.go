@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"wings-windows/internal/identity"
 	"wings-windows/internal/native"
 	"wings-windows/internal/sourcercon"
 )
@@ -18,6 +19,16 @@ func (s *Server) rconCommand(ctx context.Context, p *native.Process, command str
 	default:
 	}
 	password := os.Getenv(policy.PasswordEnvironment)
+	if policy.PasswordCredentialTarget != "" {
+		target, err := identity.RCONCredentialTarget(s.ID())
+		if err != nil || target != policy.PasswordCredentialTarget {
+			return errors.New("RCON credential reference is invalid")
+		}
+		password, err = identity.RCONPassword(s.ID())
+		if err != nil {
+			return err
+		}
+	}
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 	go func() {

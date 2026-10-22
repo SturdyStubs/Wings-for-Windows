@@ -17,7 +17,7 @@ import (
 	"wings-windows/internal/networkpolicy"
 )
 
-const Version = "0.1.0-alpha.31"
+const Version = "0.1.0-alpha.32"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -154,6 +154,9 @@ func (c *Config) Validate() error {
 			return fmt.Errorf("server %s: %w", id, err)
 		}
 		if p.SourceRCON != nil {
+			if p.SourceRCON.PasswordCredentialTarget != "" && p.SourceRCON.PasswordCredentialTarget != "WingsWindowsRCON/"+strings.ToLower(id) {
+				return errors.New("source_rcon credential target must match this server UUID")
+			}
 			if rconAddresses[p.SourceRCON.Address] {
 				return errors.New("source_rcon addresses must be unique per server")
 			}

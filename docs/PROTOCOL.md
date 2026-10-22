@@ -20,6 +20,8 @@ Windows Native ---------- node credentials -----> panel /api/remote
 
 ## Packages
 
+Alpha 32 adds optional [account-scoped RCON credential references](RCON-CREDENTIALS.md) and local metadata/remove CLI. Existing network command routes and transport authentication remain unchanged; no new panel route or actual-game certification is implied.
+
 Alpha 31 adds optional [game log-file console/readiness](LOG-FILE-CONSOLE.md), selected locally. `native_log_file` status reports activation/failure without paths. Authorization and native process state remain unchanged.
 
 Alpha 30 adds optional [Source TCP RCON command delivery](SOURCE-RCON.md), selected only by local profile. REST/WebSocket authorization and native process status remain unchanged. No new HTTP route or real-game certification is implied.

@@ -114,6 +114,8 @@ func main() {
 	installed := flag.String("mark-installed", "", "Explicitly acknowledge manually provisioned server UUID to the panel")
 	credentialStatus := flag.String("credential-status", "", "Report credential metadata for one full server UUID without account logon")
 	removeCredential := flag.String("remove-credential", "", "Remove the current account's exact per-server credential; does not stop games or delete users")
+	rconStatus := flag.String("rcon-credential-status", "", "Report metadata for the current account's exact server RCON credential")
+	rconRemove := flag.String("remove-rcon-credential", "", "Remove only the current account's exact server RCON credential")
 	checkIdentity := flag.String("check-identity", "", "Diagnose one configured identity with a batch logon and access checks, without starting a game")
 	checkNetwork := flag.String("check-network-policy", "", "Temporarily install/inspect/remove the configured account block after identity preflight; no traffic probe")
 	flag.Parse()
@@ -121,18 +123,39 @@ func main() {
 		log.Fatal("unexpected positional arguments")
 	}
 	flag.Visit(func(f *flag.Flag) {
-		if (f.Name == "credential-status" || f.Name == "remove-credential" || f.Name == "check-identity" || f.Name == "check-network-policy") && f.Value.String() == "" {
+		if (f.Name == "credential-status" || f.Name == "remove-credential" || f.Name == "rcon-credential-status" || f.Name == "remove-rcon-credential" || f.Name == "check-identity" || f.Name == "check-network-policy") && f.Value.String() == "" {
 			log.Fatal("credential operation requires a full server UUID")
 		}
 	})
 	operations := 0
-	for _, selected := range []bool{*version, *check, *checkProfiles, *installed != "", *credentialStatus != "", *removeCredential != "", *checkIdentity != "", *checkNetwork != ""} {
+	for _, selected := range []bool{*version, *check, *checkProfiles, *installed != "", *credentialStatus != "", *removeCredential != "", *rconStatus != "", *rconRemove != "", *checkIdentity != "", *checkNetwork != ""} {
 		if selected {
 			operations++
 		}
 	}
 	if operations > 1 {
 		log.Fatal("choose only one CLI operation")
+	}
+	if *rconStatus != "" {
+		metadata, err := identity.RCONCredentialStatus(*rconStatus)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if err = json.NewEncoder(os.Stdout).Encode(metadata); err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
+	if *rconRemove != "" {
+		removed, err := identity.RemoveRCONCredential(*rconRemove)
+		if err != nil {
+			log.Fatal(err)
+		}
+		target, _ := identity.RCONCredentialTarget(*rconRemove)
+		if err = json.NewEncoder(os.Stdout).Encode(map[string]any{"target": target, "removed": removed}); err != nil {
+			log.Fatal(err)
+		}
+		return
 	}
 	if *credentialStatus != "" {
 		metadata, err := identity.CredentialStatus(*credentialStatus)

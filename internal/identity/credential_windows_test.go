@@ -42,6 +42,12 @@ func TestCredentialLifecycleWithoutAccountLogon(t *testing.T) {
 		return testutil.PowerShell(context.Background(), "-NoProfile", "-NonInteractive", "-Command", command).Run()
 	}
 	const user = `.\WingsTestNeverLogOn`
+	// Reject the documented UTF-16 blob bound before invoking CredWriteW.
+	oversized := "& '" + strings.ReplaceAll(path, "'", "''") + "' -ServerUUID '" + id + "' -Credential ([PSCredential]::new('" + user + "',(ConvertTo-SecureString ('x'*1281) -AsPlainText -Force)))"
+	output, oversizedErr := testutil.PowerShell(context.Background(), "-NoProfile", "-NonInteractive", "-Command", oversized).CombinedOutput()
+	if oversizedErr == nil || !strings.Contains(string(output), "2560-byte storage limit") {
+		t.Fatal("oversized credential was not refused before the OS write")
+	}
 	const first = "TEST-only-secret-first"
 	const second = "TEST-only-secret-second"
 	if err := store(user, first, true); err == nil {

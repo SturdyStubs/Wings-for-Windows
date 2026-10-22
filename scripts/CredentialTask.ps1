@@ -15,6 +15,18 @@ try {
     $exe=Join-Path (Split-Path -Parent $PSScriptRoot) 'wings-windows.exe'
     $result=@{ok=$false;metadata=$null}
     try {
+        if($request.purpose -eq 'RCON'){
+            switch -CaseSensitive ($request.operation){
+                'Store'{
+                    $secure=ConvertTo-SecureString $request.password -AsPlainText -Force;$request.password=$null
+                    try{& (Join-Path $PSScriptRoot 'Store-RCONCredential.ps1') -ServerUUID $request.server -Password $secure -Replace:([bool]$request.replace)|Out-Null}finally{$secure.Dispose()}
+                    $output=& $exe --rcon-credential-status $request.server
+                }
+                'Inspect'{$output=& $exe --rcon-credential-status $request.server}
+                'Remove'{$output=& $exe --remove-rcon-credential $request.server}
+                default{throw 'Invalid RCON operation'}
+            }
+        }elseif(-not $request.purpose -or $request.purpose -eq 'Game'){
         switch -CaseSensitive ($request.operation) {
             'Store' {
                 $secure=ConvertTo-SecureString $request.password -AsPlainText -Force;$request.password=$null
@@ -25,6 +37,7 @@ try {
             'Remove' {$output=& $exe --remove-credential $request.server}
             default {throw 'Invalid operation'}
         }
+        }else{throw 'Invalid credential purpose'}
         if($LASTEXITCODE -ne 0){throw 'Credential CLI failed'}
         $result.metadata=($output -join "`n")|ConvertFrom-Json;$result.ok=$true
     } catch { $result=@{ok=$false;metadata=$null} }

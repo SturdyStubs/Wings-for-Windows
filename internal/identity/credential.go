@@ -21,3 +21,11 @@ func CredentialTarget(serverID string) (string, error) {
 	}
 	return name, nil
 }
+
+func RCONCredentialTarget(serverID string) (string, error) {
+	value, err := CredentialTarget(serverID)
+	if err != nil {
+		return "", err
+	}
+	return "WingsWindowsRCON/" + strings.TrimPrefix(value, "WingsWindows/"), nil
+}

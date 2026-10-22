@@ -75,6 +75,7 @@ func startRCONFixture(address string) {
 					return
 				}
 				fmt.Println("RCON_COMMAND:" + command)
+				probeRCONCredential(command)
 				writeFixtureLog(command)
 				if command == "hang" {
 					io.Copy(io.Discard, c)

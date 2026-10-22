@@ -15,6 +15,9 @@ func CredentialStatus(serverID string) (CredentialMetadata, error) {
 	if err != nil {
 		return CredentialMetadata{}, err
 	}
+	return credentialStatusTarget(target)
+}
+func credentialStatusTarget(target string) (CredentialMetadata, error) {
 	result := CredentialMetadata{Target: target}
 	name, _ := windows.UTF16PtrFromString(target)
 	var stored *credential
@@ -51,6 +54,9 @@ func RemoveCredential(serverID string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	return removeCredentialTarget(target)
+}
+func removeCredentialTarget(target string) (bool, error) {
 	name, _ := windows.UTF16PtrFromString(target)
 	if ok, _, err := advapi.NewProc("CredDeleteW").Call(uintptr(unsafe.Pointer(name)), 1, 0); ok == 0 {
 		if errors.Is(err, windows.ERROR_NOT_FOUND) {
@@ -62,7 +68,7 @@ func RemoveCredential(serverID string) (bool, error) {
 }
 
 func releaseCredential(stored *credential) {
-	if stored.Blob != nil && stored.BlobSize <= 5120 {
+	if stored.Blob != nil && stored.BlobSize <= 2560 {
 		clear(unsafe.Slice(stored.Blob, int(stored.BlobSize)))
 	}
 	credFree.Call(uintptr(unsafe.Pointer(stored)))

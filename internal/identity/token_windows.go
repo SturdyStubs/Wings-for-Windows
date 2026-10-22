@@ -64,7 +64,7 @@ func readCredential(target string) (*uint16, []uint16, error) {
 		return nil, nil, errors.New("game credential was empty")
 	}
 	defer releaseCredential(stored)
-	if stored.BlobSize > 5120 || stored.BlobSize == 0 || stored.BlobSize%2 != 0 || stored.Blob == nil {
+	if stored.BlobSize > 2560 || stored.BlobSize == 0 || stored.BlobSize%2 != 0 || stored.Blob == nil {
 		return nil, nil, errors.New("game credential must contain a UTF-16 password")
 	}
 	blob := unsafe.Slice(stored.Blob, int(stored.BlobSize))

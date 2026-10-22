@@ -38,11 +38,14 @@ func setup(t *testing.T) (*Manager, *Server, *atomic.Bool) {
 	return setupConfigured(t, nil)
 }
 func setupConfigured(t *testing.T, configure func(*RemoteServer)) (*Manager, *Server, *atomic.Bool) {
+	return setupConfiguredID(t, testID, configure)
+}
+func setupConfiguredID(t *testing.T, serverID string, configure func(*RemoteServer)) (*Manager, *Server, *atomic.Bool) {
 	t.Helper()
 	suspended := &atomic.Bool{}
 	panel := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		settings := Settings{UUID: testID, Environment: map[string]any{"PORT": "28015", "UNTRUSTED": "ignored"}, Suspended: suspended.Load()}
-		remote := RemoteServer{UUID: testID, Settings: settings}
+		settings := Settings{UUID: serverID, Environment: map[string]any{"PORT": "28015", "UNTRUSTED": "ignored"}, Suspended: suspended.Load()}
+		remote := RemoteServer{UUID: serverID, Settings: settings}
 		if configure != nil {
 			configure(&remote)
 		}
@@ -53,12 +56,12 @@ func setupConfigured(t *testing.T, configure func(*RemoteServer)) (*Manager, *Se
 		}
 	}))
 	t.Cleanup(panel.Close)
-	m := NewManager(config.Config{PanelURL: panel.URL, TokenID: "test", Token: strings.Repeat("s", 32), DataDirectory: t.TempDir(), Profiles: map[string]config.Profile{testID: {Executable: fixture, ReadyPattern: "^SERVER_READY$", StopCommand: "stop", StopTimeoutSeconds: 1, AllowedEnvironment: []string{"PORT"}, MemoryMB: 128}}})
+	m := NewManager(config.Config{PanelURL: panel.URL, TokenID: "test", Token: strings.Repeat("s", 32), DataDirectory: t.TempDir(), Profiles: map[string]config.Profile{serverID: {Executable: fixture, ReadyPattern: "^SERVER_READY$", StopCommand: "stop", StopTimeoutSeconds: 1, AllowedEnvironment: []string{"PORT"}, MemoryMB: 128}}})
 	if err := m.Sync(context.Background()); err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(m.Close)
-	return m, m.Get(testID), suspended
+	return m, m.Get(serverID), suspended
 }
 func await(t *testing.T, s *Server, state string) {
 	t.Helper()

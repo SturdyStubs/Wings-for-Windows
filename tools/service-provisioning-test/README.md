@@ -1,5 +1,7 @@
 # Developer-only service provisioning fixture
 
+`-TestRCONCredential` adds seven checks after Source RCON: service-account store/inspect/overwrite rules, unconfigured-server rejection, actual vault authentication, inability of the distinct game context to resolve the daemon entry, deliberate replacement, removal preserving the game credential, and no environment fallback. Its extra cleanup flag confirms removal. Failed/uncertain provisioning retains conservative cleanup responsibility before service/account deletion. This cannot prepare a reboot.
+
 `-TestLogFile` adds five checks after `-TestSourceRCON`: stale/stdout readiness exclusion, RCON-driven log readiness/console, rotation/truncation, kill releasing directory pins and safe malformed-text failure while the game remains controllable. The directory move probe validates both absolute paths stay inside the exact disposable data root. This phase cannot prepare a reboot and does not certify a real game.
 
 `-TestSourceRCON` adds a separate phase after the normal checks: a loopback Source TCP demo, daemon-only environment password reference, API command/reply, redaction, distinct game identity, graceful tree stop and bad-password rejection. Its fixed demo password is public test data. This mode cannot be combined with `-PrepareReboot`; it does not certify a real game or private service environment provisioning.
