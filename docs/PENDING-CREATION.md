@@ -54,4 +54,4 @@ For an existing managed installation, adding a game identity still requires admi
 
 The reviewed panel persists a new record before its daemon create request and removes it when that request fails. Returning 202 addresses that source-level blocker when manual approval is enabled and automatic start is disabled. Tests reproduce that transaction behavior with a mock; an actual panel import/create/reinstall session remains unverified.
 
-Automatic start-on-completion, automatic profile selection, game-account provisioning, protected binary staging/promotion, deletion and durable installer/callback reconciliation remain future work. Do not enable this mode expecting arbitrary Linux eggs to become Windows recipes.
+Automatic start-on-completion, automatic profile selection, game-account provisioning, protected binary staging/promotion, deletion and general transactional recovery remain future work. Opted-in approved profiles can use [durable installer notification recovery](INSTALL-RECOVERY.md). Do not enable this mode expecting arbitrary Linux eggs to become Windows recipes.

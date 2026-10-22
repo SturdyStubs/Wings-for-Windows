@@ -29,6 +29,10 @@ func (s *Server) EnqueuePower(action string, waitSeconds int) error {
 		s.mu.Unlock()
 		return ErrInstallBusy
 	}
+	if (action == "start" || action == "restart") && (s.installStorageError != "" || (s.installStore != nil && s.installRecord.Phase == "running")) {
+		s.mu.Unlock()
+		return ErrInstallUnresolved
+	}
 	if s.closing {
 		s.mu.Unlock()
 		return errors.New("node is shutting down")

@@ -171,10 +171,39 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case action == "" && r.Method == "GET":
 		respond(w, 200, s.Response())
+	case action == "install/reconcile" && r.Method == "POST":
+		var request struct {
+			AttemptID string `json:"attempt_id"`
+			Action    string `json:"action"`
+		}
+		if !decode(w, r, &request) {
+			return
+		}
+		if !config.UUID.MatchString(request.AttemptID) || (request.Action != "notify" && request.Action != "report_failed") {
+			failure(w, 422, "Provide a full attempt_id and action notify or report_failed")
+			return
+		}
+		if err := s.ReconcileInstall(r.Context(), request.AttemptID, request.Action == "report_failed"); err != nil {
+			status := 409
+			if errors.Is(err, node.ErrInstallPersistDisabled) {
+				status = 501
+			}
+			if errors.Is(err, node.ErrInstallNotification) {
+				status = 502
+			}
+			if errors.Is(err, node.ErrInstallStorage) {
+				status = 503
+			}
+			failure(w, status, err.Error())
+			return
+		}
+		respond(w, 204, nil)
 	case (action == "install" || action == "reinstall") && r.Method == "POST":
 		if err := s.EnqueueInstall(action == "reinstall"); err != nil {
 			status := 409
-			if errors.Is(err, node.ErrInstallDisabled) {
+			if errors.Is(err, node.ErrInstallStorage) {
+				status = 503
+			} else if errors.Is(err, node.ErrInstallDisabled) {
 				status = 501
 			} else if errors.Is(err, node.ErrSuspended) {
 				status = 400

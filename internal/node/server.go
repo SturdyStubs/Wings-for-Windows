@@ -33,7 +33,14 @@ type desiredPersistence interface {
 	Save(bool) error
 	Close(context.Context) error
 }
+type installPersistence interface {
+	Save(consolelog.InstallRecord) error
+	Close(context.Context) error
+}
 type Server struct {
+	installStore         installPersistence
+	installRecord        consolelog.InstallRecord
+	installStorageError  string
 	installing           bool
 	installerProcess     *native.Process
 	installDone          chan struct{}
@@ -184,6 +191,29 @@ func (m *Manager) Sync(ctx context.Context) error {
 			s.desiredRunning = running
 			s.desiredRestored = running
 		}
+		if profile.Installer != nil && profile.Installer.PersistState {
+			if m.Config.ConsoleLogs == nil {
+				return errors.New("persistent installer requires private storage")
+			}
+			receipt, record, err := consolelog.OpenInstallState(*m.Config.ConsoleLogs, id)
+			if err != nil {
+				closeCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+				if s.desiredStore != nil {
+					s.desiredStore.Close(closeCtx)
+				}
+				if s.recoveryStore != nil {
+					s.recoveryStore.Close(closeCtx)
+				}
+				if s.consoleStore != nil {
+					s.consoleStore.Close(closeCtx)
+				}
+				cancel()
+				return fmt.Errorf("server %s installation state could not be opened", id)
+			}
+			s.installStore = receipt
+			s.installRecord = record
+			s.restoreInstallRecord()
+		}
 		m.servers[id] = s
 	}
 	m.pending = pending
@@ -236,6 +266,13 @@ func (m *Manager) Close() {
 		if p != nil {
 			p.Kill()
 			<-p.Done
+		}
+		if s.installStore != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			if err := s.installStore.Close(ctx); err != nil {
+				log.Printf("server installation state close did not complete")
+			}
+			cancel()
 		}
 		if s.desiredStore != nil {
 			drained := make(chan struct{})
@@ -476,6 +513,10 @@ func (s *Server) powerWithEpoch(action string, epoch chan struct{}) error {
 		s.mu.Unlock()
 		return errors.New("node is shutting down")
 	}
+	if (action == "start" || action == "restart") && (s.installStorageError != "" || (s.installStore != nil && s.installRecord.Phase == "running")) {
+		s.mu.Unlock()
+		return ErrInstallUnresolved
+	}
 	if epoch != nil && epoch != s.powerEpoch {
 		s.mu.Unlock()
 		return ErrPowerCancelled
@@ -564,6 +605,10 @@ func (s *Server) start() error {
 }
 func (s *Server) startWithContext(parent context.Context) error {
 	s.mu.Lock()
+	if s.installStorageError != "" || (s.installStore != nil && s.installRecord.Phase == "running") {
+		s.mu.Unlock()
+		return ErrInstallUnresolved
+	}
 	installing := s.installing
 	s.mu.Unlock()
 	if installing {

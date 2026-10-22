@@ -1,6 +1,7 @@
 #Requires -RunAsAdministrator
-param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON,[switch]$TestLogFile,[switch]$TestRCONCredential,[switch]$TestNativeInstaller,[switch]$TestPendingCreation)
+param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON,[switch]$TestLogFile,[switch]$TestRCONCredential,[switch]$TestNativeInstaller,[switch]$TestPendingCreation,[switch]$TestInstallState)
 $ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
+if($TestInstallState -and (-not $TestPendingCreation -or $PrepareReboot)){throw 'Install state fixture requires pending creation phase and cannot prepare reboot'}
 if($TestPendingCreation -and (-not $TestNativeInstaller -or $PrepareReboot)){throw 'Pending creation fixture requires native installer phase and cannot prepare reboot'}
 if($TestNativeInstaller -and (-not $TestRCONCredential -or $PrepareReboot)){throw 'Native installer fixture requires full credential fixture and cannot prepare reboot'}
 if($TestRestoreRunning -and -not $TestPersistentRecovery){throw 'Restore fixture requires persistent recovery'}
@@ -574,6 +575,83 @@ try {
   if($approved.native_creation -or -not $approved.native_install.enabled){throw 'Operator profile restore did not approve execution'}
   Start-NativeInstall 'reinstall';$approved=Wait-Install 'complete';Assert-InstallCallback $true $true
   $report.checks.pending_creation_local_profile_handoff_to_native_reinstall='passed'
+ }
+
+ if($TestInstallState){
+  Stop-Service WingsWindowsNative
+  $edited=Get-Content -LiteralPath $configuration -Raw|ConvertFrom-Json
+  $edited.profiles.$ServerID.installer|Add-Member -NotePropertyName persist_state -NotePropertyValue $true -Force
+  $edited.profiles.$ServerID.allowed_environment+=@('INSTALL_STATE_PROBE_PATH')
+  [IO.File]::WriteAllText($configuration,($edited|ConvertTo-Json -Depth 30),[Text.UTF8Encoding]::new($false))
+  $rejectFile=Join-Path $Root 'private\reject-install-callback'
+  [IO.File]::WriteAllText($rejectFile,'fixture rejects before recording callback')
+  $acceptedCount=@(Get-Content -LiteralPath $callbackFile).Count
+  Start-Service WingsWindowsNative;Wait-State 'offline';Start-NativeInstall 'install'
+  $until=[DateTime]::UtcNow.AddSeconds(12);do{$native=(Get-NodeAPI ('/api/servers/'+$ServerID)).native_install;if(-not $native.active -and $native.attempt_id){break};Start-Sleep -Milliseconds 100}while([DateTime]::UtcNow -lt $until)
+  if($native.receipt_phase -ne 'result' -or -not $native.pending_notification -or -not $native.successful -or $native.callback_error -ne 'notification_failed'){throw 'Failed callback result was not persisted'}
+  $attempt=[string]$native.attempt_id
+  $report.checks.install_state_failed_callback_preserves_success_receipt='passed'
+  $rejected=$false;try{Start-NativeInstall 'reinstall'}catch{if([int]$_.Exception.Response.StatusCode -eq 409){$rejected=$true}else{throw}}
+  if(-not $rejected){throw 'Pending receipt overwritten by reinstall'}
+  $report.checks.install_state_pending_result_blocks_another_installer='passed'
+  $marker=Join-Path $Root ('data\'+$ServerID+'\install.marker')
+  [IO.File]::WriteAllText($marker,'NOT_RERUN')
+  Stop-Service WingsWindowsNative;Remove-Item -LiteralPath $rejectFile
+  Start-Service WingsWindowsNative;Wait-State 'offline'
+  $native=(Get-NodeAPI ('/api/servers/'+$ServerID)).native_install
+  if($native.attempt_id -ne $attempt -or -not $native.pending_notification -or @(Get-Content -LiteralPath $callbackFile).Count -ne $acceptedCount){throw 'Restart lost result or automatically notified'}
+  $report.checks.install_state_restart_retains_result_without_auto_retry='passed'
+  function Reconcile-Install([string]$Attempt,[string]$Action){Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/install/reconcile') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body (@{attempt_id=$Attempt;action=$Action}|ConvertTo-Json) -TimeoutSec 8|Out-Null}
+  $rejected=$false;try{Reconcile-Install ([guid]::NewGuid().ToString()) 'notify'}catch{if([int]$_.Exception.Response.StatusCode -eq 409){$rejected=$true}else{throw}}
+  if(-not $rejected){throw 'Stale attempt accepted'}
+  Reconcile-Install $attempt 'notify';Assert-InstallCallback $true $false
+  if([IO.File]::ReadAllText($marker) -ne 'NOT_RERUN'){throw 'Notification reran installer'}
+  $rejected=$false;try{Reconcile-Install $attempt 'notify'}catch{if([int]$_.Exception.Response.StatusCode -eq 409){$rejected=$true}else{throw}}
+  if(-not $rejected -or @(Get-Content -LiteralPath $callbackFile).Count -ne ($acceptedCount+1)){throw 'Acknowledged notification repeated'}
+  $report.checks.install_state_explicit_retry_no_rerun_stale_and_duplicate_gates='passed'
+  Stop-Service WingsWindowsNative;Start-Service WingsWindowsNative;Wait-State 'offline'
+  $native=(Get-NodeAPI ('/api/servers/'+$ServerID)).native_install
+  if($native.receipt_phase -ne 'acknowledged' -or $native.pending_notification){throw 'Acknowledgement not restored'}
+  $report.checks.install_state_acknowledgement_survives_restart='passed'
+  Set-Power 'start';Wait-State 'running'
+  Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body '{"commands":["probe-install-access"]}' -TimeoutSec 5|Out-Null
+  $until=[DateTime]::UtcNow.AddSeconds(5);do{$lines=(Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data;if('INSTALL_STATE_PROBE_DENIED' -in $lines){break};Start-Sleep -Milliseconds 100}while([DateTime]::UtcNow -lt $until)
+  if('INSTALL_STATE_PROBE_DENIED' -notin $lines){throw 'Game context could read private installation receipt'}
+  Set-Power 'kill';Wait-State 'offline'
+  $report.checks.install_state_distinct_game_read_denied='passed'
+  Stop-Service WingsWindowsNative
+  $edited.profiles.$ServerID.installer.arguments=@('install','hang');$edited.profiles.$ServerID.installer.timeout_seconds=120
+  [IO.File]::WriteAllText($configuration,($edited|ConvertTo-Json -Depth 30),[Text.UTF8Encoding]::new($false))
+  Start-Service WingsWindowsNative;Wait-State 'offline';Start-NativeInstall 'install'
+  $child=$null;$until=[DateTime]::UtcNow.AddSeconds(5)
+  do{$native=(Get-NodeAPI ('/api/servers/'+$ServerID)).native_install;$lines=(Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data;$childLine=@($lines|Where-Object{$_ -match '^\[Installer\] INSTALL_CHILD:\d+$'})|Select-Object -Last 1;if($childLine){$childPID=[int]($childLine.Split(':')[-1]);$child=Get-CimInstance Win32_Process -Filter ('ProcessId='+$childPID) -ErrorAction Stop};if($native.receipt_phase -eq 'running' -and $child){break};Start-Sleep -Milliseconds 100}while([DateTime]::UtcNow -lt $until)
+  if(-not $child -or $native.receipt_phase -ne 'running'){throw 'Hanging persistent installer not launched'}
+  $interruptedAttempt=[string]$native.attempt_id
+  $daemonPID=(Get-CimInstance Win32_Service -Filter "Name='WingsWindowsNative'").ProcessId
+  Stop-Process -Id $daemonPID -Force
+  (Get-Service WingsWindowsNative).WaitForStatus('Stopped',[TimeSpan]::FromSeconds(15))
+  $until=[DateTime]::UtcNow.AddSeconds(3);do{if(-not (Get-Process -Id $childPID -ErrorAction SilentlyContinue)){break};Start-Sleep -Milliseconds 100}while([DateTime]::UtcNow -lt $until)
+  if(Get-Process -Id $childPID -ErrorAction SilentlyContinue){throw 'Installer child survived daemon termination'}
+  $report.checks.install_state_daemon_termination_kills_installer_tree='passed'
+  Start-Service WingsWindowsNative;Wait-State 'offline'
+  $native=(Get-NodeAPI ('/api/servers/'+$ServerID)).native_install
+  if($native.stage -ne 'interrupted' -or $native.attempt_id -ne $interruptedAttempt){throw 'Interrupted receipt not recovered'}
+  $rejected=$false;try{Set-Power 'start'}catch{if([int]$_.Exception.Response.StatusCode -eq 409){$rejected=$true}else{throw}}
+  if(-not $rejected){throw 'Interrupted installation allowed game start'}
+  $rejected=$false;try{Reconcile-Install $interruptedAttempt 'notify'}catch{if([int]$_.Exception.Response.StatusCode -eq 409){$rejected=$true}else{throw}}
+  if(-not $rejected){throw 'Unknown outcome notified as completed result'}
+  $report.checks.install_state_interrupted_outcome_blocks_start_and_notification='passed'
+  [IO.File]::WriteAllText($marker,'INTERRUPTED_NOT_RERUN')
+  Reconcile-Install $interruptedAttempt 'report_failed';Assert-InstallCallback $false $false
+  if([IO.File]::ReadAllText($marker) -ne 'INTERRUPTED_NOT_RERUN'){throw 'Failure resolution reran installer'}
+  $report.checks.install_state_explicit_interruption_failure_without_execution='passed'
+  Stop-Service WingsWindowsNative
+  $slots=@(0,1|ForEach-Object{$path=Join-Path $Root ('logs\console\'+$ServerID+'\install.'+$_+'.json');$value=Get-Content -LiteralPath $path -Raw|ConvertFrom-Json;[pscustomobject]@{Path=$path;Sequence=$value.payload.sequence}})
+  $latest=$slots|Sort-Object Sequence -Descending|Select-Object -First 1
+  $saved=[IO.File]::ReadAllBytes($latest.Path)
+  try{[IO.File]::WriteAllText($latest.Path,'CORRUPT_INSTALL_RECEIPT');try{Start-Service WingsWindowsNative -ErrorAction Stop}catch{};(Get-Service WingsWindowsNative).WaitForStatus('Stopped',[TimeSpan]::FromSeconds(15))}finally{[IO.File]::WriteAllBytes($latest.Path,$saved)}
+  Start-Service WingsWindowsNative;Wait-State 'offline'
+  $report.checks.install_state_corruption_refuses_start_then_releases_handles='passed'
  }
  if($PrepareReboot){
   Set-Power 'start';Wait-State 'running'

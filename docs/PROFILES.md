@@ -75,3 +75,5 @@ The local `source_rcon` object selects Source TCP commands and graceful stops in
 ## Optional data/setup installer
 
 `installer` approves a separate `.exe`, argument array, environment names, timeout, memory cap and requirements for the existing game account. Game binaries must already exist. See [full installer semantics](NATIVE-INSTALLERS.md) and the [matching demo profile](../configs/profile-windows-native-demo.json).
+
+Optional `installer.persist_state` requires private `console_logs` and enables [latest-attempt receipts and explicit notification recovery](INSTALL-RECOVERY.md). It defaults false and does not make setup transactional.

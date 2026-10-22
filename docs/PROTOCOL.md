@@ -150,3 +150,5 @@ Alpha 19 adds opt-in [bounded automatic restart](CRASH-RECOVERY.md) through the 
 Alpha 20 optionally persists per-server console output in an administratively protected log tree. Existing /logs responses can include restored lines after service restart. The server response adds native_console_logs counters/error status; no new upstream routes are implemented. See [limits and retention](CONSOLE-LOGS.md).
 
 The creation fixture `internal/api/testdata/upstream-create-server.json` follows Wings `747bc43` installer.ServerDetails and the reviewed panel Services/Daemon/ServerClient::create fields. API tests reproduce the panel action's persist-before-request/delete-on-failure behavior. Manual approval is a documented divergence from automatic upstream installation.
+
+Alpha 35 adds an extra native `POST /api/servers/{uuid}/install/reconcile` route, requiring the normal incoming node bearer and opt-in persistent installer state. It is not counted as another upstream route. It retries only recorded callback booleans or explicitly records interrupted failure, never executing an installer; see [contract and uncertainty](INSTALL-RECOVERY.md).

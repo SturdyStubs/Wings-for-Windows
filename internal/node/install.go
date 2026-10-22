@@ -31,6 +31,12 @@ func (s *Server) EnqueueInstall(reinstall bool) error {
 	if s.installing {
 		return ErrInstallBusy
 	}
+	if s.installStorageError != "" {
+		return ErrInstallStorage
+	}
+	if s.installStore != nil && (s.installRecord.Phase == "running" || s.installRecord.Phase == "result") {
+		return ErrInstallUnresolved
+	}
 	if s.pendingPower > 0 || (!reinstall && s.process != nil) {
 		return ErrPowerBusy
 	}
@@ -51,14 +57,24 @@ func (s *Server) EnqueueInstall(reinstall bool) error {
 	go func() {
 		defer s.outputWG.Done()
 		defer cancel()
-		err := s.runInstall(ctx, reinstall)
+		beginErr := s.beginInstallRecord(reinstall)
+		err := beginErr
+		if err == nil {
+			err = s.runInstall(ctx, reinstall)
+		}
 		success := err == nil && ctx.Err() == nil
 		s.mu.Lock()
 		s.installStage = "notifying"
 		s.installSuccessful = success
 		s.mu.Unlock()
 		notifyCtx, notifyCancel := context.WithTimeout(context.Background(), 5*time.Second)
-		notifyErr := s.panel.InstallResult(notifyCtx, s.ID(), success, reinstall)
+		notifyErr := beginErr
+		if notifyErr == nil {
+			notifyErr = s.completeInstallRecord(success)
+		}
+		if notifyErr == nil {
+			notifyErr = s.notifyInstallResult(notifyCtx, success, reinstall)
+		}
 		notifyCancel()
 		s.mu.Lock()
 		s.installerProcess = nil
@@ -78,6 +94,10 @@ func (s *Server) EnqueueInstall(reinstall bool) error {
 		if notifyErr != nil {
 			s.installCallbackError = "notification_failed"
 			s.logLocked("[Windows node] installation callback failed; verify panel state before retrying")
+		}
+		if s.installStorageError != "" {
+			s.installStage = "result_unconfirmed"
+			s.installCallbackError = "state_not_confirmed"
 		}
 		if s.process == nil {
 			s.setStateLocked("offline")
@@ -191,5 +211,5 @@ func (s *Server) installStatusLocked() map[string]any {
 	if stage == "" {
 		stage = "idle"
 	}
-	return map[string]any{"enabled": s.Profile.Installer != nil, "active": s.installing, "stage": stage, "successful": s.installSuccessful, "callback_error": s.installCallbackError}
+	return map[string]any{"enabled": s.Profile.Installer != nil, "active": s.installing, "stage": stage, "successful": s.installSuccessful, "callback_error": s.installCallbackError, "persistent": s.installStore != nil, "attempt_id": s.installRecord.AttemptID, "receipt_phase": s.installRecord.Phase, "pending_notification": s.installRecord.Phase == "result", "storage_error": s.installStorageError}
 }

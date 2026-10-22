@@ -49,6 +49,7 @@ func main() {
 		server.ProcessConfiguration.Configs = append(server.ProcessConfiguration.Configs, json.RawMessage(`{"file":"server.xml","parser":"xml","replace":[{"match":"server.port","replace_with":28015},{"match":"server.name","replace_with":"Café & <safe>"},{"match":"server.worlds.world.mode","replace_with":"new"},{"match":"server.worlds.world","replace_with":"[enabled='true']"},{"match":"server.literal","replace_with":"${USERNAME}"}]}`))
 	}
 	if c.ConsoleLogs != nil {
+		server.Settings.Environment["INSTALL_STATE_PROBE_PATH"] = filepath.Join(c.ConsoleLogs.Directory, id, "install.0.json")
 		server.Settings.Environment["LOG_PROBE_PATH"] = filepath.Join(c.ConsoleLogs.Directory, id, "console.jsonl")
 		if p := c.Profiles[id].CrashRecovery; p != nil && p.PersistHistory {
 			server.Settings.Environment["RECOVERY_PROBE_PATH"] = filepath.Join(c.ConsoleLogs.Directory, id, "recovery.1.json")
@@ -93,6 +94,10 @@ func main() {
 			}
 			if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1024)).Decode(&result); err != nil {
 				w.WriteHeader(400)
+				return
+			}
+			if _, err := os.Stat(filepath.Join(filepath.Dir(os.Args[1]), "reject-install-callback")); err == nil {
+				w.WriteHeader(503)
 				return
 			}
 			callbackMu.Lock()

@@ -42,3 +42,17 @@ func TestInstallerApprovalAndDefaults(t *testing.T) {
 		})
 	}
 }
+
+func TestPersistentInstallerRequiresPrivateStorage(t *testing.T) {
+	c := valid(t)
+	p := c.Profiles[id]
+	p.Installer = &Installer{Executable: p.Executable, PersistState: true}
+	c.Profiles[id] = p
+	if c.Validate() == nil {
+		t.Fatal("persistent installation accepted without private storage")
+	}
+	c.ConsoleLogs = &ConsoleLogs{Directory: filepath.Join(t.TempDir(), "private")}
+	if err := c.Validate(); err != nil {
+		t.Fatal(err)
+	}
+}

@@ -19,3 +19,7 @@ func openRecoveryDisk(config.ConsoleLogs, string) (recoveryDisk, []time.Time, er
 func openIntentDisk(config.ConsoleLogs, string) (intentBackend, bool, error) {
 	return nil, false, fmt.Errorf("persistent desired state requires Windows")
 }
+
+func openInstallDisk(config.ConsoleLogs, string) (installBackend, InstallRecord, error) {
+	return nil, InstallRecord{}, fmt.Errorf("persistent installation state requires Windows")
+}

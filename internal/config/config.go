@@ -17,7 +17,7 @@ import (
 	"wings-windows/internal/networkpolicy"
 )
 
-const Version = "0.1.0-alpha.34"
+const Version = "0.1.0-alpha.35"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -149,6 +149,9 @@ func (c *Config) Validate() error {
 	identities := make(map[string]bool)
 	rconAddresses := make(map[string]bool)
 	for id, p := range c.Profiles {
+		if p.Installer != nil && p.Installer.PersistState && c.ConsoleLogs == nil {
+			return fmt.Errorf("server %s: installer.persist_state requires console_logs private storage", id)
+		}
 		if err := p.NormalizeInstaller(); err != nil {
 			return fmt.Errorf("server %s: %w", id, err)
 		}

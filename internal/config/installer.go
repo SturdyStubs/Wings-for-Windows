@@ -8,6 +8,7 @@ import (
 )
 
 type Installer struct {
+	PersistState       bool         `json:"persist_state,omitempty"`
 	Executable         string       `json:"executable"`
 	Arguments          []string     `json:"arguments"`
 	AllowedEnvironment []string     `json:"allowed_environment,omitempty"`

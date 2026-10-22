@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.0-alpha.35 - 2026-10-22
+
+- Add installer.persist_state with private dual-snapshot receipts for running, completed and acknowledged attempts, exclusive writer/ancestor guards, checksums and validated transitions.
+- Save completion before callback delivery, preserve pending results across daemon restarts and reject overwriting unresolved attempts. Block game starts after an interrupted setup.
+- Add a node-authenticated native install/reconcile route to retry a recorded notification or explicitly report an interrupted attempt as failed, with exact attempt matching and no installer execution.
+- Fail closed on storage/corruption errors and expose uncertainty separately from local setup success. No automatic retry, partial-data rollback or transactional delivery guarantee is claimed.
+
 ## 0.1.0-alpha.34 — 2026-10-22
 
 - Add opt-in manual-approval creation through POST /api/servers. Verify assigned UUID v4 using node credentials, retain a pending record and expose its approval status without creating data, accounts, installers or game processes.
