@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.30 - October 21, 2026
+
+- Add opt-in `source_rcon` for loopback Source TCP commands and graceful stops, with a daemon environment secret reference and exact password redaction across assembled reply chunks.
+- Authenticate before sending and validate bounded packets, matching IDs/types and explicit completion. Bound time/packets/bytes/lines, discard incomplete output, cancel on process exit and reject concurrent commands. Never retry or fall back to stdin; command execution can be unconfirmed after delivery errors. Preserve native exit tracking, emergency kill and forced-stop fallback.
+- Add protocol/config/native lifecycle tests and optional combined SCM coverage. Existing profiles retain stdin. Other RCON dialects, log-tail/control events, secret provisioning and real-game certification remain open. Final package/VM evidence follows separately.
+
 ## 0.1.0-alpha.29 - October 21, 2026
 
 - Add opt-in `restore_running`, requiring private logs and enabled persistent crash recovery. Store running/stopped power intent in guarded, synced, UUID/checksum/sequence-bound dual snapshots initialized stopped; refuse uncertain state instead of rolling back a stop.

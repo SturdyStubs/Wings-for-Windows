@@ -11,6 +11,9 @@ import (
 )
 
 func main() {
+	if len(os.Args) > 2 && os.Args[1] == "rcon" {
+		startRCONFixture(os.Args[2])
+	}
 	if len(os.Args) > 1 && os.Args[1] == "child" {
 		for {
 			time.Sleep(time.Second)
@@ -33,7 +36,7 @@ func main() {
 		b, _ := json.Marshal(os.Args[2:])
 		fmt.Println("ARGS:" + string(b))
 	}
-	if len(os.Args) > 1 && os.Args[1] == "spawn" {
+	if len(os.Args) > 1 && (os.Args[1] == "spawn" || os.Args[1] == "rcon") {
 		p := exec.Command(os.Args[0], "child")
 		if p.Start() == nil {
 			fmt.Printf("CHILD:%d\n", p.Process.Pid)

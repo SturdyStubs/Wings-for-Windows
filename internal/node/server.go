@@ -665,7 +665,9 @@ func (s *Server) stopWithContext(ctx context.Context, kill bool) error {
 	if kill || policy.forceStop {
 		p.Kill()
 	} else if policy.stopCommand != "" {
-		s.Command(policy.stopCommand)
+		if err := s.commandWithContext(ctx, policy.stopCommand); err != nil {
+			s.log("[Windows node] stop command delivery failed; waiting for exit before forced stop")
+		}
 	} else {
 		p.Kill()
 	}
@@ -693,16 +695,28 @@ func (s *Server) stopWithContext(ctx context.Context, kill bool) error {
 	return nil
 }
 func (s *Server) Command(command string) error {
+	return s.commandWithContext(context.Background(), command)
+}
+func (s *Server) commandWithContext(ctx context.Context, command string) error {
 	if len(command) > 4096 || strings.ContainsAny(command, "\r\n\x00") {
 		return errors.New("command must be a single line of at most 4096 bytes")
 	}
-	s.write.Lock()
+	if s.Profile.SourceRCON != nil {
+		if !s.write.TryLock() {
+			return errors.New("RCON command is busy; no command was sent")
+		}
+	} else {
+		s.write.Lock()
+	}
 	defer s.write.Unlock()
 	s.mu.Lock()
 	p := s.process
 	s.mu.Unlock()
 	if p == nil {
 		return errors.New("server is offline")
+	}
+	if s.Profile.SourceRCON != nil {
+		return s.rconCommand(ctx, p, command)
 	}
 	return p.Command(command)
 }

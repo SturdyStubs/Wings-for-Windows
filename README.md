@@ -4,7 +4,7 @@ Run native Windows game-server executables through a Pterodactyl panel. This is 
 
 **Version: 0.1.0-alpha.29. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
 
-Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). The current release adds [opt-in running intent restoration](docs/RUNNING-RESTORATION.md) across daemon restarts/reboots, using durable stopped/running intent and the persistent retry budget. Existing features include all six [egg parser families](docs/EGG-TEXT-CONFIG.md), [console history](docs/CONSOLE-LOGS.md), [managed service setup](docs/SERVICE-PROVISIONING.md) and [actual reboot validation](docs/REBOOT-VALIDATION.md). Real panel/game compatibility, provisioning and full isolation gates remain open.
+Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). The current release adds [Source TCP RCON](docs/SOURCE-RCON.md) commands and graceful stops for approved loopback endpoints. It also supports [opt-in running intent restoration](docs/RUNNING-RESTORATION.md) across daemon restarts/reboots using the persistent retry budget. Existing features include all six [egg parser families](docs/EGG-TEXT-CONFIG.md), [console history](docs/CONSOLE-LOGS.md), [managed service setup](docs/SERVICE-PROVISIONING.md) and [actual reboot validation](docs/REBOOT-VALIDATION.md). Real panel/game compatibility, provisioning and full isolation gates remain open.
 
 <!-- progress:start -->
 
@@ -44,6 +44,7 @@ Alpha 29 verification: **584 local cases/subtests**, **14 packaged native cases*
 | Statistics | Root-process CPU, working-set memory and uptime. Network and disk accounting are unavailable and identified as such in `native_metrics`. |
 | File API | Wings-compatible listing URL/metadata, MIME/length/download headers, confined reads/writes up to 8 MiB and case-insensitive egg denylist checks. Contract tests pass; live panel verification remains open. |
 | Running restoration | Opt-in durable running/stopped intent, fresh guards and budgeted replay after daemon readiness. |
+| Source RCON | Optional loopback TCP commands and graceful stops with bounded replies and cancellation; [setup and limits](docs/SOURCE-RCON.md). |
 | Egg configuration | Opt-in text, JSON, properties, INI, YAML and XML, exact file approval, bounded parsing and protected-path checks. Broader dialects, templates and conditions remain open. |
 | Startup variables | Derived `SERVER_IP`, `SERVER_PORT`, `SERVER_MEMORY`, `STARTUP` and `TZ`, alongside explicitly allowed egg variables. |
 | Game crash recovery | Opt-in delayed restart after unexpected nonzero exits, bounded attempt window, fresh security checks and operator cancellation. Optional persistent retry budget; games remain offline after daemon restart. |

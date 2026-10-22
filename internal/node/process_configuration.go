@@ -76,6 +76,9 @@ func newProcessPolicy(profile config.Profile, remote *ProcessConfiguration) (*pr
 			return nil, fmt.Errorf("egg stop command must be a nonempty single console line")
 		}
 		p.stopCommand = remote.Stop.Value
+		if profile.SourceRCON != nil && len(p.stopCommand) > 4086 {
+			return nil, fmt.Errorf("egg RCON stop command exceeds 4086 bytes")
+		}
 		p.forceStop = false
 	case "signal":
 		if strings.ToUpper(remote.Stop.Value) != "SIGKILL" {

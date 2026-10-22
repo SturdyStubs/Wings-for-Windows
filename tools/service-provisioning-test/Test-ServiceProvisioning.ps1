@@ -1,7 +1,8 @@
 #Requires -RunAsAdministrator
-param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning)
+param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON)
 $ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
 if($TestRestoreRunning -and -not $TestPersistentRecovery){throw 'Restore fixture requires persistent recovery'}
+if($TestSourceRCON -and $PrepareReboot){throw 'RCON fixture is separate from reboot preparation'}
 if($PrepareReboot -and (-not $TestPersistentRecovery -or -not $TestServiceEvents)){throw 'Reboot fixture requires persistent recovery and service events'}
 if($TestEggXML -and -not $TestEggYAML){throw 'XML fixture requires TestEggYAML for six-parser validation'}
 if($TestEggYAML -and -not $TestEggINI){throw 'YAML fixture requires TestEggINI for five-parser validation'}
@@ -340,6 +341,42 @@ try {
   $intentPath=Join-Path $Root ('logs\console\'+$ServerID+'\intent.0.json');$intentBytes=[IO.File]::ReadAllBytes($intentPath)
   try{[IO.File]::WriteAllText($intentPath,'CORRUPT_INTENT');try{Start-Service WingsWindowsNative -ErrorAction Stop}catch{};(Get-Service WingsWindowsNative).WaitForStatus('Stopped',[TimeSpan]::FromSeconds(15));$report.checks.corrupt_intent_refuses_service_start='passed'}finally{[IO.File]::WriteAllBytes($intentPath,$intentBytes);$intentBytes=$null}
   Start-Service WingsWindowsNative;Wait-State 'offline'
+ }
+ if($TestSourceRCON){
+  Stop-Service WingsWindowsNative;(Get-Service WingsWindowsNative).WaitForStatus('Stopped',[TimeSpan]::FromSeconds(15))
+  $rconListener=[Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback,0);$rconListener.Start();$rconPort=$rconListener.LocalEndpoint.Port;$rconListener.Stop()
+  $edited=Get-Content -LiteralPath $configuration -Raw|ConvertFrom-Json
+  $rconProfile=$edited.profiles.$ServerID
+  $rconProfile.arguments=@('rcon',('127.0.0.1:'+$rconPort))
+  $rconProfile|Add-Member -NotePropertyName source_rcon -NotePropertyValue @{address=('127.0.0.1:'+$rconPort);password_environment='WINGS_RCON_FIXTURE';timeout_seconds=2}
+  [IO.File]::WriteAllText($configuration,($edited|ConvertTo-Json -Depth 30),[Text.UTF8Encoding]::new($false))
+  $serviceKey='HKLM:\SYSTEM\CurrentControlSet\Services\WingsWindowsNative'
+  # Public fixed password belongs only to the harmless loopback demo fixture.
+  New-ItemProperty -LiteralPath $serviceKey -Name Environment -PropertyType MultiString -Value @('WINGS_RCON_FIXTURE=fixture-rcon-only') -Force|Out-Null
+  function Send-RCONFixture([string]$Command){Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body (@{commands=@($Command)}|ConvertTo-Json) -TimeoutSec 5|Out-Null}
+  Start-Service WingsWindowsNative;Wait-State 'offline';Set-Power 'start';Wait-State 'running'
+  Send-RCONFixture 'SCM_RCON_TEST'
+  if('[RCON] ECHO:SCM_RCON_TEST' -notin (Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data){throw 'RCON response absent'}
+  $report.checks.source_rcon_panel_command_response='passed'
+  Send-RCONFixture 'echo-secret'
+  $rconLogs=(Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data
+  if('[RCON] [REDACTED]' -notin $rconLogs -or ($rconLogs -join "`n").Contains('fixture-rcon-only')){throw 'RCON reply secret not redacted'}
+  $report.checks.source_rcon_response_secret_redacted='passed'
+  $rconGamePids=@();foreach($process in Get-CimInstance Win32_Process -Filter "Name='wings-windows-demo.exe'"){$owner=Invoke-CimMethod -InputObject $process -MethodName GetOwnerSid;if($owner.Sid -eq $gameSid){$rconGamePids+=$process.ProcessId}}
+  if($rconGamePids.Count -ne 2){throw 'RCON root/child identities differ'}
+  $report.checks.source_rcon_distinct_game_tree_identity='passed'
+  Set-Power 'stop';Wait-State 'offline'
+  $until=[DateTime]::UtcNow.AddSeconds(3);do{$rconLogs=(Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data;if('RCON_COMMAND:stop' -in $rconLogs){break};Start-Sleep -Milliseconds 50}while([DateTime]::UtcNow -lt $until)
+  if('RCON_COMMAND:stop' -notin $rconLogs){throw 'Stop did not reach RCON fixture'}
+  foreach($id in $rconGamePids){if(Get-Process -Id $id -ErrorAction SilentlyContinue){throw 'RCON stop left child alive'}}
+  $report.checks.source_rcon_graceful_stop_kills_tree='passed'
+  Stop-Service WingsWindowsNative;(Get-Service WingsWindowsNative).WaitForStatus('Stopped',[TimeSpan]::FromSeconds(15))
+  New-ItemProperty -LiteralPath $serviceKey -Name Environment -PropertyType MultiString -Value @('WINGS_RCON_FIXTURE=wrong-fixture-password') -Force|Out-Null
+  Start-Service WingsWindowsNative;Wait-State 'offline';Set-Power 'start';Wait-State 'running'
+  $authRejected=$false;try{Send-RCONFixture 'UNAUTHENTICATED_RCON_COMMAND'}catch{$authRejected=$true}
+  if(-not $authRejected -or 'RCON_COMMAND:UNAUTHENTICATED_RCON_COMMAND' -in (Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data){throw 'RCON authentication rejection failed'}
+  Set-Power 'kill';Wait-State 'offline'
+  $report.checks.source_rcon_bad_password_rejected='passed'
  }
  if($PrepareReboot){
   Set-Power 'start';Wait-State 'running'

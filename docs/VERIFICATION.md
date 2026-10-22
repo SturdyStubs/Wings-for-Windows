@@ -1,6 +1,8 @@
 # Verification and release status
 
-Version `0.1.0-alpha.29`, verified locally October 21, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). The local automated suite changes no production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration. Separate disposable VM service tests deliberately create and clean up temporary users, rights, tasks, service registration and fixture ACLs. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
+Alpha 30 adds a bounded Source TCP RCON adapter. Protocol/configuration/native lifecycle tests and an optional SCM phase cover authentication, complete responses, malformed frames, redaction, cancellation, graceful stop and fallback. Final clean-package/VM evidence follows separately; see [scope](SOURCE-RCON.md).
+
+Version `0.1.0-alpha.30`, verified locally October 21, 2026 with Go 1.26.9 on Windows x64 (Windows NT build 26200). The local automated suite changes no production panel, game server, service registration, local user account, existing host ACL, logon right or firewall configuration. Separate disposable VM service tests deliberately create and clean up temporary users, rights, tasks, service registration and fixture ACLs. Identity tests write/read/delete one unique temporary fake generic credential without account logon, and adjust ACLs only on disposable test fixtures.
 
 The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed by the original tests. Alpha 2 adds upstream/panel-derived metadata fixtures and canonical route assertions, plus regression checks for the fixes below. Passing these tests is still not proof that a complete live panel/game deployment works. Current outstanding work is tracked in [ROADMAP.md](../ROADMAP.md).
 
@@ -8,7 +10,7 @@ The [alpha 1 audit](WINGS-PARITY-AUDIT.md) identified contract mismatches missed
 
 The release build runs `go test -count=1 -timeout 90s ./...` and `go vet ./...`. Tests launch harmless compiled fixture executables in temporary directories and use a mock panel API. They do not start Docker or contact a live panel.
 
-Alpha 29 local run: **584 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
+Alpha 30 local run: **619 test cases/subtests passed, zero skipped**; `go vet ./...` passed. The release build repeats these checks and records counts/source revision in BUILD-INFO.json.
 
 Coverage includes:
 

@@ -20,6 +20,8 @@ Windows Native ---------- node credentials -----> panel /api/remote
 
 ## Packages
 
+Alpha 30 adds optional [Source TCP RCON command delivery](SOURCE-RCON.md), selected only by local profile. REST/WebSocket authorization and native process status remain unchanged. No new HTTP route or real-game certification is implied.
+
 | Package | Responsibility |
 | --- | --- |
 | `internal/config` | Strict JSON configuration, UUID/profile rules, TLS/loopback requirements and exact origins. |
@@ -28,6 +30,7 @@ Windows Native ---------- node credentials -----> panel /api/remote
 | `internal/native` | Windows process creation, restricted handle inheritance, Job Objects, CPU/memory limits, console pipes and process counters. Other platforms fail explicitly. |
 | `internal/provision` | Read-only Windows executable, architecture, OS build and declared dependency checks. |
 | `internal/node` | Panel API client, local server registry, templates, lifecycle, readiness, bounded console queues and log history. |
+| `internal/sourcercon` | Optional loopback Source TCP authentication, bounded complete replies and cancellation. |
 | `internal/api` | Node bearer API, confined text-file access, JWT/permission enforcement, revocation and WebSocket events. |
 | `cmd/wings-windows` | CLI, HTTP lifecycle and Windows SCM integration. |
 | `cmd/testserver` | Harmless console fixture included for reproducible local verification. |

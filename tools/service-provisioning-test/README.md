@@ -1,5 +1,7 @@
 # Developer-only service provisioning fixture
 
+`-TestSourceRCON` adds a separate phase after the normal checks: a loopback Source TCP demo, daemon-only environment password reference, API command/reply, redaction, distinct game identity, graceful tree stop and bad-password rejection. Its fixed demo password is public test data. This mode cannot be combined with `-PrepareReboot`; it does not certify a real game or private service environment provisioning.
+
 Run only on a disposable, checkpointed Windows Server VM as Administrator. This is privileged test infrastructure, not a production setup/bootstrap tool. It deliberately creates temporary local users, grants their rights, replaces DACLs in a fresh owned fixture tree and registers the real `WingsWindowsNative` service. It refuses an existing service or matching account/root. Never point it at real node configuration or a populated installation.
 
 The loopback mock panel serves only the fixture server; the packaged daemon/demo perform the real SCM and separate-account lifecycle. The fixture invokes the packaged Set-ServiceGameCredential.ps1 command, exercising its temporary password-backed task, restricted pipe, metadata/overwrite/replacement/removal behavior and task/right cleanup. It also checks wrong service passwords, operation locking and preservation of preexisting batch rights.

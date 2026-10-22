@@ -17,7 +17,7 @@ import (
 	"wings-windows/internal/networkpolicy"
 )
 
-const Version = "0.1.0-alpha.29"
+const Version = "0.1.0-alpha.30"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -26,6 +26,7 @@ type TLS struct {
 	Key  string `json:"key"`
 }
 type Profile struct {
+	SourceRCON                 *SourceRCON          `json:"source_rcon,omitempty"`
 	RestoreRunning             bool                 `json:"restore_running,omitempty"`
 	EggConfigFiles             []string             `json:"egg_config_files,omitempty"`
 	CrashRecovery              *CrashRecovery       `json:"crash_recovery,omitempty"`
@@ -143,7 +144,17 @@ func (c *Config) Validate() error {
 	}
 	normalized := make(map[string]Profile, len(c.Profiles))
 	identities := make(map[string]bool)
+	rconAddresses := make(map[string]bool)
 	for id, p := range c.Profiles {
+		if err := p.ValidateRCON(); err != nil {
+			return fmt.Errorf("server %s: %w", id, err)
+		}
+		if p.SourceRCON != nil {
+			if rconAddresses[p.SourceRCON.Address] {
+				return errors.New("source_rcon addresses must be unique per server")
+			}
+			rconAddresses[p.SourceRCON.Address] = true
+		}
 		if err := p.ValidateEggFiles(); err != nil {
 			return fmt.Errorf("server %s: %w", id, err)
 		}

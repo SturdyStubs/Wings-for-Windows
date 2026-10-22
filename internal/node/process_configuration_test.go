@@ -2,9 +2,18 @@ package node
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 	"wings-windows/internal/config"
 )
+
+func TestEggRCONStopPacketLimit(t *testing.T) {
+	remote := processFixture(t)
+	remote.Stop.Value = strings.Repeat("x", 4087)
+	if _, err := newProcessPolicy(config.Profile{UseEggProcessConfiguration: true, SourceRCON: &config.SourceRCON{}}, remote); err == nil {
+		t.Fatal("oversized RCON stop accepted")
+	}
+}
 
 func processFixture(t *testing.T) *ProcessConfiguration {
 	t.Helper()
