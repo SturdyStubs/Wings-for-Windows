@@ -4,7 +4,7 @@
 
 - Add opt-in `source_rcon` for loopback Source TCP commands and graceful stops, with a daemon environment secret reference and exact password redaction across assembled reply chunks.
 - Authenticate before sending and validate bounded packets, matching IDs/types and explicit completion. Bound time/packets/bytes/lines, discard incomplete output, cancel on process exit and reject concurrent commands. Never retry or fall back to stdin; command execution can be unconfirmed after delivery errors. Preserve native exit tracking, emergency kill and forced-stop fallback.
-- Add protocol/config/native lifecycle tests and optional combined SCM coverage. Existing profiles retain stdin. Other RCON dialects, log-tail/control events, secret provisioning and real-game certification remain open. Final package/VM evidence follows separately.
+- Add protocol/config/native lifecycle tests and optional combined SCM coverage. Existing profiles retain stdin. Other RCON dialects, log-tail/control events, secret provisioning and real-game certification remain open. All 619 local cases/subtests, 14 packaged Server 2022 cases and 54 combined service checks pass, with independent cleanup. See [evidence](docs/evidence/server2022-alpha30-source-rcon.md). No new reboot or real-game certification is claimed.
 
 ## 0.1.0-alpha.29 - October 21, 2026
 

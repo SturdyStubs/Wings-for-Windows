@@ -26,7 +26,7 @@ Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.co
 GitHub Issues are the source of truth; ROADMAP.md records implementation scope and verification. Run `scripts/Update-Progress.ps1` to regenerate this section. Use `-Initialize` to add missing planned milestones/tasks; rerunning it never automatically re-closes existing issues.
 <!-- progress:end -->
 
-Alpha 29 verification: **584 local cases/subtests**, **14 packaged native cases**, **49 Server 2022 combined checks** and **7 actual post-reboot checks** pass, including opt-in automatic game restoration. Pinned SSH reconnected and unattended/independent cleanup passed. See the [evidence and remaining gates](docs/evidence/server2022-alpha29-running-restoration.md).
+Alpha 30 verification: **619 local cases/subtests**, **14 packaged native cases** and **54 Server 2022 combined checks** pass, including Source RCON API commands, redaction, separate game identity, graceful stop and bad-password rejection. Independent cleanup passed. See [current evidence](docs/evidence/server2022-alpha30-source-rcon.md). Actual reboot restoration was verified separately in [alpha 29](docs/evidence/server2022-alpha29-running-restoration.md).
 
 ## What works
 
