@@ -6,6 +6,7 @@
 - Save completion before callback delivery, preserve pending results across daemon restarts and reject overwriting unresolved attempts. Block game starts after an interrupted setup.
 - Add a node-authenticated native install/reconcile route to retry a recorded notification or explicitly report an interrupted attempt as failed, with exact attempt matching and no installer execution.
 - Fail closed on storage/corruption errors and expose uncertainty separately from local setup success. No automatic retry, partial-data rollback or transactional delivery guarantee is claimed.
+- Validate 761 local cases/subtests, zero skips, vet, a clean release, 14 packaged native Server 2022 cases and all 89 combined service checks, including daemon interruption during setup and independent cleanup.
 
 ## 0.1.0-alpha.34 — 2026-10-22
 
