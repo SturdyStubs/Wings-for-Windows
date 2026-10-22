@@ -742,7 +742,7 @@ func (s *Server) stopWithContext(ctx context.Context, kill bool) error {
 	if kill || policy.forceStop {
 		p.Kill()
 	} else if policy.stopCommand != "" {
-		if err := s.commandWithContext(ctx, policy.stopCommand); err != nil {
+		if err := s.deliverCommand(ctx, policy.stopCommand); err != nil {
 			s.log("[Windows node] stop command delivery failed; waiting for exit before forced stop")
 		}
 	} else {
@@ -781,6 +781,12 @@ func (s *Server) commandWithContext(ctx context.Context, command string) error {
 	if installing {
 		return ErrInstallBusy
 	}
+	return s.deliverCommand(ctx, command)
+}
+
+// Lifecycle-owned shutdown may deliver its approved stop command while the
+// installer holds the power lock; public commands remain blocked above.
+func (s *Server) deliverCommand(ctx context.Context, command string) error {
 	if len(command) > 4096 || strings.ContainsAny(command, "\r\n\x00") {
 		return errors.New("command must be a single line of at most 4096 bytes")
 	}

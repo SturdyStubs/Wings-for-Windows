@@ -132,6 +132,9 @@ func TestNativeInstallAndReinstallContract(t *testing.T) {
 		t.Fatal(r)
 	}
 	await(t, s, "offline")
+	if !slices.Contains(s.Logs(100), "STOPPING") {
+		t.Fatal("reinstall did not deliver graceful stop", s.Logs(100))
+	}
 }
 func TestInstallerFailureTimeoutKillAndConcurrency(t *testing.T) {
 	for _, mode := range []string{"fail", "timeout", "kill", "shutdown"} {
