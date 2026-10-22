@@ -1,6 +1,6 @@
 # Progress toward Wings compatibility
 
-Last updated: October 22, 2026. Current version: **0.1.0-alpha.33**. Active development: **M3 — Windows lifecycle features**. M1/M2 remain open for live panel and isolation gates.
+Last updated: October 22, 2026. Current version: **0.1.0-alpha.34**. Active development: **M3 — Windows lifecycle features**. M1/M2 remain open for live panel and isolation gates.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
@@ -42,7 +42,8 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - Alpha 31: opt-in game log-file console/readiness, stale-history skipping, bounded append/rotation/truncation polling, safe filesystem checks, native cancellation and status. See [guide](docs/LOG-FILE-CONSOLE.md); 654 local cases/subtests, 14 native cases and all 59 combined Server 2022 checks pass, with independent cleanup. See [evidence](docs/evidence/server2022-alpha31-log-file.md).
 - Alpha 32: opt-in per-server RCON vault references, scoped metadata/removal CLI and SecureString/service-account provisioning with deliberate rotation. Preserve environment compatibility and reject cross-server references or missing-secret fallback. See [guide](docs/RCON-CREDENTIALS.md); 672 local cases/subtests, 14 native cases and all 66 combined Server 2022 checks pass, with independent cleanup. See [evidence](docs/evidence/server2022-alpha32-rcon-credentials.md).
 - Alpha 33: approved native data/setup install and reinstall routes, shared lifecycle locking, restricted game identity, bounded output/time/memory, cancellation and Wings completion callbacks. Add a packaged demo egg/profile and first-node walkthrough. Protected game binaries remain operator-provisioned; server creation, binary promotion, durable installer recovery and live panel/game verification remain open. See [installer scope](docs/NATIVE-INSTALLERS.md) and [node setup](docs/PANEL-WINDOWS-SETUP.md). All 707 local cases/subtests, 14 packaged native cases and 73 combined Server 2022 checks pass; independent cleanup verified. See [evidence](docs/evidence/server2022-alpha33-native-installers.md).
-- HTTP inventory: handlers at **15 of upstream's 38 method/path combinations**, with partial behavior; **23 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
+- Alpha 34: opt-in creation acceptance pending manual UUID/profile approval, fresh node-assignment lookup, no unapproved execution/files/callbacks, idempotent pending replay and reconstruction from the panel after restart. Zero-profile bootstrap avoids requiring the UUID before it exists. Automatic install/start, account/permission provisioning and real panel certification remain open; see [scope](docs/PENDING-CREATION.md).
+- HTTP inventory: handlers at **16 of upstream's 38 method/path combinations**, with partial behavior; **22 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
 - Automatic binary provisioning, full file manager/SFTP, backups/restores, transfers, strong isolation and live certification remain open.
 - Unchanged Linux eggs require a Linux execution backend. Native Windows profiles do not translate Linux images/binaries.
 
@@ -112,7 +113,8 @@ Current scope remains a trusted private node. File denylist/path checks are not 
 - [ ] Create/delete, native install/reinstall, output/progress, cancellation, timeouts and panel callbacks.
   - [x] Execute approved native data/setup recipes with cancellation, bounded resources/output and install/reinstall callbacks using the game identity.
   - [x] Provide an importable harmless Windows demo egg, matching local profile and node setup walkthrough.
-  - [ ] Add protected game-binary download/staging/promotion, server creation/deletion, durable interrupted-installer state and callback reconciliation.
+  - [x] Add opt-in panel-record creation acceptance pending operator-owned UUID/profile approval and assignment-based restart discovery.
+  - [ ] Add protected game-binary download/staging/promotion, automatic create/install/start, server deletion, durable interrupted-installer state and callback reconciliation.
 - [ ] Egg configuration parsers for text, JSON, YAML, INI, properties and XML.
   - [x] Add opt-in plain-text file parser with exact local approval, startup integration and bounded/guarded writes.
   - [x] Add a bounded JSON subset with nested/array/wildcard paths, literal conditions, preserved numeric precision and shared startup integration.

@@ -1,6 +1,6 @@
 # First Windows node and demo egg
 
-Use a disposable, trusted test node. The native daemon runs Windows executables; unchanged Linux eggs and Docker images are not supported. This guide prepares a harmless console demo before a game-specific Windows recipe. A real panel/node/game integration run remains an open validation gate. **Current creation blocker:** the reviewed panel 2.0.0-beta.1 `CreateServer` action deletes its new record when the unsupported daemon creation request fails. You can prepare the node and import the egg now, but a new end-to-end demo deployment on that panel must wait for native server-creation support. Do not treat this guide as a completed creation workflow.
+Use a disposable, trusted test node. The native daemon runs Windows executables; unchanged Linux eggs and Docker images are not supported. This guide prepares a harmless console demo before a game-specific Windows recipe. A real panel/node/game integration run remains an open validation gate. Alpha 34 adds opt-in [manual-approval creation](PENDING-CREATION.md): retain the panel record first, then bind its full UUID to an approved Windows profile. Automatic installation/start during creation remains unavailable.
 
 ## 1. Prepare the Windows host
 
@@ -12,19 +12,27 @@ Create a separate enabled non-administrator local game account and retain its pa
 
 In panel administration, create a location and a dedicated Windows test node. Use a hostname/IP the **panel backend and browser** can reach, the daemon's configured listen port, and valid trusted TLS for remote connections. A private VM address is usable only when the relevant clients can route to it. Do not expose unencrypted node credentials on a public connection. The loopback HTTP exception is exclusively for same-host fixtures.
 
-Copy the node UUID, token ID and token from the panel's generated node configuration into our JSON fields `node_uuid`, `token_id`, `token`; set `panel_url` to the panel URL. Do not run the upstream Linux auto-deploy command or copy its YAML directly into this daemon. Use `configs/config.example.json` as the native JSON starting point and keep credentials/TLS private keys under `private`.
+Copy the node UUID, token ID and token from the panel's generated node configuration into our JSON fields `node_uuid`, `token_id`, `token`; set `panel_url` to the panel URL. Do not run the upstream Linux auto-deploy command or copy its YAML directly into this daemon. Use `configs/config.bootstrap.example.json` as the zero-profile native JSON starting point and keep credentials/TLS private keys under `private`.
 
 Create a primary allocation using the Windows host's reachable address and an unused test port. The demo does not open a game port; the allocation exercises panel metadata only. Real games will additionally need their own documented TCP/UDP firewall and routing rules. The panel's SFTP setting does not make SFTP available in this daemon.
 
-## 3. Import the demo egg and create its panel record
+## 3. Bootstrap the daemon and create the demo record
 
-Import [`egg-windows-native-demo.json`](../configs/eggs/egg-windows-native-demo.json) into a dedicated Windows test nest using the panel's egg import UI. Its PTDL_v2 structure follows the checked-in upstream panel egg format. Its image entry is a required compatibility placeholder and is never pulled by this daemon. The Linux installation script deliberately exits with failure; never assign this egg to a stock Linux node.
+Import [`egg-windows-native-demo.json`](../configs/eggs/egg-windows-native-demo.json) using your panel's egg import UI (a dedicated Windows test nest on panels that use nests). Its PTDL_v2 structure follows the reviewed panel import format. The image is a required compatibility placeholder, never pulled by this daemon. Its Linux script deliberately fails; never assign it to a stock Linux node.
 
-For a panel version with a supported administrative way to retain an assigned server record, choose this egg, the Windows node/allocation, 128 MiB memory, a small CPU limit and **Skip Egg Install Script / skip installation**. Obtain its **full UUID**, not its short identifier. The reviewed panel 2.0.0-beta.1 removes that record after failed daemon creation, so stop after importing the egg on that version until server creation is implemented. An existing assigned record can use the remaining steps. Do not repeatedly create duplicates or edit the panel database to bypass this gate. Exact UI labels and behavior need live verification.
+For a new empty node, set `allow_pending_creation: true` and `profiles: {}` in private configuration. Run `--check`, then start the daemon temporarily in the foreground:
 
-For an actual install/reinstall test, clear the server's skip-install-script flag afterward; otherwise the daemon intentionally skips the approved recipe too. If your panel version cannot retain a record after the unsupported creation response or cannot change this flag, stop here and record that integration gap rather than modifying panel database state blindly.
+```powershell
+C:\WingsWindows\bin\wings-windows.exe --config C:\WingsWindows\private\config.json
+```
 
-## 4. Bind an existing assigned UUID to a local native profile
+There are no approved executables in this bootstrap configuration. Use the current setup account only for this temporary handshake; stop it before adding execution profiles and move to the dedicated service identity. Keep node TLS/credentials private and the initial data/log directories empty.
+
+Create the panel server with this egg, Windows node/allocation, 128 MiB memory and a small CPU limit. **Disable Start on completion** (`start_on_completion: false`). Leave the server's skip-install-script flag false if you intend to exercise the approved native setup recipe later. Creation should return 202 and retain the record while it waits for approval, without running the remote Linux script or sending an installation-success callback. The panel may show Installing during this wait.
+
+Record the **full UUID**, not the short identifier. The daemon's authenticated GET response has `native_creation.stage: awaiting_profile`; power/files/install remain blocked. Stop the foreground daemon with Ctrl+C. No server data directory should have been created, so initial managed provisioning can now configure the new UUID and game identity. This source-derived workflow still needs a real panel session for certification; if creation fails, retain diagnostics without repeatedly creating records or patching the database.
+
+## 4. Approve the UUID with a local native profile
 
 Copy [`profile-windows-native-demo.json`](../configs/profile-windows-native-demo.json) as the value under `profiles.FULL_SERVER_UUID` in the node JSON. Replace its `run_as.sid` with the game account SID and `credential_target` with `WingsWindows/FULL_SERVER_UUID`. The profile launches the packaged demo from `bin` and approves that same executable's `install success` mode. Panel startup text is descriptive; the local argument array is authoritative.
 
@@ -39,6 +47,6 @@ Complete managed service installation, store the game's credential in the **daem
 
 ## 5. Validate through the panel
 
-Invoke **Reinstall** on the demo server. The approved native recipe should write `data\FULL_SERVER_UUID\install.marker`, emit installer output and finish with a successful panel callback, leaving the server offline. Start it, wait for `SERVER_READY`, send a harmless `hello` console command and look for `ECHO:hello`; stop it and confirm it remains offline. Test console reconnection and file browsing of the marker. SFTP, backups, transfers and creation/deletion are still unavailable. Record the panel version, exact release/source revision and each result without tokens or passwords.
+Invoke **Reinstall** on the demo server. The approved native recipe should write `data\FULL_SERVER_UUID\install.marker`, emit installer output and finish with a successful panel callback, leaving the server offline. Start it, wait for `SERVER_READY`, send a harmless `hello` console command and look for `ECHO:hello`; stop it and confirm it remains offline. Test console reconnection and file browsing of the marker. SFTP, backups, transfers and deletion are still unavailable. Record the panel version, exact release/source revision and each result without tokens or passwords.
 
 Once this works, select a game that provides a Windows dedicated-server binary and document its distribution/license, dependencies, noninteractive startup, readiness, console/RCON and shutdown behavior. Build a separate egg and approved local profile for it. The current native setup runner initializes data around operator-provisioned protected binaries; it cannot yet download/promote a whole game installation. See [installer scope](NATIVE-INSTALLERS.md) and the [roadmap](../ROADMAP.md).

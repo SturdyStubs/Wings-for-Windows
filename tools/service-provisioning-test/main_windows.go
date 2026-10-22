@@ -57,6 +57,17 @@ func main() {
 			}
 		}
 	}
+	pendingServer := func() *node.RemoteServer {
+		b, err := os.ReadFile(filepath.Join(filepath.Dir(os.Args[1]), "pending-uuid.txt"))
+		if err != nil {
+			return nil
+		}
+		pendingID := strings.TrimSpace(string(b))
+		if !config.UUID.MatchString(pendingID) || strings.EqualFold(pendingID, id) {
+			return nil
+		}
+		return &node.RemoteServer{UUID: pendingID, Settings: node.Settings{UUID: pendingID, Invocation: "unapproved-request.exe", Environment: map[string]any{}}}
+	}
 	var callbackMu sync.Mutex
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/remote/servers", func(w http.ResponseWriter, r *http.Request) {
@@ -64,7 +75,11 @@ func main() {
 			w.WriteHeader(401)
 			return
 		}
-		json.NewEncoder(w).Encode(map[string]any{"data": []node.RemoteServer{server}, "meta": map[string]int{"last_page": 1}})
+		assigned := []node.RemoteServer{server}
+		if pending := pendingServer(); pending != nil {
+			assigned = append(assigned, *pending)
+		}
+		json.NewEncoder(w).Encode(map[string]any{"data": assigned, "meta": map[string]int{"last_page": 1}})
 	})
 	mux.HandleFunc("/api/remote/servers/", func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("Authorization") != "Bearer "+c.TokenID+"."+c.Token {

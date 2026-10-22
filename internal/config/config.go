@@ -17,7 +17,7 @@ import (
 	"wings-windows/internal/networkpolicy"
 )
 
-const Version = "0.1.0-alpha.33"
+const Version = "0.1.0-alpha.34"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -46,6 +46,7 @@ type Profile struct {
 	MemoryMB                   int                  `json:"memory_mb"`
 }
 type Config struct {
+	AllowPendingCreation    bool               `json:"allow_pending_creation,omitempty"`
 	ConsoleLogs             *ConsoleLogs       `json:"console_logs,omitempty"`
 	SourcePath              string             `json:"-"`
 	Listen                  string             `json:"listen"`
@@ -141,7 +142,7 @@ func (c *Config) Validate() error {
 			return err
 		}
 	}
-	if len(c.Profiles) == 0 {
+	if len(c.Profiles) == 0 && !c.AllowPendingCreation {
 		return errors.New("at least one local executable profile is required")
 	}
 	normalized := make(map[string]Profile, len(c.Profiles))

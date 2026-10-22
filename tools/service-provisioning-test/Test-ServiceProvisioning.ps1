@@ -1,6 +1,7 @@
 #Requires -RunAsAdministrator
-param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON,[switch]$TestLogFile,[switch]$TestRCONCredential,[switch]$TestNativeInstaller)
+param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON,[switch]$TestLogFile,[switch]$TestRCONCredential,[switch]$TestNativeInstaller,[switch]$TestPendingCreation)
 $ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
+if($TestPendingCreation -and (-not $TestNativeInstaller -or $PrepareReboot)){throw 'Pending creation fixture requires native installer phase and cannot prepare reboot'}
 if($TestNativeInstaller -and (-not $TestRCONCredential -or $PrepareReboot)){throw 'Native installer fixture requires full credential fixture and cannot prepare reboot'}
 if($TestRestoreRunning -and -not $TestPersistentRecovery){throw 'Restore fixture requires persistent recovery'}
 if($TestSourceRCON -and $PrepareReboot){throw 'RCON fixture is separate from reboot preparation'}
@@ -524,6 +525,55 @@ try {
   Set-InstallerMode 'hang' 1;Start-NativeInstall 'install';$state=Wait-Install 'timed_out';Assert-InstallCallback $false $false
   $report.checks.native_install_timeout_failure_callback='passed'
   Set-InstallerMode 'success'
+ }
+
+ if($TestPendingCreation){
+  $creationOriginalConfig=[IO.File]::ReadAllText($configuration)
+  try{
+   Stop-Service WingsWindowsNative
+   $edited=$creationOriginalConfig|ConvertFrom-Json
+   $edited|Add-Member -NotePropertyName allow_pending_creation -NotePropertyValue $true -Force
+   [IO.File]::WriteAllText($configuration,($edited|ConvertTo-Json -Depth 30),[Text.UTF8Encoding]::new($false))
+   Start-Service WingsWindowsNative;Wait-State 'offline'
+   $pendingID=[guid]::NewGuid().ToString()
+   [IO.File]::WriteAllText((Join-Path $Root 'private\pending-uuid.txt'),$pendingID)
+   $pendingRoot=Join-Path $Root ('data\'+$pendingID)
+   $callbackCount=@(Get-Content -LiteralPath $callbackFile).Count
+   function New-PendingRecord([bool]$AutoStart=$false){Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body (@{uuid=$pendingID;start_on_completion=$AutoStart;executable='unapproved.exe'}|ConvertTo-Json) -TimeoutSec 12|Out-Null}
+   New-PendingRecord
+   $pending=Get-NodeAPI ('/api/servers/'+$pendingID)
+   if($pending.native_creation.stage -ne 'awaiting_profile' -or $pending.native_creation.execution_approved -or (Test-Path -LiteralPath $pendingRoot)){throw 'Creation did not remain pending without data/execution'}
+   $report.checks.pending_creation_accepts_assigned_record_without_execution='passed'
+   New-PendingRecord
+   $listed=@(Get-NodeAPI '/api/servers'|Where-Object{$_.configuration.uuid -eq $pendingID})
+   if($listed.Count -ne 1){throw 'Pending replay duplicated record'}
+   $report.checks.pending_creation_idempotent_replay_and_listing='passed'
+   $rejected=$false;try{New-PendingRecord $true}catch{if([int]$_.Exception.Response.StatusCode -eq 422){$rejected=$true}else{throw}}
+   if(-not $rejected){throw 'Automatic start silently accepted'}
+   $rejected=$false;try{Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$pendingID+'/install') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -TimeoutSec 3|Out-Null}catch{if([int]$_.Exception.Response.StatusCode -eq 409){$rejected=$true}else{throw}}
+   if(-not $rejected){throw 'Pending server installation accepted'}
+   $report.checks.pending_creation_blocks_install_and_automatic_start='passed'
+   Stop-Service WingsWindowsNative;Start-Service WingsWindowsNative;Wait-State 'offline'
+   $pending=Get-NodeAPI ('/api/servers/'+$pendingID)
+   if($pending.native_creation.stage -ne 'awaiting_profile' -or (Test-Path -LiteralPath $pendingRoot)){throw 'Pending discovery did not survive daemon restart'}
+   $report.checks.pending_creation_reconstructed_from_panel_after_restart='passed'
+   Stop-Service WingsWindowsNative
+   $edited.profiles=[pscustomobject]@{}
+   [IO.File]::WriteAllText($configuration,($edited|ConvertTo-Json -Depth 30),[Text.UTF8Encoding]::new($false))
+   Start-Service WingsWindowsNative
+   $until=[DateTime]::UtcNow.AddSeconds(12);do{try{$pending=Get-NodeAPI ('/api/servers/'+$ServerID);if($pending.native_creation.stage -eq 'awaiting_profile'){break}}catch{};Start-Sleep -Milliseconds 100}while([DateTime]::UtcNow -lt $until)
+   if($pending.configuration.uuid -ne $ServerID -or $pending.native_creation.stage -ne 'awaiting_profile'){throw 'Zero-profile bootstrap failed'}
+   if(@(Get-Content -LiteralPath $callbackFile).Count -ne $callbackCount){throw 'Pending bootstrap sent installation callback'}
+   $report.checks.pending_creation_zero_profile_bootstrap_has_no_install_callback='passed'
+  }finally{
+   Stop-Service WingsWindowsNative -ErrorAction SilentlyContinue
+   [IO.File]::WriteAllText($configuration,$creationOriginalConfig,[Text.UTF8Encoding]::new($false))
+   Start-Service WingsWindowsNative;Wait-State 'offline'
+  }
+  $approved=Get-NodeAPI ('/api/servers/'+$ServerID)
+  if($approved.native_creation -or -not $approved.native_install.enabled){throw 'Operator profile restore did not approve execution'}
+  Start-NativeInstall 'reinstall';$approved=Wait-Install 'complete';Assert-InstallCallback $true $true
+  $report.checks.pending_creation_local_profile_handoff_to_native_reinstall='passed'
  }
  if($PrepareReboot){
   Set-Power 'start';Wait-State 'running'

@@ -36,7 +36,7 @@ For the packaged demo egg and native data/setup installer, follow [first Windows
 
 ## Manually provision a server
 
-1. Create a server in the panel assigned to this node. Server creation and Linux scripts remain unsupported; approved native data/setup installation is separately opt-in. The panel can show an installation failure until the manual acknowledgement below.
+1. Create a server in the panel assigned to this node. Automatic creation-to-install and Linux scripts remain unsupported; use [manual-approval creation](PENDING-CREATION.md) to retain a new UUID. The panel may show Installing while it waits for local approval and the manual acknowledgement below.
 2. Record the full server UUID from its admin page/API. Create a corresponding profile in `config.json` and provision the executable and its dependencies on disk. Server data belongs under `C:\WingsWindows\data\<UUID>` if using the example data directory.
 3. Set panel egg variables needed by your argument template. Add only those names to `allowed_environment` in the local profile.
 4. Stop any running daemon, run `--check` and `--check-profiles`, then `--mark-installed <UUID>`. This fetches the node's assigned servers, runs local executable/OS/dependency preflight and explicitly reports manual installation success. It never runs a Linux installer or downloads game files.
@@ -125,7 +125,7 @@ To update, stop the service, replace the executable and restart it. Stopping the
 | --- | --- |
 | Node appears offline | Node hostname/port/TLS, certificate trust from panel host, node token, firewall and foreground daemon logs. |
 | Unknown local server profile | Full UUID, profile spelling and whether the server belongs to this node. Restart after editing configuration. |
-| Installation failed | Server creation and Linux scripts remain unsupported. Provision game binaries and approve a native data/setup recipe before reinstall, or explicitly use `--mark-installed` after manual provisioning. See [first-node guide](PANEL-WINDOWS-SETUP.md). |
+| Installation failed | Creation requires opt-in manual approval; Linux scripts remain unsupported. Provision game binaries and approve a native data/setup recipe before reinstall, or explicitly use `--mark-installed` after manual provisioning. See [first-node guide](PANEL-WINDOWS-SETUP.md). |
 | Start accepted but server stays offline | Recent console logs: missing executable/DLL/argument, panel sync failure, suspension or job assignment failure. |
 | Stays starting | Readiness regex must match stdout/stderr; a log-file-only game needs an adapter. |
 | Console is blank | Game may require a real console, RCON or log-file tailing. Use the bundled demo to distinguish runtime from game issues. |

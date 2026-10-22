@@ -83,6 +83,8 @@ type Server struct {
 	recoveryStorageError string
 }
 type Manager struct {
+	closed      bool
+	pending     map[string]RemoteServer
 	restoreOnce sync.Once
 	restoreGate chan struct{}
 	Config      config.Config
@@ -92,7 +94,7 @@ type Manager struct {
 }
 
 func NewManager(c config.Config) *Manager {
-	return &Manager{restoreGate: make(chan struct{}, 2), Config: c, Panel: NewPanel(c), servers: make(map[string]*Server)}
+	return &Manager{pending: make(map[string]RemoteServer), restoreGate: make(chan struct{}, 2), Config: c, Panel: NewPanel(c), servers: make(map[string]*Server)}
 }
 func (m *Manager) Sync(ctx context.Context) error {
 	remote, err := m.Panel.Servers(ctx)
@@ -101,6 +103,10 @@ func (m *Manager) Sync(ctx context.Context) error {
 	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	if m.closed {
+		return ErrManagerClosed
+	}
+	pending := make(map[string]RemoteServer)
 	for _, r := range remote {
 		id := strings.ToLower(r.Settings.UUID)
 		if !config.UUID.MatchString(id) || (r.UUID != "" && !strings.EqualFold(r.UUID, id)) {
@@ -108,6 +114,12 @@ func (m *Manager) Sync(ctx context.Context) error {
 		}
 		profile, ok := m.Config.Profiles[id]
 		if !ok {
+			if m.Config.AllowPendingCreation {
+				if len(pending) >= maxPendingCreation {
+					return ErrCreationCapacity
+				}
+				pending[id] = r
+			}
 			continue
 		}
 		if _, ok = m.servers[id]; ok {
@@ -174,6 +186,7 @@ func (m *Manager) Sync(ctx context.Context) error {
 		}
 		m.servers[id] = s
 	}
+	m.pending = pending
 	return nil
 }
 func (m *Manager) Get(id string) *Server {
@@ -191,6 +204,9 @@ func (m *Manager) All() []*Server {
 	return result
 }
 func (m *Manager) Close() {
+	m.mu.Lock()
+	m.closed = true
+	m.mu.Unlock()
 	for _, s := range m.All() {
 		s.mu.Lock()
 		s.closing = true

@@ -2,9 +2,9 @@
 
 Run native Windows game-server executables through a Pterodactyl panel. This is a separate Go daemon implementing a **subset of the Wings protocol**, with Windows Job Objects replacing the Docker process runtime.
 
-**Version: 0.1.0-alpha.33. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
+**Version: 0.1.0-alpha.34. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
 
-Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). The current release adds [approved native install/reinstall setup](docs/NATIVE-INSTALLERS.md), an [importable demo egg and first-node guide](docs/PANEL-WINDOWS-SETUP.md). Earlier releases add [Windows Credential Manager storage for RCON passwords](docs/RCON-CREDENTIALS.md), with service-account provisioning and deliberate rotation. It also supports [game log-file console output and readiness](docs/LOG-FILE-CONSOLE.md), including stale-history skipping and file rotation. It also supports [Source TCP RCON](docs/SOURCE-RCON.md) commands and graceful stops for approved loopback endpoints. Other features include [opt-in running intent restoration](docs/RUNNING-RESTORATION.md) across daemon restarts/reboots using the persistent retry budget. Existing features include all six [egg parser families](docs/EGG-TEXT-CONFIG.md), [console history](docs/CONSOLE-LOGS.md), [managed service setup](docs/SERVICE-PROVISIONING.md) and [actual reboot validation](docs/REBOOT-VALIDATION.md). Real panel/game compatibility, provisioning and full isolation gates remain open.
+Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). The current release adds [manual-approval server creation](docs/PENDING-CREATION.md), allowing the panel to retain a new UUID before local Windows profile approval. Earlier releases add [approved native install/reinstall setup](docs/NATIVE-INSTALLERS.md), an [importable demo egg and first-node guide](docs/PANEL-WINDOWS-SETUP.md). Earlier releases add [Windows Credential Manager storage for RCON passwords](docs/RCON-CREDENTIALS.md), with service-account provisioning and deliberate rotation. It also supports [game log-file console output and readiness](docs/LOG-FILE-CONSOLE.md), including stale-history skipping and file rotation. It also supports [Source TCP RCON](docs/SOURCE-RCON.md) commands and graceful stops for approved loopback endpoints. Other features include [opt-in running intent restoration](docs/RUNNING-RESTORATION.md) across daemon restarts/reboots using the persistent retry budget. Existing features include all six [egg parser families](docs/EGG-TEXT-CONFIG.md), [console history](docs/CONSOLE-LOGS.md), [managed service setup](docs/SERVICE-PROVISIONING.md) and [actual reboot validation](docs/REBOOT-VALIDATION.md). Real panel/game compatibility, provisioning and full isolation gates remain open.
 
 <!-- progress:start -->
 
@@ -28,12 +28,13 @@ GitHub Issues are the source of truth; ROADMAP.md records implementation scope a
 
 Alpha 33 verification: **707 local cases/subtests**, **14 packaged native cases** and **73 Server 2022 combined checks** pass, including native setup/reinstall callbacks, distinct game identity, cancellation/tree cleanup and timeout. Independent cleanup passed. See [current evidence](docs/evidence/server2022-alpha33-native-installers.md). Actual reboot restoration was verified separately in [alpha 29](docs/evidence/server2022-alpha29-running-restoration.md).
 
-For a new panel node, start with the [Windows node and demo egg walkthrough](docs/PANEL-WINDOWS-SETUP.md). It explains the full UUID/profile binding and the current server-creation limitation.
+For a new panel node, start with the [Windows node and demo egg walkthrough](docs/PANEL-WINDOWS-SETUP.md). It explains the full UUID/profile binding and the manual approval requirement.
 
 ## What works
 
 | Feature | Implementation |
 | --- | --- |
+| Server creation | Opt-in panel-record acceptance pending local UUID/profile approval; no automatic executable selection or installation. [Setup](docs/PENDING-CREATION.md). |
 | Native setup recipes | Opt-in install/reinstall routes, restricted local executable approval, bounded output, cancellation and panel completion callbacks. Protected game binaries must already exist; [scope](docs/NATIVE-INSTALLERS.md). |
 | Native executables | Versioned local profiles, PE architecture checks, optional minimum Windows build and dependency-file requirements before startup or installation acknowledgement. Argument arrays without shell expansion. |
 | Game identities | Optional per-server credential reference and pinned local SID, restricted-token launch, daemon process/token checks and bounded recursive/ancestor ACL audit with code/dependency protection, link rejection, required launch permissions and a bounded startup path guard. Real separate-account batch launch passed on Server 2022; SCM demo launch passes; full isolation remains open. |
@@ -79,8 +80,8 @@ cd Wings-for-Windows
 If Go is not on PATH, pass `-GoExecutable C:\path\to\go.exe`. The script runs the Windows integration tests and `go vet`, then creates:
 
 ```text
-dist/wings-windows-native-0.1.0-alpha.33-windows-amd64.zip
-dist/wings-windows-native-0.1.0-alpha.33-windows-amd64.zip.sha256
+dist/wings-windows-native-0.1.0-alpha.34-windows-amd64.zip
+dist/wings-windows-native-0.1.0-alpha.34-windows-amd64.zip.sha256
 ```
 
 The archive includes the daemon, a harmless console demo executable, compiled runtime tests, a host-report script, configuration example, documentation and service script. Docker, Node, PHP and a C compiler are not needed to build it. Native integration tests compile a temporary demo executable using Go.
@@ -100,7 +101,7 @@ This launches harmless fixtures and writes a JSON host report plus the test log.
 Follow the [setup guide](docs/SETUP.md) for the full procedure. The first test should use the bundled demo executable rather than a production game server.
 
 1. Extract the archive into `C:\WingsWindows`. Create a dedicated Windows node in your test panel and copy its UUID, token ID and token from its configuration page.
-2. Create a test server assigned to that node. Daemon server creation remains unsupported; the reviewed panel 2.0.0-beta.1 deletes the new record on failure. Use an existing assigned record or wait for creation support; see the [node setup guide](docs/PANEL-WINDOWS-SETUP.md). Record the **full server UUID**, not its short identifier.
+2. For a new UUID, follow [manual-approval creation](docs/PENDING-CREATION.md): bootstrap with zero profiles and `allow_pending_creation`, disable automatic start in the panel, create the record and record its **full UUID**. Stop the bootstrap daemon before approving its profile and setting up the dedicated service.
 3. Copy `configs\config.example.json` to `config.json`. Set the panel URL, credentials, TLS paths, data directory and profile key to the real values. Keep the demo executable profile for the first test.
 4. Run the commands below. Acknowledge installation only after the profile and executable are provisioned. Run `--check-profiles` to check local requirements, then run `--mark-installed` with the daemon stopped; it repeats preflight and makes an explicit panel installation-success callback without running an installer.
 

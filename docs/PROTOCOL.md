@@ -52,12 +52,15 @@ OPTIONS returns 204 without credentials. CORS allows the exact panel origin and 
 
 Alpha 33 adds [locally approved native setup](NATIVE-INSTALLERS.md), including install/reinstall completion callbacks. This initializes data around pre-provisioned code, not arbitrary remote egg scripts.
 
+Alpha 34 adds opt-in [manual-approval creation](PENDING-CREATION.md), with no pending execution resources and assignment-based reconstruction.
+
 ## Supported routes
 
 | Route | Behavior |
 | --- | --- |
 | `GET /api/system` | Measured Windows architecture, active CPU count and kernel version, plus capability list. |
 | `GET /api/system?v=2` | Upstream-shaped system information with measured physical memory and Windows version. Docker is explicitly unavailable with zero container counters; separate `native` fields report server state counts, actual data filesystem and lack of container isolation. |
+| `POST /api/servers` | Opt-in manual-approval creation, assigned UUID v4 only, 202 pending local profile. Automatic start returns 422; [contract and limits](PENDING-CREATION.md). |
 | `GET /api/servers` | Locally registered, panel-assigned server state/configuration/utilization. |
 | `GET /api/servers/{uuid}` | One server's response. |
 | `POST /api/servers/{uuid}/install`, `POST /api/servers/{uuid}/reinstall` | Opt-in approved native data/setup executable; 202 asynchronous, 501 without recipe, 400 suspended, 409 busy. Reinstall stops the game. Emits installer events and callback booleans; [limits](NATIVE-INSTALLERS.md). |
@@ -72,7 +75,7 @@ Alpha 33 adds [locally approved native setup](NATIVE-INSTALLERS.md), including i
 | `GET /api/servers/{uuid}/files/contents?file=/name` | Read a regular text file up to 8 MiB. |
 | `POST /api/servers/{uuid}/files/write?file=/name` | Write a confined text file up to 8 MiB. Parent directories must already exist. |
 
-Unknown/unsupported authenticated routes return 501, including server creation/deletion, automatic binary provisioning, file uploads/downloads, directory creation, file deletion/renaming, compression, pull, SFTP, backups and transfers. A profile that does not belong to this node is not registered and returns 404.
+Unknown/unsupported authenticated routes return 501, including server deletion, automatic binary provisioning, file uploads/downloads, directory creation, file deletion/renaming, compression, pull, SFTP, backups and transfers. A profile that does not belong to this node is not registered and returns 404.
 
 Filesystem access uses Go `os.Root` for confinement across symlinks. The path parser also rejects Windows drive/UNC syntax, traversal, alternate data streams, device names and trailing-dot/space aliases. This protects HTTP file operations; it does not sandbox executable code running under the same Windows account.
 
@@ -145,3 +148,5 @@ Alpha 19 adds opt-in [bounded automatic restart](CRASH-RECOVERY.md) through the 
 ## Persistent console history
 
 Alpha 20 optionally persists per-server console output in an administratively protected log tree. Existing /logs responses can include restored lines after service restart. The server response adds native_console_logs counters/error status; no new upstream routes are implemented. See [limits and retention](CONSOLE-LOGS.md).
+
+The creation fixture `internal/api/testdata/upstream-create-server.json` follows Wings `747bc43` installer.ServerDetails and the reviewed panel Services/Daemon/ServerClient::create fields. API tests reproduce the panel action's persist-before-request/delete-on-failure behavior. Manual approval is a documented divergence from automatic upstream installation.

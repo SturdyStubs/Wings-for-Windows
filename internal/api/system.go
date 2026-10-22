@@ -13,6 +13,9 @@ func (a *API) system(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	capabilities := []string{"native_executable", "job_objects", "console", "power", "files_read_write", "live_resource_limits", "egg_process_opt_in", "native_installer_opt_in"}
+	if a.Manager.Config.AllowPendingCreation {
+		capabilities = append(capabilities, "pending_creation_manual_approval")
+	}
 	if r.URL.Query().Get("v") != "2" {
 		respond(w, 200, map[string]any{"architecture": info.Architecture, "cpu_count": info.CPUThreads, "kernel_version": info.KernelVersion, "os": info.OSType, "version": config.Version, "capabilities": capabilities})
 		return

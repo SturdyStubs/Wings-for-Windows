@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.34 — 2026-10-22
+
+- Add opt-in manual-approval creation through POST /api/servers. Verify assigned UUID v4 using node credentials, retain a pending record and expose its approval status without creating data, accounts, installers or game processes.
+- Reconstruct pending entries from assigned-server discovery after restart; allow zero-profile bootstrap, idempotent pending retries and at most 1,024 entries. Reject unsupported automatic start explicitly. Approved profile duplicates remain conflicts.
+- Block pending power/install/file operations; local profile approval and a daemon restart hand off to existing native reinstall. Update node/demo setup guidance without claiming automatic provisioning or live panel certification.
+
 ## 0.1.0-alpha.33 — 2026-10-22
 
 - Add locally approved native data/setup installers through Wings install/reinstall routes, serialized with power controls. Reinstall stops a running game; kill, suspension and shutdown cancel the installer job tree. Protected game binaries must already be provisioned.

@@ -1,0 +1,17 @@
+{
+  "listen": "0.0.0.0:8080",
+  "panel_url": "https://panel.example.com",
+  "node_uuid": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+  "token_id": "REPLACE_WITH_NODE_TOKEN_ID",
+  "token": "REPLACE_WITH_THE_NODE_SECRET_FROM_PANEL_CONFIGURATION",
+  "data_directory": "C:\\WingsWindows\\data",
+  "timezone": "UTC",
+  "tls": {
+    "cert": "C:\\WingsWindows\\certs\\fullchain.pem",
+    "key": "C:\\WingsWindows\\certs\\privkey.pem"
+  },
+  "allow_insecure_loopback": false,
+  "allowed_origins": [],
+  "profiles": {},
+  "allow_pending_creation": true
+}

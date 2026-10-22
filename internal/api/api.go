@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"crypto/subtle"
 	"encoding/json"
 	"errors"
@@ -92,7 +93,38 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		for _, s := range a.Manager.All() {
 			result = append(result, s.Response())
 		}
+		result = append(result, a.Manager.PendingResponses()...)
 		respond(w, 200, result)
+		return
+	}
+	if r.URL.Path == "/api/servers" && r.Method == "POST" {
+		var request struct {
+			UUID              string `json:"uuid"`
+			StartOnCompletion bool   `json:"start_on_completion"`
+		}
+		if !decode(w, r, &request) {
+			return
+		}
+		ctx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+		defer cancel()
+		if err := a.Manager.CreatePending(ctx, request.UUID, request.StartOnCompletion); err != nil {
+			status, message := 502, "Cannot verify server assignment with panel"
+			switch {
+			case errors.Is(err, node.ErrCreationUUID), errors.Is(err, node.ErrCreationStart):
+				status, message = 422, err.Error()
+			case errors.Is(err, node.ErrCreationDisabled):
+				status, message = 501, err.Error()
+			case errors.Is(err, node.ErrCreationConflict), errors.Is(err, node.ErrManagerClosed):
+				status, message = 409, err.Error()
+			case errors.Is(err, node.ErrCreationUnassigned):
+				status, message = 404, err.Error()
+			case errors.Is(err, node.ErrCreationCapacity):
+				status, message = 429, err.Error()
+			}
+			failure(w, status, message)
+			return
+		}
+		respond(w, 202, nil)
 		return
 	}
 	if r.URL.Path == "/api/deauthorize-user" && r.Method == "POST" {
@@ -124,6 +156,14 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	s := a.Manager.Get(parts[2])
 	if s == nil {
+		if pending, ok := a.Manager.Pending(parts[2]); ok {
+			if len(parts) == 3 && r.Method == "GET" {
+				respond(w, 200, pending)
+			} else {
+				failure(w, 409, "Local Windows profile approval required before server operations")
+			}
+			return
+		}
 		failure(w, 404, "Unknown local server profile")
 		return
 	}
