@@ -2,7 +2,7 @@
 
 Run native Windows game-server executables through a Pterodactyl panel. This is a separate Go daemon implementing a **subset of the Wings protocol**, with Windows Job Objects replacing the Docker process runtime.
 
-**Version: 0.1.0-alpha.29. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
+**Version: 0.1.0-alpha.30. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
 
 Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). The current release adds [Source TCP RCON](docs/SOURCE-RCON.md) commands and graceful stops for approved loopback endpoints. It also supports [opt-in running intent restoration](docs/RUNNING-RESTORATION.md) across daemon restarts/reboots using the persistent retry budget. Existing features include all six [egg parser families](docs/EGG-TEXT-CONFIG.md), [console history](docs/CONSOLE-LOGS.md), [managed service setup](docs/SERVICE-PROVISIONING.md) and [actual reboot validation](docs/REBOOT-VALIDATION.md). Real panel/game compatibility, provisioning and full isolation gates remain open.
 
@@ -74,8 +74,8 @@ cd Wings-for-Windows
 If Go is not on PATH, pass `-GoExecutable C:\path\to\go.exe`. The script runs the Windows integration tests and `go vet`, then creates:
 
 ```text
-dist/wings-windows-native-0.1.0-alpha.29-windows-amd64.zip
-dist/wings-windows-native-0.1.0-alpha.29-windows-amd64.zip.sha256
+dist/wings-windows-native-0.1.0-alpha.30-windows-amd64.zip
+dist/wings-windows-native-0.1.0-alpha.30-windows-amd64.zip.sha256
 ```
 
 The archive includes the daemon, a harmless console demo executable, compiled runtime tests, a host-report script, configuration example, documentation and service script. Docker, Node, PHP and a C compiler are not needed to build it. Native integration tests compile a temporary demo executable using Go.
