@@ -6,6 +6,7 @@
 - Reuse game-account launch guards, network policy and resource caps; protect installer code/dependencies in ACL, egg rewrite, log reader and initial managed-layout checks. Bound runtime, captured lines and total output.
 - Emit Wings installer events and authenticated completion callbacks with exact successful/reinstall flags. Expose local native_install status and notification failure separately; no automatic rerun, durable outbox or partial-data rollback.
 - Package a harmless PTDL_v2 demo egg, matching local profile and first Windows node guide. Document unsupported server creation and the remaining real-panel/game validation gate.
+- Validate 707 local cases/subtests with zero skips, vet, a clean package, 14 packaged Server 2022 native cases and all 73 combined service checks. Correct a VM-discovered graceful-stop gate defect; preserve the preliminary failure and independent cleanup evidence.
 
 ## 0.1.0-alpha.32 - October 21, 2026
 
