@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.36 - 2026-10-22
+
+- Add an elevated Windows PowerShell 5.1 command to prepare one precreated game account and empty UUID directory on a stopped managed node without rerunning initial installation over populated data/logs.
+- Validate the existing service binding, approved profiles/code, dedicated identities, bounded managed ACLs and paths. Add non-inheriting shared read/execute grants, private target data ACLs and only a missing batch-logon right; serialize changes with credential provisioning and compensate failures.
+- Keep account creation, credential storage, binary distribution and populated-target repair separate. Add WhatIf, rollback, stale-plan and unsafe-path tests plus a distinct third-account SCM fixture. See [operator workflow](docs/GAME-PERMISSIONS.md).
+
 ## 0.1.0-alpha.35 - 2026-10-22
 
 - Add installer.persist_state with private dual-snapshot receipts for running, completed and acknowledged attempts, exclusive writer/ancestor guards, checksums and validated transitions.

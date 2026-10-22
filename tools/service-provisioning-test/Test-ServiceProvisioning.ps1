@@ -1,6 +1,7 @@
 #Requires -RunAsAdministrator
-param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON,[switch]$TestLogFile,[switch]$TestRCONCredential,[switch]$TestNativeInstaller,[switch]$TestPendingCreation,[switch]$TestInstallState)
+param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON,[switch]$TestLogFile,[switch]$TestRCONCredential,[switch]$TestNativeInstaller,[switch]$TestPendingCreation,[switch]$TestInstallState,[switch]$TestGamePermissions)
 $ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
+if($TestGamePermissions -and (-not $TestInstallState -or $PrepareReboot)){throw 'Game permissions fixture requires install-state phase and cannot prepare reboot'}
 if($TestInstallState -and (-not $TestPendingCreation -or $PrepareReboot)){throw 'Install state fixture requires pending creation phase and cannot prepare reboot'}
 if($TestPendingCreation -and (-not $TestNativeInstaller -or $PrepareReboot)){throw 'Pending creation fixture requires native installer phase and cannot prepare reboot'}
 if($TestNativeInstaller -and (-not $TestRCONCredential -or $PrepareReboot)){throw 'Native installer fixture requires full credential fixture and cannot prepare reboot'}
@@ -21,6 +22,7 @@ if($GameName -ne ('WwScmG_'+$suffix) -or $DaemonName -ne ('WwScmD_'+$suffix)){th
 if($ServerID -notmatch '^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$'){throw 'Use a full random server UUID'}
 $report=[ordered]@{passed=$false;checks=[ordered]@{};error=$null;cleanup=[ordered]@{}}
 $gameCreated=$false;$serviceCreated=$false;$credentialSeeded=$false;$mock=$null;$daemonSid=$null;$gameSid=$null
+$extraCredentialSeeded=$false;$extraGameCreated=$false;$extraCleanupFailed=$false;$extraOriginalConfiguration=$null;$extraOriginalACLs=@{};$extraSID=$null;$extraID=$null
 $rebootPrepared=$false;$rconSeeded=$false;$eventSourceCreated=$false;$eventStarted=Get-Date;$eventKey='HKLM:\SYSTEM\CurrentControlSet\Services\EventLog\Application\WingsWindowsNative'
 $eventScript=Join-Path $Package 'scripts\Register-EventSource.ps1'
 $installer=Join-Path $Staging 'Install-Service.ps1';Import-Module (Join-Path $Staging 'NodeSetup.psm1') -Force;Initialize-NodeSetupNative
@@ -90,6 +92,7 @@ try {
  Copy-Item -LiteralPath (Join-Path $Package 'scripts\Store-GameCredential.ps1') -Destination (Join-Path $Root 'bin\Store-GameCredential.ps1')
  New-Item -ItemType Directory -Path (Join-Path $Root 'bin\scripts') | Out-Null
  foreach($file in @('Store-GameCredential.ps1','Set-ServiceGameCredential.ps1','CredentialBridge.psm1','CredentialTask.ps1','NodeSetup.psm1')){Copy-Item -LiteralPath (Join-Path $Staging $file) -Destination (Join-Path $Root ('bin\scripts\'+$file))}
+ foreach($file in @('GamePermissions.psm1','Set-ServiceGamePermissions.ps1')){Copy-Item -LiteralPath (Join-Path $Package ('scripts\'+$file)) -Destination (Join-Path $Root ('bin\scripts\'+$file))}
  foreach($file in @('Store-RCONCredential.ps1','Set-ServiceRCONCredential.ps1')){Copy-Item -LiteralPath (Join-Path $Package ('scripts\'+$file)) -Destination (Join-Path $Root ('bin\scripts\'+$file))}
  $first=[Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback,0);$second=[Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback,0);$first.Start();$second.Start();$panelPort=$first.LocalEndpoint.Port;$nodePort=$second.LocalEndpoint.Port;$first.Stop();$second.Stop()
  $b=New-Object byte[] 32;$rng=[Security.Cryptography.RandomNumberGenerator]::Create();try{$rng.GetBytes($b);$nodeToken=[Convert]::ToBase64String($b)}finally{$rng.Dispose()}
@@ -653,6 +656,64 @@ try {
   Start-Service WingsWindowsNative;Wait-State 'offline'
   $report.checks.install_state_corruption_refuses_start_then_releases_handles='passed'
  }
+
+ if($TestGamePermissions){
+  Stop-Service WingsWindowsNative
+  $extraOriginalConfiguration=[IO.File]::ReadAllText($configuration)
+  $extraID=[guid]::NewGuid().ToString();$extraName='WwAdd_'+$suffix;$extraPassword=New-TestPassword
+  if(Get-LocalUser -Name $extraName -ErrorAction SilentlyContinue){throw 'Extra fixture account exists'}
+  New-LocalUser -Name $extraName -Password $extraPassword -Description 'Disposable incremental game identity'|Out-Null;$extraGameCreated=$true
+  $extraSID=(Get-LocalUser -Name $extraName).SID.Value;$report.extra_identity_sid=$extraSID
+  $edited=$extraOriginalConfiguration|ConvertFrom-Json
+  $profile=($edited.profiles.$ServerID|ConvertTo-Json -Depth 30)|ConvertFrom-Json
+  $profile.run_as.sid=$extraSID;$profile.run_as.credential_target='WingsWindows/'+$extraID
+  $profile.arguments=@('spawn');$profile.use_egg_process_configuration=$false;$profile.egg_config_files=@();$profile.restore_running=$false
+  $profile.allowed_environment=@('OTHER_DATA_PROBE_PATH');$profile.installer.arguments=@('install','success');$profile.installer.timeout_seconds=10
+  $edited.profiles|Add-Member -NotePropertyName $extraID -NotePropertyValue $profile
+  [IO.File]::WriteAllText($configuration,($edited|ConvertTo-Json -Depth 30),[Text.UTF8Encoding]::new($false))
+  [IO.File]::WriteAllText((Join-Path $Root 'private\pending-uuid.txt'),$extraID)
+  $permissions=Join-Path $Root 'bin\scripts\Set-ServiceGamePermissions.ps1'
+  $extraOptions=@{InstallationRoot=$Root;ServerUUID=$extraID;ServiceCredential=$serviceCredential}
+  foreach($p in @((Get-Item -LiteralPath $Root),(Get-Item -LiteralPath (Join-Path $Root 'data')),(Get-Item -LiteralPath (Join-Path $Root 'bin')))+@(Get-ChildItem -LiteralPath (Join-Path $Root 'bin') -Recurse -Force)){$extraOriginalACLs[$p.FullName]=(Get-Acl -LiteralPath $p.FullName).GetSecurityDescriptorSddlForm([Security.AccessControl.AccessControlSections]::Access)}
+  $unchanged=@{};foreach($p in @((Get-Item -LiteralPath (Join-Path $Root ('data\'+$ServerID))))+@(Get-ChildItem -LiteralPath (Join-Path $Root ('data\'+$ServerID)) -Recurse -Force)+@((Get-Item -LiteralPath (Join-Path $Root 'logs')))+@(Get-ChildItem -LiteralPath (Join-Path $Root 'logs') -Recurse -Force)){$unchanged[$p.FullName]=@{ACL=(Get-Acl -LiteralPath $p.FullName).Sddl;Hash=$null};if(-not $p.PSIsContainer){$unchanged[$p.FullName].Hash=(Get-FileHash -LiteralPath $p.FullName -Algorithm SHA256).Hash}}
+  & $permissions -InstallationRoot $Root -ServerUUID $extraID -WhatIf
+  if(Test-Path -LiteralPath (Join-Path $Root ('data\'+$extraID))){throw 'WhatIf created server data'}
+  if('SeBatchLogonRight' -in @([WingsWindows.NodeSetup]::Rights($extraSID))){throw 'WhatIf granted a real right'}
+  foreach($p in $extraOriginalACLs.Keys){if((Get-Acl -LiteralPath $p).GetSecurityDescriptorSddlForm([Security.AccessControl.AccessControlSections]::Access) -cne $extraOriginalACLs[$p]){throw 'WhatIf changed shared code ACL'}}
+  $report.checks.game_permissions_whatif_preserves_paths_and_rights='passed'
+  $prepared=& $permissions -InstallationRoot $Root -ServerUUID $extraID
+  if(-not $prepared.prepared -or -not $prepared.batch_right_added -or 'SeBatchLogonRight' -notin @([WingsWindows.NodeSetup]::Rights($extraSID))){throw 'New identity not prepared'}
+  foreach($p in $unchanged.Keys){if((Get-Acl -LiteralPath $p).Sddl -cne $unchanged[$p].ACL){throw 'Existing game/log ACL changed'};if($unchanged[$p].Hash -and (Get-FileHash -LiteralPath $p -Algorithm SHA256).Hash -ne $unchanged[$p].Hash){throw 'Existing game/log content changed'}}
+  $report.checks.game_permissions_existing_populated_data_and_logs_preserved='passed'
+  $again=& $permissions -InstallationRoot $Root -ServerUUID $extraID
+  if(-not $again.prepared -or $again.batch_right_added){throw 'Permission replay changed a preexisting right'}
+  $report.checks.game_permissions_empty_target_replay_preserves_batch_right='passed'
+  $extraCredentialSeeded=$true
+  & (Join-Path $Root 'bin\scripts\Set-ServiceGameCredential.ps1') @extraOptions -GameCredential ([PSCredential]::new(('.\'+$extraName),$extraPassword))|Out-Null
+  Start-Service WingsWindowsNative;Wait-State 'offline'
+  $extraURI='http://127.0.0.1:'+$nodePort+'/api/servers/'+$extraID
+  Invoke-RestMethod -Uri ($extraURI+'/install') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -TimeoutSec 5|Out-Null
+  $until=[DateTime]::UtcNow.AddSeconds(15);do{$extra=Get-NodeAPI ('/api/servers/'+$extraID);if(-not $extra.native_install.active -and $extra.native_install.receipt_phase -eq 'acknowledged'){break};Start-Sleep -Milliseconds 100}while([DateTime]::UtcNow -lt $until)
+  if(-not $extra.native_install.successful -or $extra.native_install.receipt_phase -ne 'acknowledged' -or -not (Test-Path -LiteralPath (Join-Path $Root ('data\'+$extraID+'\install.marker')))){throw 'New identity setup did not finish'}
+  $report.checks.game_permissions_new_uuid_distinct_account_installer='passed'
+  Invoke-RestMethod -Uri ($extraURI+'/power') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body '{"action":"start"}' -TimeoutSec 5|Out-Null
+  $until=[DateTime]::UtcNow.AddSeconds(12);do{$extra=Get-NodeAPI ('/api/servers/'+$extraID);if($extra.state -eq 'running'){break};Start-Sleep -Milliseconds 100}while([DateTime]::UtcNow -lt $until)
+  if($extra.state -ne 'running'){throw 'New UUID did not run'}
+  $owned=@();foreach($process in Get-CimInstance Win32_Process -Filter "Name='wings-windows-demo.exe'"){$owner=Invoke-CimMethod -InputObject $process -MethodName GetOwnerSid;if($owner.Sid -eq $extraSID){$owned+=@($process.ProcessId)}}
+  if($owned.Count -lt 2){throw 'New game tree did not use the new SID'}
+  $report.checks.game_permissions_new_uuid_game_tree_uses_new_sid='passed'
+  Invoke-RestMethod -Uri ($extraURI+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body '{"commands":["probe-other-data-access"]}' -TimeoutSec 5|Out-Null
+  $until=[DateTime]::UtcNow.AddSeconds(5);do{$lines=(Get-NodeAPI ('/api/servers/'+$extraID+'/logs')).data;if('OTHER_DATA_PROBE_DENIED' -in $lines){break};Start-Sleep -Milliseconds 100}while([DateTime]::UtcNow -lt $until)
+  if('OTHER_DATA_PROBE_DENIED' -notin $lines){throw 'New identity can read existing game data'}
+  $report.checks.game_permissions_other_server_data_read_denied='passed'
+  Invoke-RestMethod -Uri ($extraURI+'/power') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body '{"action":"kill"}' -TimeoutSec 5|Out-Null
+  $until=[DateTime]::UtcNow.AddSeconds(5);do{$alive=@($owned|Where-Object{Get-Process -Id $_ -ErrorAction SilentlyContinue});if(-not $alive.Count){break};Start-Sleep -Milliseconds 100}while([DateTime]::UtcNow -lt $until)
+  if($alive.Count){throw 'New game tree survived kill'}
+  Stop-Service WingsWindowsNative
+  $rejected=$false;try{& $permissions -InstallationRoot $Root -ServerUUID $extraID|Out-Null}catch{$rejected=$true}
+  if(-not $rejected){throw 'Populated target accepted for permission rewrite'}
+  $report.checks.game_permissions_populated_target_rejected_after_tree_cleanup='passed'
+ }
  if($PrepareReboot){
   Set-Power 'start';Wait-State 'running'
   Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body (@{commands=@('REBOOT_MARKER_'+$suffix)}|ConvertTo-Json)|Out-Null
@@ -695,12 +756,24 @@ try {
 } catch {if($rebootPrepared -and $_.Exception.Message -eq 'WINGS_REBOOT_PREPARED'){$report.passed=$true}else{$report.error=$_.Exception.Message}}
 finally {
  if(-not $rebootPrepared){
+
+ if($extraGameCreated){
+  try{
+   Stop-Service WingsWindowsNative -ErrorAction SilentlyContinue
+   if($extraCredentialSeeded){$options=@{InstallationRoot=$Root;ServerUUID=$extraID;ServiceCredential=$serviceCredential};& (Join-Path $Root 'bin\scripts\Set-ServiceGameCredential.ps1') @options -Remove|Out-Null;$metadata=& (Join-Path $Root 'bin\scripts\Set-ServiceGameCredential.ps1') @options -Inspect;if($metadata.present){throw 'Extra credential remains'};$extraCredentialSeeded=$false}
+   foreach($path in $extraOriginalACLs.Keys){$acl=[Security.AccessControl.FileSecurity]::new();if(Test-Path -LiteralPath $path -PathType Container){$acl=[Security.AccessControl.DirectorySecurity]::new()};$acl.SetSecurityDescriptorSddlForm($extraOriginalACLs[$path],[Security.AccessControl.AccessControlSections]::Access);if($acl -is [Security.AccessControl.DirectorySecurity]){[IO.Directory]::SetAccessControl($path,$acl)}else{[IO.File]::SetAccessControl($path,$acl)}}
+   if($extraOriginalConfiguration){[IO.File]::WriteAllText($configuration,$extraOriginalConfiguration,[Text.UTF8Encoding]::new($false))}
+   if('SeBatchLogonRight' -in @([WingsWindows.NodeSetup]::Rights($extraSID))){[WingsWindows.NodeSetup]::Right($extraSID,'SeBatchLogonRight',$true)}
+   Remove-LocalUser -Name $extraName;$extraGameCreated=$false
+   $report.cleanup.extra_game_credential_account_right_and_code_acls_restored=$true
+  }catch{$extraCleanupFailed=$true;$report.cleanup.extra_game_cleanup_error=$_.Exception.Message;$report.passed=$false}
+ }
  if($rconSeeded){try{Stop-Service WingsWindowsNative -ErrorAction Stop;$removed=& $rconCommand @rconOptions -Remove;$status=& $rconCommand @rconOptions -Inspect;if($status.present){throw 'RCON credential remains'};$rconSeeded=$false;$report.cleanup.rcon_credential_removed=$true}catch{$report.cleanup.rcon_credential_cleanup_failed=$true;$report.passed=$false}}
  if($credentialSeeded -and $daemonSid){try{Stop-Service WingsWindowsNative -ErrorAction Stop;Invoke-Bootstrap -Cleanup;$credentialSeeded=$false;$report.cleanup.credential_removed=$true}catch{$report.cleanup.credential_error=$_.Exception.Message;$report.passed=$false}}
- if($serviceCreated -and -not $credentialSeeded -and -not $rconSeeded){try{Stop-Service WingsWindowsNative -ErrorAction SilentlyContinue;$s=Get-Service WingsWindowsNative;try{$s.WaitForStatus('Stopped',[TimeSpan]::FromSeconds(10))}finally{$s.Dispose()}; & "$env:SystemRoot\System32\sc.exe" delete WingsWindowsNative|Out-Null;$report.cleanup.service_removed=($LASTEXITCODE -eq 0)}catch{$report.cleanup.service_error=$_.Exception.Message;$report.passed=$false}}
+ if($serviceCreated -and -not $credentialSeeded -and -not $rconSeeded -and -not $extraCredentialSeeded -and -not $extraCleanupFailed){try{Stop-Service WingsWindowsNative -ErrorAction SilentlyContinue;$s=Get-Service WingsWindowsNative;try{$s.WaitForStatus('Stopped',[TimeSpan]::FromSeconds(10))}finally{$s.Dispose()}; & "$env:SystemRoot\System32\sc.exe" delete WingsWindowsNative|Out-Null;$report.cleanup.service_removed=($LASTEXITCODE -eq 0)}catch{$report.cleanup.service_error=$_.Exception.Message;$report.passed=$false}}
  if($mock){Stop-Process -Id $mock.Id -ErrorAction SilentlyContinue;$mock.Dispose();$report.cleanup.mock_stopped=$true}
  if($eventSourceCreated){try{& $eventScript -Remove;$report.cleanup.event_source_removed=(-not (Test-Path -LiteralPath $eventKey))}catch{$report.cleanup.event_source_error=$_.Exception.Message;$report.passed=$false}}
- if($rconSeeded -or $credentialSeeded -or (Get-Service WingsWindowsNative -ErrorAction SilentlyContinue)){$report.passed=$false;$report.cleanup.state_retained='Service or credential cleanup incomplete; accounts and rights retained for inspection'}else{
+ if($extraCredentialSeeded -or $extraCleanupFailed -or $rconSeeded -or $credentialSeeded -or (Get-Service WingsWindowsNative -ErrorAction SilentlyContinue)){$report.passed=$false;$report.cleanup.state_retained='Service or credential cleanup incomplete; accounts and rights retained for inspection'}else{
  foreach($entry in @(@{SID=$daemonSid;Names=@('SeServiceLogonRight','SeAssignPrimaryTokenPrivilege','SeIncreaseQuotaPrivilege','SeBatchLogonRight')},@{SID=$gameSid;Names=@('SeBatchLogonRight')})){
   if($entry.SID){foreach($right in $entry.Names){if($right -in @([WingsWindows.NodeSetup]::Rights($entry.SID))){[WingsWindows.NodeSetup]::Right($entry.SID,$right,$true)}}}
  }
@@ -708,7 +781,7 @@ finally {
  $report.cleanup.accounts_and_rights_removed=$true
  }
  }
- if($gamePassword){$gamePassword.Dispose()};if($daemonPassword){$daemonPassword.Dispose()}
+ if($extraPassword){$extraPassword.Dispose()};if($gamePassword){$gamePassword.Dispose()};if($daemonPassword){$daemonPassword.Dispose()}
 }
 $json=$report|ConvertTo-Json -Depth 10
 if(Test-Path -LiteralPath $Root){[IO.File]::WriteAllText((Join-Path $Root 'scm-report.json'),$json,[Text.UTF8Encoding]::new($false))}

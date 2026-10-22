@@ -48,7 +48,7 @@ There is no independent on-disk pending queue. Startup discovery reconstructs pe
 
 Stop the daemon, add `profiles.FULL_UUID` with a fixed approved executable/arguments and separate game SID/credential target, and provision permissions and credentials using the documented operator workflow. Restart registers it as a normal approved server; its pending marker disappears. Invoke panel **Reinstall** to run the [approved native data/setup recipe](NATIVE-INSTALLERS.md), then start manually. Game binaries and installer prerequisites must already exist. Approval alone does not send an installation-success callback.
 
-For an existing managed installation, adding a game identity still requires administrator-managed code/data ACLs, batch rights and daemon-context credentials. This feature does not safely automate those changes or upgrade the initial permission planner into an add-server tool. Do not reuse another game's account or enable same-account execution to bypass that work.
+For an existing managed installation, alpha 36 adds an [incremental permission helper](GAME-PERMISSIONS.md) for a precreated dedicated game account and empty new UUID directory. Stop the service, approve the profile and existing code, preview/apply permissions, then store daemon-context credentials separately. Older populated data/logs remain untouched. Do not rerun initial setup or reuse another game's identity.
 
 ## Scope
 

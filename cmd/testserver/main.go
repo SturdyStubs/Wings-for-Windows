@@ -56,7 +56,7 @@ func main() {
 		if writeFixtureLog(line) {
 			continue
 		}
-		if line == "probe-log-access" || line == "probe-recovery-access" || line == "probe-intent-access" || line == "probe-install-access" {
+		if line == "probe-log-access" || line == "probe-recovery-access" || line == "probe-intent-access" || line == "probe-install-access" || line == "probe-other-data-access" {
 			variable, prefix := "LOG_PROBE_PATH", "LOG_PROBE"
 			if line == "probe-recovery-access" {
 				variable, prefix = "RECOVERY_PROBE_PATH", "RECOVERY_PROBE"
@@ -66,6 +66,9 @@ func main() {
 			}
 			if line == "probe-install-access" {
 				variable, prefix = "INSTALL_STATE_PROBE_PATH", "INSTALL_STATE_PROBE"
+			}
+			if line == "probe-other-data-access" {
+				variable, prefix = "OTHER_DATA_PROBE_PATH", "OTHER_DATA_PROBE"
 			}
 			_, err := os.ReadFile(os.Getenv(variable))
 			switch {

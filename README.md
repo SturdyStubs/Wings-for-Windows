@@ -2,9 +2,9 @@
 
 Run native Windows game-server executables through a Pterodactyl panel. This is a separate Go daemon implementing a **subset of the Wings protocol**, with Windows Job Objects replacing the Docker process runtime.
 
-**Version: 0.1.0-alpha.35. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
+**Version: 0.1.0-alpha.36. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
 
-Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). The current release adds [durable installer receipts and explicit notification recovery](docs/INSTALL-RECOVERY.md). Start with the [Windows node and demo walkthrough](docs/PANEL-WINDOWS-SETUP.md) for manual profile approval, service setup and native data/setup installation.
+Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). The current release adds [incremental game-account permissions](docs/GAME-PERMISSIONS.md) for an existing managed node, alongside [durable installer recovery](docs/INSTALL-RECOVERY.md). Start with the [Windows node and demo walkthrough](docs/PANEL-WINDOWS-SETUP.md) for manual profile approval, service setup and native data/setup installation.
 
 <!-- progress:start -->
 
@@ -38,6 +38,7 @@ For a new panel node, start with the [Windows node and demo egg walkthrough](doc
 | Installer recovery | Opt-in durable latest result, restart inspection, explicit notification retry and conservative interrupted-attempt failure reporting. [Scope](docs/INSTALL-RECOVERY.md). |
 | Native setup recipes | Opt-in install/reinstall routes, restricted local executable approval, bounded output, cancellation and panel completion callbacks. Protected game binaries must already exist; [scope](docs/NATIVE-INSTALLERS.md). |
 | Native executables | Versioned local profiles, PE architecture checks, optional minimum Windows build and dependency-file requirements before startup or installation acknowledgement. Argument arrays without shell expansion. |
+| Incremental permissions | Prepare a precreated game account for one new UUID on a stopped managed node, preserving populated older data/logs. [Workflow](docs/GAME-PERMISSIONS.md). |
 | Game identities | Optional per-server credential reference and pinned local SID, restricted-token launch, daemon process/token checks and bounded recursive/ancestor ACL audit with code/dependency protection, link rejection, required launch permissions and a bounded startup path guard. Real separate-account batch launch passed on Server 2022; SCM demo launch passes; full isolation remains open. |
 | Network policy | Optional account-scoped WFP connection blocking, requiring `run_as`; installation/rollback paths tested with an injected backend. Live filtering is unverified. Default is unmanaged. |
 | Panel discovery | Fetches this node's assigned servers with the node credentials; only registered local profiles can run. |
@@ -81,8 +82,8 @@ cd Wings-for-Windows
 If Go is not on PATH, pass `-GoExecutable C:\path\to\go.exe`. The script runs the Windows integration tests and `go vet`, then creates:
 
 ```text
-dist/wings-windows-native-0.1.0-alpha.35-windows-amd64.zip
-dist/wings-windows-native-0.1.0-alpha.35-windows-amd64.zip.sha256
+dist/wings-windows-native-0.1.0-alpha.36-windows-amd64.zip
+dist/wings-windows-native-0.1.0-alpha.36-windows-amd64.zip.sha256
 ```
 
 The archive includes the daemon, a harmless console demo executable, compiled runtime tests, a host-report script, configuration example, documentation and service script. Docker, Node, PHP and a C compiler are not needed to build it. Native integration tests compile a temporary demo executable using Go.

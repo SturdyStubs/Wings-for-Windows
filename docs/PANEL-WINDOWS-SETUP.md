@@ -43,7 +43,7 @@ C:\WingsWindows\bin\wings-windows.exe --config C:\WingsWindows\private\config.js
 C:\WingsWindows\bin\wings-windows.exe --config C:\WingsWindows\private\config.json --check-profiles
 ```
 
-Complete managed service installation, store the game's credential in the **daemon account's** credential store with `Set-ServiceGameCredential.ps1`, then start the service. Initial managed setup requires empty server data/logs; do not rerun it over a populated installation. Local profiles are loaded at daemon startup, so adding/changing a profile requires a restart. Confirm the node becomes reachable and the UUID appears in its assigned-server discovery.
+Complete managed service installation, store the game's credential in the **daemon account's** credential store with `Set-ServiceGameCredential.ps1`, then start the service. Initial managed setup requires empty server data/logs; do not rerun it over a populated installation. For a later UUID on an existing populated node, use the [incremental game permission workflow](GAME-PERMISSIONS.md) instead. Local profiles are loaded at daemon startup, so adding/changing a profile requires a restart. Confirm the node becomes reachable and the UUID appears in its assigned-server discovery.
 
 ## 5. Validate through the panel
 

@@ -1,6 +1,6 @@
 # Progress toward Wings compatibility
 
-Last updated: October 22, 2026. Current version: **0.1.0-alpha.35**. Active development: **M3 — Windows lifecycle features**. M1/M2 remain open for live panel and isolation gates.
+Last updated: October 22, 2026. Current version: **0.1.0-alpha.36**. Active development: **M3 — Windows lifecycle features**. M1/M2 remain open for live panel and isolation gates.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
@@ -116,7 +116,8 @@ Current scope remains a trusted private node. File denylist/path checks are not 
   - [x] Provide an importable harmless Windows demo egg, matching local profile and node setup walkthrough.
   - [x] Add opt-in panel-record creation acceptance pending operator-owned UUID/profile approval and assignment-based restart discovery.
   - [x] Persist the latest opted-in installer attempt/result/acknowledgement and explicitly reconcile notifications or interrupted failure without executing setup again.
-  - [ ] Add protected game-binary download/staging/promotion, automatic create/install/start, server deletion, durable interrupted-installer state and callback reconciliation.
+  - [x] Prepare one precreated game identity and empty UUID directory on a stopped existing managed node, with bounded ACL validation, rollback and preserved other-server data/logs. [Operator workflow](docs/GAME-PERMISSIONS.md).
+  - [ ] Add protected game-binary download/staging/promotion, automatic account/create/install/start, server deletion and broader interrupted-operation recovery.
 - [ ] Egg configuration parsers for text, JSON, YAML, INI, properties and XML.
   - [x] Add opt-in plain-text file parser with exact local approval, startup integration and bounded/guarded writes.
   - [x] Add a bounded JSON subset with nested/array/wildcard paths, literal conditions, preserved numeric precision and shared startup integration.
