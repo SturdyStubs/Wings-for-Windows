@@ -12,7 +12,7 @@ func (a *API) system(w http.ResponseWriter, r *http.Request) {
 		failure(w, 500, "Cannot read Windows host information")
 		return
 	}
-	capabilities := []string{"native_executable", "job_objects", "console", "power", "files_read_write", "files_create_directory", "live_resource_limits", "egg_process_opt_in", "native_installer_opt_in"}
+	capabilities := []string{"native_executable", "job_objects", "console", "power", "files_read_write", "files_create_directory", "files_rename_move", "live_resource_limits", "egg_process_opt_in", "native_installer_opt_in"}
 	if a.Manager.Config.AllowPendingCreation {
 		capabilities = append(capabilities, "pending_creation_manual_approval")
 	}

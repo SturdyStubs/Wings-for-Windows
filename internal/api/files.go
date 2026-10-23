@@ -35,13 +35,17 @@ func filePath(value string) (string, error) {
 	return value, nil
 }
 func (a *API) files(w http.ResponseWriter, r *http.Request, s *node.Server, action string) {
+	if action == "rename" && r.Method == http.MethodPut {
+		a.renameFiles(w, r, s)
+		return
+	}
 	if action == "create-directory" && r.Method == http.MethodPost {
 		a.createDirectory(w, r, s)
 		return
 	}
 	listing := action == "list-directory" || action == "list"
 	if !((listing || action == "contents") && r.Method == "GET" || action == "write" && r.Method == "POST") {
-		failure(w, 501, "Only directory creation, file listing, text reading and text writing are supported")
+		failure(w, 501, "Only directory creation, rename/move, listing, text reading and text writing are supported")
 		return
 	}
 	key := "file"

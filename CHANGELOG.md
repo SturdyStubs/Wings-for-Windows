@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.41 - 2026-10-22
+
+- Add the existing panel/upstream `PUT /files/rename` contract for file/directory renames and moves, relative parent paths within the server root, case-only changes, no-ops and ignored missing sources.
+- Preflight bounded batches and requested/canonical overlaps, scan old/new descendant paths for denylist restrictions, refuse reparse/multi-hardlink entries and hold source handles against ordinary replacement. Native handle-relative moves do not replace an existing destination, including a late collision. Preserve contents and DACLs.
+- Require existing destination parents and separate dependent/chained moves. Later I/O/cancellation can retain earlier moves; no transactional rollback or durable journal. Add contract, policy, links, collision, pinning and cancellation/bounds tests plus an optional SCM/distinct-game-account phase. HTTP inventory is now 18/38 with partial semantics; M4 remains open. See [scope](docs/FILE-RENAME.md) and [verification](docs/VERIFICATION.md).
+
 ## 0.1.0-alpha.40 - 2026-10-22
 
 - Add the panel/upstream `POST /files/create-directory` contract, nested parents and idempotent existing-directory success. Preserve native ENOTDIR handling and directory contents/permissions.

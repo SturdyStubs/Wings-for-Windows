@@ -32,4 +32,4 @@ New directories inherit the server tree's Windows DACL. The daemon does not gran
 
 A denied or invalid request is preflighted before creating parents. A later I/O error, cancellation, policy change or external filesystem mutation can leave earlier new directories in place. There is no recursive rollback: deleting them could destroy files a game wrote concurrently. Inspect and retry; successful repeat requests preserve existing directories. A disconnected caller may have missed a successful response.
 
-Rename, copy, delete, permissions editing, scoped upload/download, archives, remote fetch, disk enforcement and SFTP remain separate unfinished work. This endpoint increases the partial upstream HTTP inventory to **17 of 38**; it does not complete M4 or certify a real panel/game deployment.
+Alpha 41 adds [bounded rename/move](FILE-RENAME.md). Copy, delete, permissions editing, scoped upload/download, archives, remote fetch, disk enforcement and SFTP remain separate unfinished work. This endpoint increases the partial upstream HTTP inventory to **17 of 38**; it does not complete M4 or certify a real panel/game deployment.

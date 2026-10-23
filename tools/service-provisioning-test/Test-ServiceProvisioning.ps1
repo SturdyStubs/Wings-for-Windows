@@ -1,6 +1,7 @@
 #Requires -RunAsAdministrator
-param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON,[switch]$TestLogFile,[switch]$TestRCONCredential,[switch]$TestNativeInstaller,[switch]$TestPendingCreation,[switch]$TestInstallState,[switch]$TestGamePermissions,[switch]$TestGameAccount,[switch]$TestGameFiles,[switch]$TestStageRecovery,[switch]$TestFileDirectories)
+param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON,[switch]$TestLogFile,[switch]$TestRCONCredential,[switch]$TestNativeInstaller,[switch]$TestPendingCreation,[switch]$TestInstallState,[switch]$TestGamePermissions,[switch]$TestGameAccount,[switch]$TestGameFiles,[switch]$TestStageRecovery,[switch]$TestFileDirectories,[switch]$TestFileRename)
 $ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
+if($TestFileRename -and -not $TestFileDirectories){throw 'File rename fixture requires directory phase'}
 if($TestFileDirectories -and $PrepareReboot){throw 'File directory fixture is separate from reboot preparation'}
 if($TestStageRecovery -and -not $TestGameFiles){throw 'Stage recovery fixture requires game files phase'}
 if($TestGameFiles -and -not $TestGameAccount){throw 'Game files fixture requires account phase'}
@@ -285,6 +286,42 @@ try {
   do{$probe='DIRECTORY_PROBE_OK' -in (Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data;if(-not $probe){Start-Sleep -Milliseconds 50}}while(-not $probe -and [DateTime]::UtcNow -lt $until)
   if(-not $probe -or (Get-NodeAPI ('/api/servers/'+$ServerID+'/files/contents?file=/file-manager/nested/game.cfg')) -ne 'game-written'){throw 'Distinct game account cannot use inherited directory ACLs'}
   $report.checks.file_directory_distinct_game_read_write_inherited_acl='passed'
+ }
+ if($TestFileRename){
+  function Invoke-RenameFixture([string]$Body,[int]$Expected=204,[switch]$Anonymous){
+   $headers=@{};if(-not $Anonymous){$headers.Authorization='Bearer '+$nodeToken}
+   $status=0
+   try{$response=Invoke-WebRequest -UseBasicParsing -Uri ($fileURI+'rename') -Method Put -Headers $headers -ContentType application/json -Body $Body -TimeoutSec 5;$status=[int]$response.StatusCode}catch{if(-not $_.Exception.Response){throw};$status=[int]$_.Exception.Response.StatusCode}
+   if($status -ne $Expected){throw ('Rename fixture HTTP status '+$status+' expected '+$Expected)}
+  }
+  Invoke-RenameFixture '{"root":"/file-manager/nested","files":[{"from":"panel.cfg","to":"anonymous.cfg"}]}' -Expected 401 -Anonymous
+  if('panel.cfg' -notin @((Get-NodeAPI ('/api/servers/'+$ServerID+'/files/list-directory?directory=/file-manager/nested')).name)){throw 'Anonymous rename mutated data'}
+  $report.checks.file_rename_authentication='passed'
+  $beforeDirectoryACL=(Get-Acl -LiteralPath (Join-Path $Root ('data\'+$ServerID+'\file-manager\nested'))).Sddl
+  $beforeFileACL=(Get-Acl -LiteralPath (Join-Path $Root ('data\'+$ServerID+'\file-manager\nested\panel.cfg'))).Sddl
+  Invoke-RenameFixture '{"root":"/file-manager/nested","files":[{"from":"panel.cfg","to":"panel-renamed.cfg"},{"from":"game.cfg","to":"game-renamed.cfg"}]}'
+  if((Get-NodeAPI ('/api/servers/'+$ServerID+'/files/contents?file=/file-manager/nested/panel-renamed.cfg')) -ne 'panel-written' -or (Get-NodeAPI ('/api/servers/'+$ServerID+'/files/contents?file=/file-manager/nested/game-renamed.cfg')) -ne 'game-written'){throw 'Batch rename changed bytes'}
+  $report.checks.file_rename_service_batch_preserves_contents='passed'
+  Invoke-RenameFixture '{"root":"/file-manager/nested","files":[{"from":"panel-renamed.cfg","to":"Panel-Renamed.cfg"}]}'
+  Invoke-RenameFixture '{"root":"/file-manager/nested","files":[{"from":"Panel-Renamed.cfg","to":"Panel-Renamed.cfg"}]}'
+  if(@((Get-NodeAPI ('/api/servers/'+$ServerID+'/files/list-directory?directory=/file-manager/nested')).name) -cnotcontains 'Panel-Renamed.cfg'){throw 'Case-only rename not preserved'}
+  $report.checks.file_rename_case_only_and_noop='passed'
+  Invoke-RenameFixture '{"root":"/file-manager","files":[{"from":"nested","to":"moved"}]}'
+  if((Get-Acl -LiteralPath (Join-Path $Root ('data\'+$ServerID+'\file-manager\moved'))).Sddl -cne $beforeDirectoryACL -or (Get-Acl -LiteralPath (Join-Path $Root ('data\'+$ServerID+'\file-manager\moved\Panel-Renamed.cfg'))).Sddl -cne $beforeFileACL){throw 'Move changed DACLs'}
+  $report.checks.file_rename_directory_preserves_acls='passed'
+  Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body '{"commands":["probe-file-renames"]}' -TimeoutSec 5|Out-Null
+  $until=[DateTime]::UtcNow.AddSeconds(5);$probe=$false
+  do{$probe='RENAME_PROBE_OK' -in (Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data;if(-not $probe){Start-Sleep -Milliseconds 50}}while(-not $probe -and [DateTime]::UtcNow -lt $until)
+  if(-not $probe -or (Get-NodeAPI ('/api/servers/'+$ServerID+'/files/contents?file=/file-manager/moved/after-move.cfg')) -ne 'game-after-move'){throw 'Distinct game account cannot use moved directory'}
+  $report.checks.file_rename_distinct_game_read_write='passed'
+  Invoke-RestMethod -Uri ($fileURI+'write?file=/file-manager/moved/first.cfg') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -Body 'first' -TimeoutSec 5|Out-Null
+  Invoke-RenameFixture '{"root":"/file-manager/moved","files":[{"from":"first.cfg","to":"first-moved.cfg"},{"from":"Panel-Renamed.cfg","to":"game-renamed.cfg"}]}' -Expected 400
+  if((Get-NodeAPI ('/api/servers/'+$ServerID+'/files/contents?file=/file-manager/moved/first.cfg')) -ne 'first' -or (Get-NodeAPI ('/api/servers/'+$ServerID+'/files/contents?file=/file-manager/moved/game-renamed.cfg')) -ne 'game-written'){throw 'Collision preflight changed earlier entry or destination'}
+  $report.checks.file_rename_collision_preserves_batch='passed'
+  Invoke-RenameFixture '{"root":"/","files":[{"from":"file-manager/moved","to":"renamed-restricted"}]}' -Expected 403
+  Invoke-RenameFixture '{"root":"/","files":[{"from":"file-manager/moved/first.cfg","to":"../escape"}]}' -Expected 422
+  if((Get-NodeAPI ('/api/servers/'+$ServerID+'/files/contents?file=/file-manager/moved/first.cfg')) -ne 'first'){throw 'Denied move changed source'}
+  $report.checks.file_rename_descendant_denylist_and_traversal='passed'
  }
  if($TestConsoleLogs){
   Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body '{"commands":["probe-log-access"]}'|Out-Null

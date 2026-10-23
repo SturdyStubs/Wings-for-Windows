@@ -16,12 +16,13 @@ import (
 )
 
 type API struct {
-	Manager   *node.Manager
-	boot      time.Time
-	revoked   sync.Map
-	slots     chan struct{}
-	done      chan struct{}
-	closeOnce sync.Once
+	Manager     *node.Manager
+	boot        time.Time
+	revoked     sync.Map
+	renameLocks sync.Map
+	slots       chan struct{}
+	done        chan struct{}
+	closeOnce   sync.Once
 }
 
 func New(m *node.Manager) *API {

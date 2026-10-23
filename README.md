@@ -2,9 +2,9 @@
 
 Run native Windows game-server executables through a Pterodactyl panel. This is a separate Go daemon implementing a **subset of the Wings protocol**, with Windows Job Objects replacing the Docker process runtime.
 
-**Version: 0.1.0-alpha.40. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
+**Version: 0.1.0-alpha.41. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
 
-Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). The current release adds [panel directory creation](docs/FILE-DIRECTORIES.md). Earlier releases add [staging inspection and quarantine](docs/GAME-FILE-RECOVERY.md), building on [verified file import](docs/GAME-FILES.md), [account creation](docs/GAME-ACCOUNTS.md), [incremental permissions](docs/GAME-PERMISSIONS.md) and [installer recovery](docs/INSTALL-RECOVERY.md). Start with the [Windows node and demo walkthrough](docs/PANEL-WINDOWS-SETUP.md) for manual profile approval, service setup and native data/setup installation.
+Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). The current release adds [panel file rename/move](docs/FILE-RENAME.md), building on [directory creation](docs/FILE-DIRECTORIES.md). Earlier releases add [staging inspection and quarantine](docs/GAME-FILE-RECOVERY.md), building on [verified file import](docs/GAME-FILES.md), [account creation](docs/GAME-ACCOUNTS.md), [incremental permissions](docs/GAME-PERMISSIONS.md) and [installer recovery](docs/INSTALL-RECOVERY.md). Start with the [Windows node and demo walkthrough](docs/PANEL-WINDOWS-SETUP.md) for manual profile approval, service setup and native data/setup installation.
 
 <!-- progress:start -->
 
@@ -26,7 +26,7 @@ Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.co
 GitHub Issues are the source of truth; ROADMAP.md records implementation scope and verification. Run `scripts/Update-Progress.ps1` to regenerate this section. Use `-Initialize` to add missing planned milestones/tasks; rerunning it never automatically re-closes existing issues.
 <!-- progress:end -->
 
-Alpha 40 verification: **871 local cases/subtests**, **14 packaged native cases**, **38 portable directory API cases/subtests** and **23 Server 2022 service checks** pass. The non-administrator daemon and distinct game identity use newly created directories successfully; independent cleanup passes with one retained/loaded profile. See [current evidence](docs/evidence/server2022-alpha40-file-directories.md). Earlier alpha 39 [combined 114-check evidence](docs/evidence/server2022-alpha39-stage-recovery.md) and alpha 29 [reboot evidence](docs/evidence/server2022-alpha29-running-restoration.md) remain version-specific.
+Alpha 41 adds rename/move; release checks are tracked in [verification](docs/VERIFICATION.md). Prior alpha 40 verification: **871 local cases/subtests**, **14 packaged native cases**, **38 portable directory API cases/subtests** and **23 Server 2022 service checks** pass. The non-administrator daemon and distinct game identity use newly created directories successfully; independent cleanup passes with one retained/loaded profile. See [current evidence](docs/evidence/server2022-alpha40-file-directories.md). Earlier alpha 39 [combined 114-check evidence](docs/evidence/server2022-alpha39-stage-recovery.md) and alpha 29 [reboot evidence](docs/evidence/server2022-alpha29-running-restoration.md) remain version-specific.
 
 For a new panel node, start with the [Windows node and demo egg walkthrough](docs/PANEL-WINDOWS-SETUP.md). It explains the full UUID/profile binding and the manual approval requirement.
 
@@ -51,7 +51,7 @@ For a new panel node, start with the [Windows node and demo egg walkthrough](doc
 | Console | Combined stdout/stderr, bounded recent logs, single-line stdin commands and authenticated WebSocket events. |
 | Status | Offline, starting, running after local readiness or opted-in egg literal/regex matches with ANSI stripping, and stopping. |
 | Statistics | Root-process CPU, working-set memory and uptime. Network and disk accounting are unavailable and identified as such in `native_metrics`. |
-| File API | [Nested directory creation](docs/FILE-DIRECTORIES.md), Wings-compatible listing URL/metadata, MIME/length/download headers, confined reads/writes up to 8 MiB and case-insensitive egg denylist checks. Contract tests pass; live panel verification remains open. |
+| File API | [File/directory rename and move](docs/FILE-RENAME.md), [nested directory creation](docs/FILE-DIRECTORIES.md), Wings-compatible listing URL/metadata, MIME/length/download headers, confined reads/writes up to 8 MiB and case-insensitive egg denylist checks. Contract tests pass; live panel verification remains open. |
 | Running restoration | Opt-in durable running/stopped intent, fresh guards and budgeted replay after daemon readiness. |
 | Game log console | Optional relative UTF-8 log forwarding and log-only readiness, bounded polling and rotation; [scope](docs/LOG-FILE-CONSOLE.md). |
 | RCON credentials | Optional per-server Windows Credential Manager references, managed service provisioning and scoped rotation/removal; [setup](docs/RCON-CREDENTIALS.md). |
@@ -85,8 +85,8 @@ cd Wings-for-Windows
 If Go is not on PATH, pass `-GoExecutable C:\path\to\go.exe`. The script runs the Windows integration tests and `go vet`, then creates:
 
 ```text
-dist/wings-windows-native-0.1.0-alpha.40-windows-amd64.zip
-dist/wings-windows-native-0.1.0-alpha.40-windows-amd64.zip.sha256
+dist/wings-windows-native-0.1.0-alpha.41-windows-amd64.zip
+dist/wings-windows-native-0.1.0-alpha.41-windows-amd64.zip.sha256
 ```
 
 The archive includes the daemon, a harmless console demo executable, compiled runtime tests, a host-report script, configuration example, documentation and service script. Docker, Node, PHP and a C compiler are not needed to build it. Native integration tests compile a temporary demo executable using Go.

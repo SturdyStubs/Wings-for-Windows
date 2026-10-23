@@ -1,6 +1,6 @@
 # Progress toward Wings compatibility
 
-Last updated: October 22, 2026. Current version: **0.1.0-alpha.40**. Active development: **M3 — Windows lifecycle features**, with the first **M4 file-manager directory operation** implemented. M1/M2 remain open for live panel and isolation gates.
+Last updated: October 22, 2026. Current version: **0.1.0-alpha.41**. Active development: **M3 — Windows lifecycle features**, with **M4 directory creation and file rename/move** implemented. M1/M2 remain open for live panel and isolation gates.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
@@ -49,7 +49,8 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - Alpha 38: manifest/hash-approved local game-file import with source sharing guards, private staging, flushed copy verification, daemon read-only code ACLs and same-parent new-directory publication. Refuse overwrites and stale staging; the imported executable completes dedicated-account setup/game launch and dependency write denial. All 815 local cases/subtests, 14 packaged native cases and 107 combined Server 2022 checks pass; independent three-identity cleanup verified. Automatic downloads/updates, durable promotion recovery and panel-driven provisioning remain open. See [workflow](docs/GAME-FILES.md) and [evidence](docs/evidence/server2022-alpha38-game-files.md).
 - Alpha 39: bounded staging inspection and fingerprint-approved quarantine into administrator-only private storage, with retained bytes, no deletion/publication and explicit stale-content/ACL, path-reference and maintenance-lock guards. All 833 local cases/subtests, 14 packaged native cases and 114 combined Server 2022 checks pass using simulated interrupted-copy staging followed by the normal import/setup/game handoff; independent cleanup verified. Actual crash/reboot and durable promotion recovery remain open. See [workflow](docs/GAME-FILE-RECOVERY.md) and [evidence](docs/evidence/server2022-alpha39-stage-recovery.md).
 - Alpha 40: panel-compatible nested directory creation with whole-path preflight, case-insensitive denylist checks, reparse refusal, confined parent traversal, bounded Windows names and inherited directory permissions. All 871 local cases/subtests, 14 packaged native cases, 38 portable API cases/subtests and 23 focused Server 2022 service checks pass; independent cleanup verifies removal with one retained/loaded profile. See [exact evidence](docs/evidence/server2022-alpha40-file-directories.md). Rename/copy/delete, scoped upload/download and SFTP remain open. See [directory scope](docs/FILE-DIRECTORIES.md).
-- HTTP inventory: handlers at **17 of upstream's 38 method/path combinations**, with partial behavior; **21 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
+- Alpha 41: panel-compatible file/directory rename/move with case-only names, confined relative parent moves, batch preflight, descendant denylist scans, pinned sources and native no-replace destination protection. Existing destination parents are required; chains/swaps/overlaps are refused and execution is not transactional. See [scope](docs/FILE-RENAME.md) and [verification](docs/VERIFICATION.md).
+- HTTP inventory: handlers at **18 of upstream's 38 method/path combinations**, with partial behavior; **20 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
 - Automatic binary provisioning, full file manager/SFTP, backups/restores, transfers, strong isolation and live certification remain open.
 - Unchanged Linux eggs require a Linux execution backend. Native Windows profiles do not translate Linux images/binaries.
 
@@ -154,7 +155,8 @@ Current scope remains a trusted private node. File denylist/path checks are not 
 
 - [ ] Rename/copy/mkdir/delete, permissions policy, scoped uploads/downloads and large-file streaming.
   - [x] Add the upstream directory-creation route, including missing parents, existing-directory replay, bounded Windows path validation, denylist preflight, link refusal and inherited DACLs.
-  - [ ] Complete rename/copy/delete, permissions editing and scoped uploads/downloads; verify full workflows through a real panel.
+  - [x] Add the upstream rename/move route for files and directories, including case-only names, batch preflight, descendant policy checks and native no-replace protection.
+  - [ ] Complete copy/delete, broader rename behavior, permissions editing and scoped uploads/downloads; verify full workflows through a real panel.
 - [ ] Safe archives/extraction and guarded remote fetch with progress/cancel.
 - [ ] SFTP with panel authentication, per-operation permissions, revocation and session limits.
 - [ ] Disk accounting/enforcement across file, installer, archive and game writes.

@@ -1,5 +1,7 @@
 # Verification and release status
 
+Alpha 41 adds the bounded rename/move API. Focused local rename tests and vet pass. Clean release, packaged Server 2022 API tests and SCM directory/rename checks remain pending at this source revision. See [scope](FILE-RENAME.md).
+
 Alpha 40 passes **871 local cases/subtests**, zero skips and vet. The exact clean package passes **14 native VM cases**, **38 portable directory API cases/subtests** and **23 focused Server 2022 service checks**, including five directory checks under the non-administrator daemon and distinct game account. Independent cleanup passes with one retained/loaded profile. The preliminary portable API staging omission and unchanged-code retry are retained in the evidence. The alpha 39 combined 114-check suite was not rerun. See [exact evidence](evidence/server2022-alpha40-file-directories.md) and [scope](FILE-DIRECTORIES.md).
 
 Alpha 39 passes 833 local cases/subtests, zero skips and vet; the exact clean package passes 14 native and all 114 combined Server 2022 checks. Simulated interrupted staging is inspected and quarantined with fingerprint approval, retained bytes and administrator-only ACLs; the normal import/setup/game handoff then succeeds. No actual crash/reboot is claimed. Independent cleanup passes with retained-profile limits. See [exact evidence](evidence/server2022-alpha39-stage-recovery.md) and [operator workflow](GAME-FILE-RECOVERY.md).

@@ -1,0 +1,1 @@
+{"root":"/config","files":[{"from":"a.cfg","to":"plugins/a.cfg"},{"from":"b.cfg","to":"renamed.cfg"}]}

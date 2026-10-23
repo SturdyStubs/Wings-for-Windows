@@ -51,6 +51,21 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		line := scanner.Text()
+		if line == "probe-file-renames" {
+			dir := filepath.Join("file-manager", "moved")
+			body, err := os.ReadFile(filepath.Join(dir, "Panel-Renamed.cfg"))
+			if err == nil && string(body) == "panel-written" {
+				err = os.WriteFile(filepath.Join(dir, "after-move.cfg"), []byte("game-after-move"), 0600)
+				if err == nil {
+					fmt.Println("RENAME_PROBE_OK")
+				} else {
+					fmt.Println("RENAME_PROBE_ERROR")
+				}
+			} else {
+				fmt.Println("RENAME_PROBE_ERROR")
+			}
+			continue
+		}
 		if line == "probe-file-directories" {
 			dir := filepath.Join("file-manager", "nested")
 			body, err := os.ReadFile(filepath.Join(dir, "panel.cfg"))
