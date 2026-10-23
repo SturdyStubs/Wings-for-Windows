@@ -33,6 +33,12 @@ $m=Import-Module $Module -Force -PassThru
 $id='11111111-1111-4111-8111-111111111111';$name='WwUnitGame'
 & $m {param($root,$case)
  $script:root=$root;$script:case=$case;$script:creates=0;$script:removes=0;$script:exists=($case -eq 'existing-account');$script:changed=$false
+ $script:realCreate=${function:New-GameAccountUser}
+ function script:New-LocalUser {
+  [CmdletBinding()]param($Name,[Security.SecureString]$Password,[ValidateLength(0,48)][string]$Description,[switch]$PasswordNeverExpires,[switch]$UserMayNotChangePassword)
+  if(-not $PasswordNeverExpires -or -not $UserMayNotChangePassword -or -not $Description.EndsWith('11111111-1111-4111-8111-111111111111')){throw 'Account flags or UUID description invalid'}
+  [pscustomobject]@{Name=$Name;SID=[Security.Principal.SecurityIdentifier]::new('S-1-5-21-1-2-3-1002')}
+ }
  function script:Get-GamePermissionService {param($p)
   $daemon='S-1-5-21-1-2-3-1001';if($script:changed){$daemon='S-1-5-21-1-2-3-1010'}
   [pscustomobject]@{Root=$script:root;Configuration=(Join-Path $script:root 'private\config.json');Executable=(Join-Path $script:root 'bin\daemon.exe');DaemonSID=$daemon}
@@ -42,6 +48,7 @@ $id='11111111-1111-4111-8111-111111111111';$name='WwUnitGame'
   $script:creates++
   if($Password -isnot [Security.SecureString] -or $UUID -ne '11111111-1111-4111-8111-111111111111'){throw 'Invalid argument forwarding'}
   if($script:case -eq 'create-fails'){throw 'Synthetic create failure'}
+  if($script:case -eq 'create'){return (& $script:realCreate $Name $Password $UUID)}
   [pscustomobject]@{Name=$Name;SID=[Security.Principal.SecurityIdentifier]::new('S-1-5-21-1-2-3-1002')}
  }
  function script:Assert-GameAccountUser {param($Name)

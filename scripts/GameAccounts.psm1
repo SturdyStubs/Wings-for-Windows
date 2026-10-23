@@ -3,7 +3,8 @@ Import-Module (Join-Path $PSScriptRoot 'GamePermissions.psm1') -Force
 
 function Get-GameAccountByName([string]$Name) { Get-LocalUser -Name $Name -ErrorAction SilentlyContinue }
 function New-GameAccountUser([string]$Name,[Security.SecureString]$Password,[string]$UUID) {
-    New-LocalUser -Name $Name -Password $Password -Description ('WingsWindows game '+$UUID) -PasswordNeverExpires -UserMayNotChangePassword -ErrorAction Stop
+    # New-LocalUser limits Description to 48 characters; retain the full UUID.
+    New-LocalUser -Name $Name -Password $Password -Description ('Wings game '+$UUID) -PasswordNeverExpires -UserMayNotChangePassword -ErrorAction Stop
 }
 function Remove-GameAccountUser([string]$SID) { Remove-LocalUser -SID ([Security.Principal.SecurityIdentifier]::new($SID)) -ErrorAction Stop }
 function Assert-GameAccountUser([string]$Name) {
