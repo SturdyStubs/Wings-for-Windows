@@ -1,6 +1,6 @@
 # Verification and release status
 
-Alpha 42 adds the bounded regular-file copy API. Focused local copy tests and vet pass. Clean release and Server 2022 API/SCM copy validation remain pending at this source revision. See [scope](FILE-COPY.md).
+Alpha 42 passes **931 local cases/subtests**, zero skips and vet. The exact clean package passes **14 native VM cases**, **98 directory/rename/copy API cases/subtests** and **35 focused Server 2022 service checks**, including five new copy checks under the non-administrator daemon and distinct game identity. Independent cleanup passes with one retained/loaded profile. No real panel/game or new reboot is claimed; the older combined 114-check fixture was not rerun. See [exact evidence](evidence/server2022-alpha42-file-copy.md) and [scope](FILE-COPY.md).
 
 Alpha 41 passes **905 local cases/subtests**, zero skips and vet. The exact clean package passes **14 native VM cases**, **72 directory/rename API cases/subtests** and **30 focused Server 2022 service checks**, including seven new rename checks under the non-administrator daemon and distinct game identity. Independent cleanup passes with one retained/loaded profile. No real panel/game or new reboot is claimed; the older combined 114-check fixture was not rerun. See [exact evidence](evidence/server2022-alpha41-file-rename.md) and [scope](FILE-RENAME.md).
 

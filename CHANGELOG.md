@@ -6,6 +6,8 @@
 - Pin ordinary source writes/deletion, reject observed links/hardlinks and denied paths, create an exclusive owned stage, verify length/EOF, flush and publish through the native no-replace move. Attempt failure cleanup by handle; crashes can retain stages without a durable journal. New objects inherit parent DACLs.
 - Add naming, binary/empty files, malformed/auth/path/type/denylist/collision bounds, sparse oversize, sharing, cancellation cleanup, stream failure and native publication tests plus an optional SCM/game-access phase. Disk quotas, recursive copying and full live panel/game validation remain open. See [scope](docs/FILE-COPY.md).
 
+- Validate 931 local cases/subtests with zero skips, vet, clean release, 14 packaged native VM cases, 98 portable file API cases/subtests and 35 focused Server 2022 service checks. Independent cleanup passes with one retained/loaded profile. See [evidence](docs/evidence/server2022-alpha42-file-copy.md).
+
 ## 0.1.0-alpha.41 - 2026-10-22
 
 - Add the existing panel/upstream `PUT /files/rename` contract for file/directory renames and moves, relative parent paths within the server root, case-only changes, no-ops and ignored missing sources.
