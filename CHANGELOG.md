@@ -4,7 +4,7 @@
 
 - Add the panel/upstream `POST /files/compress` root/files contract and file-metadata response for tar.gz creation. Include regular files, nested directories, empty entries and Unicode paths with portable tar modes and no host ownership metadata.
 - Preflight and pin at most 256 entries, refuse observed links/multi-hardlinks and conflicting writers, enforce path/denylist/source identity checks, stream up to 100 MiB input / 101 MiB output and publish a flushed owned stage without replacement. Two global slots, one job per server and a cooperative 60-second deadline bound work. Ordinary cancellation/policy/shutdown errors remove unpublished stages by handle.
-- Extraction, remote fetch, quotas, crash recovery, progress events and actual browser certification remain open. Focused tests pass; full clean build and Server 2022 verification pending. See [archive scope](docs/FILE-ARCHIVES.md).
+- Extraction, remote fetch, quotas, crash recovery, progress events and actual browser certification remain open. Validate 1,117 local cases/subtests (zero skipped), vet and clean release; 14 native and 38 portable Server 2022 cases; eleven live archive/cleanup groups including public HTTPS download and 9 MiB binary integrity, ten upload and ten WSS regressions. The separate public large-upload proxy 413 gate remains pending. See [archive scope](docs/FILE-ARCHIVES.md) and [evidence](docs/evidence/server2022-alpha47-archive-creation.md).
 
 ## 0.1.0-alpha.46 - 2026-10-23
 

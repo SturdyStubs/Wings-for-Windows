@@ -26,7 +26,7 @@ Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.co
 GitHub Issues are the source of truth; ROADMAP.md records implementation scope and verification. Run `scripts/Update-Progress.ps1` to regenerate this section. Use `-Initialize` to add missing planned milestones/tasks; rerunning it never automatically re-closes existing issues.
 <!-- progress:end -->
 
-Alpha 47 archive verification is pending the clean build and Server 2022 checks. See [scope](docs/FILE-ARCHIVES.md).
+Alpha 47: **1,117 local cases/subtests**, zero skips, vet and clean release; **14 native** and **38 portable compress** cases/subtests pass on Server 2022. **Eleven live archive checks** pass, including public HTTPS creation/download and SHA256-verified 9 MiB random binary round trip; ten upload and ten WSS regressions pass. Configuration/ACLs and earlier data are preserved, fixtures cleaned up, and service/demo/tunnel remain running. Extraction and actual browser Compress remain open. See [evidence](docs/evidence/server2022-alpha47-archive-creation.md) and [scope](docs/FILE-ARCHIVES.md).
 
 Alpha 46: **1,079 local cases/subtests**, zero skips, vet and clean release; **14 native** and **52 portable upload** cases/subtests pass on Server 2022. Ten live upload/service/cleanup groups and all ten download plus ten WSS regressions pass. Public small uploads work and retained-service 9 MiB integrity passes; **public 9 MiB uploads return proxy 413 and remain pending**. Actual browser-issued links remain unverified. See [evidence](docs/evidence/server2022-alpha46-signed-uploads.md) and [proxy setup/limits](docs/FILE-UPLOADS.md).
 

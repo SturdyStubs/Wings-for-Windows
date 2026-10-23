@@ -131,7 +131,8 @@
           "title": "Implement remaining file operations and scoped large-file upload/download"
         },
         {
-          "title": "Add safe archives and guarded remote fetch with cancellation"
+          "title": "Add safe archives and guarded remote fetch with cancellation",
+          "notes": "Alpha 47 implements bounded tar.gz creation: 1117 local, 14 native, 38 portable and 11 live archive checks pass, plus upload/WSS regressions. Public archive creation/download and 9 MiB SHA256 round trip verified under retained non-administrator service. Extraction, malicious-archive extraction checks, guarded fetch, progress UI, quotas, durable recovery and actual browser Compress remain open; this broad task is not complete. Evidence: https://github.com/SturdyStubs/Wings-for-Windows/blob/main/docs/evidence/server2022-alpha47-archive-creation.md"
         },
         {
           "title": "Implement SFTP authentication, permissions, revocation and limits"

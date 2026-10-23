@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "version": "0.1.0-alpha.47",
+  "source_revision": "befa2ee7fa1a60f9319932c92da735fedbf3f48f",
+  "source_dirty": false,
+  "zip_sha256": "7fea51c9414354f5d9a6d8a47d84d28132151f5412500e12088c3a3011471802",
+  "daemon_sha256": "06d12c3bfae3efb82d404cbe5ddba638189dd00aff4fa73c381976c64665ece9",
+  "runtime_tests_sha256": "428f07aab4df4bb585932c92c4424841c8bdec66dcd0a221d6289151212a9251",
+  "demo_sha256": "5f62d20b45b1ce290958f3c2d63d4a93fcbe8b7a0a3cd68ffedf602e36d87722",
+  "api_tests_sha256": "81d00ba6896cf25cf3c69fecc3727fc1426119ba5c2815d3370053413fc161ab",
+  "contract_fixture_sha256": "5996d91273ebc21c43ca9d8e11cc35593f0882d13e5acefcebb945f1325791d0",
+  "live_archive_probe_sha256": "ea102599dc34fe185071ef907b12353209208c621cefcfd8994449f3ecb80fac",
+  "live_archive_probe_source_sha256": "f64cb2a0f05462da3c173474677e477f54c29fab9fcc8129e423ef9d2b90ea1f",
+  "missing_fixture_consent_exit_code": 2,
+  "host": {
+    "caption": "Microsoft Windows Server 2022 Standard Evaluation",
+    "version": "10.0.20348",
+    "build": "20348",
+    "architecture": "64-bit",
+    "windows_server": true,
+    "powershell": "5.1.20348.558"
+  },
+  "local_tests_passed": 1117,
+  "local_tests_skipped": 0,
+  "native_tests_passed": 14,
+  "baseline_started_utc": "2026-10-23T23:10:54.7207926Z",
+  "baseline_finished_utc": "2026-10-23T23:10:57.2280277Z",
+  "portable_compress_api": {
+    "tests_skipped": 0,
+    "tests_failed": 0,
+    "tests_passed": 38,
+    "exit_code": 0
+  },
+  "live_service_deployment": {
+    "reboot_tested": false,
+    "version": "0.1.0-alpha.47",
+    "public_update_status": 200,
+    "observed_utc": "2026-10-23T23:11:03.6563945Z",
+    "game_state": "running",
+    "game_was_running": true,
+    "applied": false,
+    "runtime_only_upgrade": true,
+    "original_incoming_credentials_valid": true,
+    "outgoing_live_panel_sync_status": 204,
+    "upgrade_config_hash_unchanged": true,
+    "service_state": "Running",
+    "native_config_hash_unchanged": true,
+    "panel_save_button_retested": false,
+    "executable_acl_preserved": true
+  },
+  "live_archive": {
+    "archive_bytes": 9440621,
+    "browser_compress_tested": false,
+    "checks": {
+      "active_writer_refused": true,
+      "archive_bytes_match_public_download": true,
+      "no_temporary_archives_remain": true,
+      "overlapping_selection_refused": true,
+      "owned_fixture_removed": true,
+      "public_compress_metadata": true,
+      "public_signed_download_and_tar_round_trip": true,
+      "repeat_request_preserves_prior_archive": true,
+      "source_binary_preserved": true,
+      "traversal_refused": true,
+      "unicode_binary_empty_and_directory_entries": true
+    },
+    "identity_source": "operator master-authenticated compression and synthetic download JWTs",
+    "observed_utc": "2026-10-23T23:11:13Z",
+    "passed": true,
+    "source_bytes": 9437184
+  },
+  "live_upload_regression": {
+    "browser_upload_tested": false,
+    "checks": {
+      "existing_file_preserved": true,
+      "fresh_post_revocation_link_accepted": true,
+      "no_temporary_uploads_remain": true,
+      "one_use_replay_rejected": true,
+      "owned_fixture_removed": true,
+      "public_binary_multipart_and_empty": true,
+      "raw_traversal_filename_rejected": true,
+      "retained_service_large_binary_integrity": true,
+      "synthetic_user_revocation_enforced": true,
+      "wrong_scope_rejected": true
+    },
+    "identity_source": "operator-minted synthetic upload JWTs; not real panel-issued links",
+    "large_bytes": 9437184,
+    "observed_utc": "2026-10-23T23:11:36Z",
+    "passed": true,
+    "public_large_upload_status": 413,
+    "public_large_upload_verified": false,
+    "public_proxy_size_gate_pending": true
+  },
+  "live_websocket_regression": {
+    "checks": {
+      "allowed_origin_synthetic_auth": true,
+      "expired_token_rejected": true,
+      "fresh_post_revocation_token_accepted": true,
+      "jti_revocation_and_replay_rejected": true,
+      "missing_console_permission_rejected": true,
+      "missing_power_permission_rejected": true,
+      "synthetic_user_revocation_and_replay_rejected": true,
+      "untrusted_origin_rejected": true,
+      "wrong_issuer_rejected": true,
+      "wrong_server_rejected": true
+    },
+    "identity_source": "operator-minted synthetic JWTs; not a real panel subuser",
+    "observed_utc": "2026-10-23T23:11:40Z",
+    "panel_subuser_removal_tested": false,
+    "passed": true
+  },
+  "independent_cleanup_audit": {
+    "marker_present": true,
+    "archive_probe_roots": 0,
+    "observed_utc": "2026-10-23T23:11:50.9356958Z",
+    "earlier_file_manager_data_present": true,
+    "tunnel": "Running",
+    "upload_probe_roots": 0,
+    "service_account": ".\\WingsRuntime",
+    "profile_count": 1,
+    "game": "running",
+    "service": "Running"
+  },
+  "limits": [
+    "Archive creation only; extraction, malicious-archive extraction checks and guarded remote fetch remain unsupported.",
+    "Master-authenticated API requests and synthetic signed downloads, not an actual panel browser Compress workflow.",
+    "100 MiB aggregate boundary checked locally and in portable tests; live source is a 9 MiB random binary.",
+    "Public 9 MiB upload still returns proxy 413; the archive creation request uses a small JSON body and public archive download succeeds.",
+    "No new real game, reboot, combined mock SCM or direct distinct-game-account archive read test.",
+    "No disk quotas/reservations, progress events, atomic directory snapshot, preserved Windows ACL archive metadata or durable crash-stage recovery."
+  ]
+}

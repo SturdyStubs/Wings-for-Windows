@@ -38,3 +38,8 @@ Accepted [#49](https://github.com/SturdyStubs/Wings-for-Windows/issues/49) for b
 ## Alpha 46 follow-up
 
 Accepted [#50](https://github.com/SturdyStubs/Wings-for-Windows/issues/50) for bounded one-use multipart uploads after local/portable Server 2022, retained-service large-file and public small-file checks. Current total is 44 deliverables; M4 is 4/9 and stays open. Public 9 MiB uploads currently return proxy 413; configure the dedicated HTTPS Nginx body limit and retest. Actual browser-issued uploads, subuser removal, broader semantics, SFTP and accounting remain open. The scoped task does not certify those gates. See [evidence](evidence/server2022-alpha46-signed-uploads.md).
+
+
+## Alpha 47 partial archive progress
+
+Bounded tar.gz creation now passes 1,117 local / 14 native / 38 portable cases and eleven live archive checks, including a public HTTPS create/download round trip with 9 MiB binary integrity. Upload and WSS regressions also pass. Issue #29 stays open for extraction, malicious-archive extraction checks, guarded remote fetch and broader workflow work. No new accepted task is split out: counts remain M4 4/9 and 44 total deliverables. Actual browser Compress and the separate public large-upload proxy gate remain open. See [evidence](evidence/server2022-alpha47-archive-creation.md).
