@@ -6,6 +6,8 @@
 - Recheck under the shared maintenance lock and held configuration, seal the selected stage to SYSTEM/Administrators and move it into private/code-quarantine without deleting or publishing files. Failed moves retain bytes and any stricter ACLs for inspection.
 - Add inspection, quarantine, stale fingerprint, path-reference, link/ACL, empty-stage, move failure and destination-race tests plus a simulated interrupted-copy Server 2022 fixture. No actual crash/reboot, durable journal, automatic resume/deletion or live game/panel certification is claimed. See [workflow](docs/GAME-FILE-RECOVERY.md).
 
+- Validate all 833 local cases/subtests, zero skipped, vet, clean package checks, 14 native and 114 combined Server 2022 checks, with independent cleanup. See [evidence](docs/evidence/server2022-alpha39-stage-recovery.md).
+
 ## 0.1.0-alpha.38 - 2026-10-22
 
 - Add a stopped-node administrator command to import approved local game files into a new bin/games/UUID directory using a pinned SHA-256 manifest. Bound files/bytes/paths; reject links, duplicates, traversal, stale staging and existing destinations.
