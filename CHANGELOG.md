@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.47 - 2026-10-23
+
+- Add the panel/upstream `POST /files/compress` root/files contract and file-metadata response for tar.gz creation. Include regular files, nested directories, empty entries and Unicode paths with portable tar modes and no host ownership metadata.
+- Preflight and pin at most 256 entries, refuse observed links/multi-hardlinks and conflicting writers, enforce path/denylist/source identity checks, stream up to 100 MiB input / 101 MiB output and publish a flushed owned stage without replacement. Two global slots, one job per server and a cooperative 60-second deadline bound work. Ordinary cancellation/policy/shutdown errors remove unpublished stages by handle.
+- Extraction, remote fetch, quotas, crash recovery, progress events and actual browser certification remain open. Focused tests pass; full clean build and Server 2022 verification pending. See [archive scope](docs/FILE-ARCHIVES.md).
+
 ## 0.1.0-alpha.46 - 2026-10-23
 
 - Add public `POST /upload/file` with the panel's one-use scoped JWT and multipart `files`/directory contract. Stream up to 100 MiB aggregate into exclusive handle-pinned staging; publish up to 16 new files with no replacement after the full request is accepted.

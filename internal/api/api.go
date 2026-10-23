@@ -22,6 +22,8 @@ type API struct {
 	downloadUsed  map[string]time.Time
 	downloadSlots chan struct{}
 	uploadSlots   chan struct{}
+	archiveSlots  chan struct{}
+	archiveLocks  sync.Map
 	revoked       sync.Map
 	renameLocks   sync.Map
 	copyLocks     sync.Map
@@ -32,7 +34,7 @@ type API struct {
 }
 
 func New(m *node.Manager) *API {
-	return &API{Manager: m, boot: time.Now().Truncate(time.Second), slots: make(chan struct{}, 256), done: make(chan struct{}), downloadSlots: make(chan struct{}, 8), uploadSlots: make(chan struct{}, 4), downloadUsed: make(map[string]time.Time)}
+	return &API{Manager: m, boot: time.Now().Truncate(time.Second), slots: make(chan struct{}, 256), done: make(chan struct{}), downloadSlots: make(chan struct{}, 8), uploadSlots: make(chan struct{}, 4), archiveSlots: make(chan struct{}, 2), downloadUsed: make(map[string]time.Time)}
 }
 func (a *API) Close() { a.closeOnce.Do(func() { close(a.done) }) }
 func respond(w http.ResponseWriter, status int, v any) {

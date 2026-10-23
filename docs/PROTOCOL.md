@@ -91,12 +91,13 @@ Alpha 34 adds opt-in [manual-approval creation](PENDING-CREATION.md), with no pe
 | `POST /api/deauthorize-user` | Revoke existing user tokens with JSON `user` and optional `servers`. An empty server list revokes access on all locally registered servers. |
 | `GET /api/servers/{uuid}/files/list-directory?directory=/` | List a confined directory, up to 10,000 entries; uses the upstream metadata schema and hides denied paths. Legacy `/files/list` remains an alias. |
 | `GET /api/servers/{uuid}/files/contents?file=/name` | Read a regular text file up to 8 MiB. |
+| `POST /api/servers/{uuid}/files/compress` | JSON `root` and `files`; bounded tar.gz creation and file-metadata response. Pinned regular files/directories, 256 entries/100 MiB input/101 MiB output, flushed staging and no replacement. [Scope](FILE-ARCHIVES.md). |
 | `POST /api/servers/{uuid}/files/copy` | JSON `location`; copy one regular file to a numbered sibling. 1 GiB source cap, owned staging/no-replace publication, no panel quota enforcement. [Scope](FILE-COPY.md). |
 | `PUT /api/servers/{uuid}/files/rename` | JSON `root` and `files: [{from,to}]`; file/directory move/rename, case-only names and ignored missing sources. No overwrite; bounded preflight and existing destination parents required. [Scope](FILE-RENAME.md). |
 | `POST /api/servers/{uuid}/files/write?file=/name` | Write a confined text file up to 8 MiB. Parent directories must already exist. |
 | `POST /api/servers/{uuid}/files/create-directory` | JSON `name` and `path`; create nested directories and missing parents, 204 for success/existing directory. Bounded Windows names, denylist preflight and observed reparse/link refusal; [scope](FILE-DIRECTORIES.md). |
 
-Unknown/unsupported authenticated routes return 501, including server deletion, automatic binary provisioning, resumable transfers, compression, pull, SFTP, backups and transfers. A profile that does not belong to this node is not registered and returns 404.
+Unknown/unsupported authenticated routes return 501, including server deletion, automatic binary provisioning, resumable transfers, extraction, pull, SFTP, backups and transfers. A profile that does not belong to this node is not registered and returns 404.
 
 Filesystem access uses Go `os.Root` for confinement across symlinks. The path parser also rejects Windows drive/UNC syntax, traversal, alternate data streams, device names and trailing-dot/space aliases. This protects HTTP file operations; it does not sandbox executable code running under the same Windows account.
 
