@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "version": "0.1.0-alpha.42",
+  "tunnel_supervisor_sha256": "b7b095ce6548739a038dbea39c3cc296f4358111741748ae400cbb5d722029be",
+  "tunnel": {
+    "observed_utc": "2026-10-23T06:58:13.6570648Z",
+    "replacement_child_observed": true,
+    "ssh_child_termination_reconnected": true,
+    "reboot_tested": false,
+    "scheduled_tunnel_https_verified": true,
+    "task_state": "Running",
+    "service_startup": "Auto"
+  },
+  "file_api": {
+    "observed_utc": "2026-10-23T06:59:19.5012729Z",
+    "checks": {
+      "anonymous_mutation_denied": "passed",
+      "create_nested_directory": "passed",
+      "file_write_read": "passed",
+      "directory_listing": "passed",
+      "restricted_game_read_write": "passed",
+      "rename_move_and_game_access": "passed",
+      "numbered_copies_and_game_access": "passed",
+      "traversal_denied": "passed",
+      "actual_game_identity": "passed"
+    },
+    "browser_file_ui_tested": false,
+    "passed": true
+  },
+  "game_account_permissions": {
+    "checks": {
+      "private_config_denied": true,
+      "tunnel_identity_denied": true,
+      "operator_credential_denied": true,
+      "code_write_denied": true,
+      "own_data_write_read": true
+    },
+    "passed": true
+  },
+  "final_inspection": {
+    "game_state": "running",
+    "public_https_status": 200,
+    "service_state": "Running",
+    "temporary_probe_task_remaining": false,
+    "tunnel_task_state": "Running",
+    "temporary_probe_script_remaining": false,
+    "credential_recovery_new_ssh_session_verified": true,
+    "obsolete_user_scope_exports_removed": true
+  },
+  "browser_console_operator_report": {
+    "starting_running_events": true,
+    "server_ready_streamed": true,
+    "command_echo_streamed": true,
+    "agent_browser_inspection": false
+  },
+  "reboot_tested_this_batch": false,
+  "subuser_revocation_tested": false,
+  "real_game_tested": false
+}

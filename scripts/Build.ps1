@@ -72,6 +72,7 @@ try {
     Copy-Item -LiteralPath 'scripts\CredentialTask.ps1' -Destination (Join-Path $stage 'scripts')
     Copy-Item -LiteralPath 'scripts\CredentialBridge.psm1' -Destination (Join-Path $stage 'scripts')
     Copy-Item -LiteralPath 'scripts\Test-Host.ps1' -Destination (Join-Path $stage 'scripts')
+    Copy-Item -LiteralPath 'scripts\Start-NodeTunnel.ps1' -Destination (Join-Path $stage 'scripts')
     if ($dirty -eq $false) {
         # Exercise both omitted defaults through Windows PowerShell -File,
         # from outside the package, before publishing a clean-source ZIP.

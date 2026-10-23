@@ -1,12 +1,14 @@
 # Progress toward Wings compatibility
 
-Last updated: October 22, 2026. Current version: **0.1.0-alpha.42**. Active development: **M3 — Windows lifecycle features**, with **M4 directory creation, rename/move and bounded file copying** implemented. M1/M2 remain open for live panel and isolation gates.
+Last updated: October 23, 2026. Current version: **0.1.0-alpha.42**. Active development: **M3 — Windows lifecycle features**, with **M4 directory creation, rename/move and bounded file copying** implemented. M1/M2 remain open for live panel and isolation gates.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
 This file tracks the current implementation. The audit preserves the alpha 1 baseline. A checked implementation item means code and local regression tests exist; a live verification item stays open until exercised against a real panel/host/game. Route coverage is not a completion percentage.
 
 ## Current state
+
+- Live follow-up: operator-reported browser console succeeds; supervised SSH-child reconnection, nine live file API groups and five game-account permission checks pass. Daemon startup is Automatic; tunnel task runs at startup. New reboot, browser file UI and subuser revocation remain unverified. User-scope credential recovery failed across SSH sessions and was replaced with machine DPAPI under operator-only ACLs after dedicated-account rotation; fresh-session recovery passes. See [evidence](docs/evidence/server2022-alpha42-live-operations.md).
 
 - First live demo lifecycle passes through public HTTPS: native installation and real panel callback, marker read, start, console echo and stop. Dedicated non-administrator daemon/game accounts are provisioned; the service remains Running with manual startup and the demo offline. Browser/WebSocket, real-game and automatic tunnel/reboot gates remain open. See [evidence](docs/evidence/server2022-alpha42-live-demo.md).
 
