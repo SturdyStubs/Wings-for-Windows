@@ -8,6 +8,8 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 
 ## Current state
 
+- Alpha 43 live WSS: ten origin/JWT/permission/synthetic-revocation checks pass; demo/service/tunnel remain running. Actual panel subuser removal and browser file UI remain open. GitHub milestone descriptions and six evidence-backed scoped deliverables were refreshed. See [evidence](docs/evidence/server2022-alpha43-live-websocket.md) and [milestone review](docs/MILESTONE-REVIEW.md).
+
 - Alpha 43: authenticated bounded `POST /api/update` supports explicit operator-managed mode with upstream `applied: false`. It validates the request object and never changes native config, paths, listener, profiles, credentials or disk. Remote apply/token rotation remain unimplemented. 945 local cases/subtests, 14 native VM cases and 14 portable policy cases pass. Live HTTPS acknowledgement/config preservation and real outgoing panel sync pass; panel Save Changes UI confirmation remains open. See [scope](docs/CONFIGURATION-UPDATES.md) and [evidence](docs/evidence/server2022-alpha43-config-policy.md).
 
 - Live follow-up: operator-reported browser console succeeds; supervised SSH-child reconnection, nine live file API groups and five game-account permission checks pass. Daemon startup is Automatic; tunnel task runs at startup. New reboot, browser file UI and subuser revocation remain unverified. User-scope credential recovery failed across SSH sessions and was replaced with machine DPAPI under operator-only ACLs after dedicated-account rotation; fresh-session recovery passes. See [evidence](docs/evidence/server2022-alpha42-live-operations.md).
@@ -82,11 +84,11 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - [x] Complete system information, HTTP CORS/preflight and consistent error/request-ID handling.
 - [ ] Verify node connectivity, console, subuser revocation and file browsing/editing through a real panel over trusted TLS.
 
-M1 implementation tasks are locally verified; the real-panel TLS/console/subuser/file gate remains open. Next development target: implement the documented native identity policies in M2 and cancellation-aware Windows provisioning in M3. M1 cannot close until live validation passes.
+M1 core implementation tasks are locally verified. Authenticated live HTTPS and operator-reported browser console pass; direct WSS origin, token, permission and synthetic revocation checks also pass. Actual panel subuser removal, browser file browsing/editing and broader reconnect behavior remain open. M1 cannot close on synthetic-user checks alone.
 
 ## How to read progress
 
-[GitHub Milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones) provide the live completion bars. Six milestones contain 35 deliverable issues; the six original tracking issues remain summaries outside milestone counts. At alpha 4, M1 has 10 of 11 deliverables closed; M2 has 1 of 4 decision/implementation deliverables closed and M3 has 1 of 6; all milestones remain open. This is issue completion, not an effort estimate or a claim that Wings is 91% ported.
+[GitHub Milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones) provide the live completion bars. After the October 23, 2026 review, six milestones contain **41 deliverable issues**; the six original tracking issues remain summaries outside milestone counts. Six completed, bounded deliverables were extracted from broader open acceptance issues so verified progress is visible without closing unfinished requirements. Current accepted task counts: **M1 11/12, M2 2/5, M3 2/7, M4 1/6, M5 0/4, M6 2/7**. All milestones remain open. Counts describe accepted issue scope, not percentage of engineering effort or full Wings compatibility. See [milestone review](docs/MILESTONE-REVIEW.md).
 
 README badges query milestone counts automatically. Close an implementation issue only with test evidence, and close a live gate only after actual host/panel/game validation. Close a milestone after every required deliverable is accepted. **Project completion requires all six milestones closed**, including the live gates. There is no declared completion date yet.
 

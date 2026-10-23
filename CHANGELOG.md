@@ -2,6 +2,8 @@
 
 ## 0.1.0-alpha.43 - 2026-10-23
 
+- Refresh all six GitHub milestone descriptions and accept six evidence-backed scoped deliverables while preserving the broad open gates. Add an explicitly authorized live WSS probe; ten origin/JWT/permission/synthetic-revocation checks pass on the existing runtime. Real panel subuser removal remains open. See [review](docs/MILESTONE-REVIEW.md) and [evidence](docs/evidence/server2022-alpha43-live-websocket.md).
+
 - Add the upstream operator-managed acknowledgement mode for `POST /api/update`. Explicitly enable `ignore_panel_config_updates` to return `applied: false`, preserving all native settings and credentials. Keep remote apply/rotation unsupported by default; reject malformed, non-object, multiple and oversized bodies.
 - Add a panel/upstream contract fixture and tests for authentication, response semantics, unchanged memory/disk/authentication, validation and explicit default refusal. See [scope](docs/CONFIGURATION-UPDATES.md). Validate 945 local cases/subtests, vet, clean release, 14 packaged native VM cases, 14 portable configuration-policy cases and retained-service live HTTPS/config-preservation/panel-sync checks. Panel save-button confirmation remains open. See [evidence](docs/evidence/server2022-alpha43-config-policy.md).
 

@@ -1,0 +1,30 @@
+{
+  "checks": {
+    "allowed_origin_synthetic_auth": true,
+    "expired_token_rejected": true,
+    "fresh_post_revocation_token_accepted": true,
+    "jti_revocation_and_replay_rejected": true,
+    "missing_console_permission_rejected": true,
+    "missing_power_permission_rejected": true,
+    "synthetic_user_revocation_and_replay_rejected": true,
+    "untrusted_origin_rejected": true,
+    "wrong_issuer_rejected": true,
+    "wrong_server_rejected": true
+  },
+  "identity_source": "operator-minted synthetic JWTs; not a real panel subuser",
+  "observed_utc": "2026-10-23T16:38:52Z",
+  "panel_subuser_removal_tested": false,
+  "passed": true,
+  "postcheck": {
+    "tunnel_task": "Running",
+    "daemon_service": "Running",
+    "observed_utc": "2026-10-23T16:39:02.8331164Z",
+    "game_state": "running",
+    "forbidden_command_absent": true
+  },
+  "probe_executable_sha256": "776eced8d3e790fae2803c1b44881ed41283b0008b11cb57793517faf826f7fa",
+  "probe_source_sha256": "ec8dd44fa60f200fde86720fef95b74f3220cd2338780c5fab664f0dccc08e1e",
+  "version": "0.1.0-alpha.43",
+  "runtime_changed_this_batch": false,
+  "missing_mutation_consent_exit_code": 2
+}
