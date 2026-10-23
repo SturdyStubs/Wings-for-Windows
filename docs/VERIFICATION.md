@@ -1,6 +1,6 @@
 # Verification and release status
 
-Alpha 43 operator-managed configuration acknowledgement: focused API tests pass. Clean release and VM validation remain pending. See [scope](CONFIGURATION-UPDATES.md).
+Alpha 43: **945 local cases/subtests**, zero skips, vet and clean release pass. The exact package passes **14 native VM cases** and **14 portable configuration-policy cases/subtests**. Live authenticated HTTPS acknowledgement returns 200 with applied false, preserves the native config and credentials, and outgoing panel sync returns 204. Service/demo remain running. The panel Save Changes button is awaiting operator confirmation. See [evidence](evidence/server2022-alpha43-config-policy.md) and [scope](CONFIGURATION-UPDATES.md).
 
 Live follow-up: operator-reported browser console succeeds; supervised SSH-child reconnection, nine live file API groups and five game-account permission checks pass. Daemon startup is Automatic; tunnel task runs at startup. New reboot, browser file UI and subuser revocation remain unverified. User-scope credential recovery failed across SSH sessions and was replaced with machine DPAPI under operator-only ACLs after dedicated-account rotation; fresh-session recovery passes. See [evidence](evidence/server2022-alpha42-live-operations.md).
 

@@ -8,7 +8,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 
 ## Current state
 
-- Alpha 43: authenticated bounded `POST /api/update` supports explicit operator-managed mode with upstream `applied: false`. It validates the request object and never changes native config, paths, listener, profiles, credentials or disk. Remote apply/token rotation remain unimplemented. Clean release and VM verification pending. See [scope](docs/CONFIGURATION-UPDATES.md).
+- Alpha 43: authenticated bounded `POST /api/update` supports explicit operator-managed mode with upstream `applied: false`. It validates the request object and never changes native config, paths, listener, profiles, credentials or disk. Remote apply/token rotation remain unimplemented. 945 local cases/subtests, 14 native VM cases and 14 portable policy cases pass. Live HTTPS acknowledgement/config preservation and real outgoing panel sync pass; panel Save Changes UI confirmation remains open. See [scope](docs/CONFIGURATION-UPDATES.md) and [evidence](docs/evidence/server2022-alpha43-config-policy.md).
 
 - Live follow-up: operator-reported browser console succeeds; supervised SSH-child reconnection, nine live file API groups and five game-account permission checks pass. Daemon startup is Automatic; tunnel task runs at startup. New reboot, browser file UI and subuser revocation remain unverified. User-scope credential recovery failed across SSH sessions and was replaced with machine DPAPI under operator-only ACLs after dedicated-account rotation; fresh-session recovery passes. See [evidence](docs/evidence/server2022-alpha42-live-operations.md).
 

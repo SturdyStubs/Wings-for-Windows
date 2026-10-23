@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "version": "0.1.0-alpha.43",
+  "source_revision": "99b17e4465fdbd0da4ec9b048c793bf10c6cc162",
+  "zip_sha256": "903449cbd2f6f6eb7218246b0c6bf4414a4c66f209209d5b2be3ba4623785a45",
+  "daemon_sha256": "bc5f448e66339771adde2bbd371032398c192d3f0f4ae02ca757ef8807a8e895",
+  "runtime_tests_sha256": "428f07aab4df4bb585932c92c4424841c8bdec66dcd0a221d6289151212a9251",
+  "demo_sha256": "d6cd5b287c5bae3ed1ad0e0ca3775aac4b3b22197c125f791e5298f4dc222aeb",
+  "api_tests_sha256": "ac34b4535db618b02116624d4f28a2a02b7e650f10315c2830084611232bfe1d",
+  "api_fixture_sha256": "8843c7b3ca107c09b7820eac9a9fa967fc7749f87ddff70c281e2c1eeb5a2d87",
+  "host": {
+    "caption": "Microsoft Windows Server 2022 Standard Evaluation",
+    "version": "10.0.20348",
+    "build": "20348",
+    "architecture": "64-bit",
+    "windows_server": true,
+    "powershell": "5.1.20348.558"
+  },
+  "local_tests_passed": 945,
+  "local_tests_skipped": 0,
+  "packaged_native_tests_passed": 14,
+  "baseline_started_utc": "2026-10-23T16:07:24.3303542Z",
+  "baseline_finished_utc": "2026-10-23T16:07:26.9007743Z",
+  "configuration_api_tests": {
+    "tests_skipped": 0,
+    "tests_failed": 0,
+    "tests_passed": 14,
+    "exit_code": 0
+  },
+  "live_deployment": {
+    "reboot_tested": false,
+    "version": "0.1.0-alpha.43",
+    "public_update_status": 200,
+    "observed_utc": "2026-10-23T16:08:19.7150607Z",
+    "game_state": "running",
+    "game_was_running": true,
+    "applied": false,
+    "runtime_only_upgrade": true,
+    "original_incoming_credentials_valid": true,
+    "outgoing_live_panel_sync_status": 204,
+    "service_state": "Running",
+    "native_config_hash_unchanged": true,
+    "panel_save_button_retested": false,
+    "executable_acl_preserved": true
+  },
+  "full_mock_scm_suite_rerun": false,
+  "real_game_tested": false,
+  "new_reboot_tested": false
+}
