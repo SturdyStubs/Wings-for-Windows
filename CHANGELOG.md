@@ -2,6 +2,8 @@
 
 ## 0.1.0-alpha.42 - 2026-10-22
 
+- First live node handshake: authenticated system requests return 200 over Windows loopback and public VPS HTTPS; server listing returns 200 with no servers. Runtime configuration updates, demo lifecycle/browser workflows and permanent service/tunnel setup remain open. See [handshake evidence](docs/evidence/server2022-alpha42-live-handshake.md).
+
 - Add the panel/upstream regular-file copy contract, same-directory numbered names and compound tar extensions. Stream primary bytes with a 1 GiB source bound; do not overwrite existing or late-created destinations.
 - Pin ordinary source writes/deletion, reject observed links/hardlinks and denied paths, create an exclusive owned stage, verify length/EOF, flush and publish through the native no-replace move. Attempt failure cleanup by handle; crashes can retain stages without a durable journal. New objects inherit parent DACLs.
 - Add naming, binary/empty files, malformed/auth/path/type/denylist/collision bounds, sparse oversize, sharing, cancellation cleanup, stream failure and native publication tests plus an optional SCM/game-access phase. Disk quotas, recursive copying and full live panel/game validation remain open. See [scope](docs/FILE-COPY.md).

@@ -8,6 +8,8 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 
 ## Current state
 
+- First live node handshake: authenticated system requests return 200 over Windows loopback and public VPS HTTPS; server listing returns 200 with no servers. Runtime configuration updates, demo lifecycle/browser workflows and permanent service/tunnel setup remain open. See [handshake evidence](docs/evidence/server2022-alpha42-live-handshake.md).
+
 - Native Windows EXE runtime, Job Objects, basic power/console/status and root-process statistics: locally tested.
 - Alpha 2 fixes: canonical file listing and metadata, file MIME/length headers, egg file-denylist policy, standard derived variables, suspended power response and emergency kill cancellation: locally tested.
 - Alpha 3: opt-in supported Windows egg readiness/stopping, live job limit changes/removal, preservation of local caps and suspension despite invalid egg settings: locally tested.
