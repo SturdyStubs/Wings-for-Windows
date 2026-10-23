@@ -8,7 +8,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 
 ## Current state
 
-- Alpha 44: bounded recursive file/directory deletion with whole-batch validation, denylist/handle checks, missing-entry replay and child-before-parent native deletion. No path-based recursive fallback; later errors can retain partial deletion. Focused tests and vet pass; clean release and Server 2022/live checks pending. See [scope](docs/FILE-DELETE.md).
+- Alpha 44: bounded recursive file/directory deletion with whole-batch validation, denylist/handle checks, missing-entry replay and child-before-parent native deletion. No path-based recursive fallback; later errors can retain partial deletion. 985 local cases/subtests, vet, clean release, 14 native VM cases, 40 portable delete cases and eight retained-service live checks pass; independent fixture cleanup preserves prior files. See [scope](docs/FILE-DELETE.md) and [evidence](docs/evidence/server2022-alpha44-file-delete.md).
 
 - Alpha 43 live WSS: ten origin/JWT/permission/synthetic-revocation checks pass; demo/service/tunnel remain running. Actual panel subuser removal and browser file UI remain open. GitHub milestone descriptions and six evidence-backed scoped deliverables were refreshed. See [evidence](docs/evidence/server2022-alpha43-live-websocket.md) and [milestone review](docs/MILESTONE-REVIEW.md).
 
@@ -90,7 +90,7 @@ M1 core implementation tasks are locally verified. Authenticated live HTTPS and 
 
 ## How to read progress
 
-[GitHub Milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones) provide the live completion bars. After the October 23, 2026 review, six milestones contain **41 deliverable issues**; the six original tracking issues remain summaries outside milestone counts. Six completed, bounded deliverables were extracted from broader open acceptance issues so verified progress is visible without closing unfinished requirements. Current accepted task counts: **M1 11/12, M2 2/5, M3 2/7, M4 1/6, M5 0/4, M6 2/7**. All milestones remain open. Counts describe accepted issue scope, not percentage of engineering effort or full Wings compatibility. See [milestone review](docs/MILESTONE-REVIEW.md).
+[GitHub Milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones) provide the live completion bars. After the October 23, 2026 review, six milestones contain **42 deliverable issues**; the six original tracking issues remain summaries outside milestone counts. Six completed, bounded deliverables were extracted from broader open acceptance issues so verified progress is visible without closing unfinished requirements. Alpha 44 adds one further accepted bounded deletion deliverable. Current accepted task counts: **M1 11/12, M2 2/5, M3 2/7, M4 2/7, M5 0/4, M6 2/7**. All milestones remain open. Counts describe accepted issue scope, not percentage of engineering effort or full Wings compatibility. See [milestone review](docs/MILESTONE-REVIEW.md).
 
 README badges query milestone counts automatically. Close an implementation issue only with test evidence, and close a live gate only after actual host/panel/game validation. Close a milestone after every required deliverable is accepted. **Project completion requires all six milestones closed**, including the live gates. There is no declared completion date yet.
 

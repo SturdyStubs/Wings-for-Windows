@@ -146,6 +146,11 @@
           "title": "Implement and verify bounded directory, rename and regular-file copy operations",
           "verified_in": "0.1.0-alpha.42",
           "notes": "Acceptance: bounded upstream directory creation, file/directory rename and regular-file copy contracts, Windows regression/portable suites and non-administrator SCM/game access. These pass, with subsequent live file API checks in live-operations evidence. Deletion, broader semantics, large scoped transfer, browser file UI, SFTP and quotas remain in open parent deliverables. Evidence: https://github.com/SturdyStubs/Wings-for-Windows/blob/main/docs/evidence/server2022-alpha42-file-copy.md"
+        },
+        {
+          "title": "Implement and verify bounded handle-pinned file and directory deletion",
+          "verified_in": "0.1.0-alpha.44",
+          "notes": "Bounded files/trees only; whole-batch pinning/policy preflight, late-child preservation and partial outcomes. 985 local / 14 native / 40 portable / 8 live checks pass. Browser controls, quotas, full semantics and server-record deletion remain open. Evidence: https://github.com/SturdyStubs/Wings-for-Windows/blob/main/docs/evidence/server2022-alpha44-file-delete.md"
         }
       ]
     },

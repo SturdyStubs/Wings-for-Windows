@@ -26,6 +26,8 @@ Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.co
 GitHub Issues are the source of truth; ROADMAP.md records implementation scope and verification. Run `scripts/Update-Progress.ps1` to regenerate this section. Use `-Initialize` to add missing planned milestones/tasks; rerunning it never automatically re-closes existing issues.
 <!-- progress:end -->
 
+Alpha 44 verification: **985 local cases/subtests**, **14 native VM cases**, **40 deletion API cases/subtests** and **eight live HTTPS deletion checks** pass. Dedicated fixture cleanup preserves earlier files; service/demo remain running. See [evidence](docs/evidence/server2022-alpha44-file-delete.md).
+
 Alpha 43 verification: **945 local cases/subtests**, **14 native VM cases** and **14 configuration-policy cases/subtests** pass. Live HTTPS acknowledgement preserves native configuration and credentials; outgoing panel sync succeeds. The panel save-button retry is pending. See [evidence](docs/evidence/server2022-alpha43-config-policy.md).
 
 Alpha 42 verification: **931 local cases/subtests**, **14 packaged native VM cases**, **98 directory/rename/copy API cases/subtests** and **35 Server 2022 service checks** pass. Numbered copies preserve tested bytes and the distinct game account can read/write the inherited-permission files. Independent cleanup passes with one retained/loaded profile. See [current evidence](docs/evidence/server2022-alpha42-file-copy.md). Real panel/game and public TLS validation remain open.

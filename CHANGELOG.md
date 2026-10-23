@@ -3,7 +3,7 @@
 ## 0.1.0-alpha.44 - 2026-10-23
 
 - Add the panel/upstream file-delete contract for bounded files and directory trees. Preflight the full batch with path/denylist/descendant/link/overlap checks and hold validated NT handles before mutation. Delete children first without recursive path fallback; preserve unscanned late children. Missing entries are idempotent.
-- Refuse root/traversal, alias overlaps, observed reparse/multi-hardlink files, oversized trees and ordinary sharing locks. Recheck canonical path/policy before each mutation, preserve read-only attributes, honor cancellation and document irreversible partial outcomes. Add 40 focused cases/subtests; vet passes. Clean release/VM checks pending. See [scope](docs/FILE-DELETE.md).
+- Refuse root/traversal, alias overlaps, observed reparse/multi-hardlink files, oversized trees and ordinary sharing locks. Recheck canonical path/policy before each mutation, preserve read-only attributes, honor cancellation and document irreversible partial outcomes. Add 40 focused cases/subtests; vet passes. Validate 985 local cases/subtests, zero skips, clean release, 14 native VM cases, 40 portable delete cases and eight live service checks; independent fixture cleanup passes. See [scope](docs/FILE-DELETE.md) and [evidence](docs/evidence/server2022-alpha44-file-delete.md).
 
 ## 0.1.0-alpha.43 - 2026-10-23
 

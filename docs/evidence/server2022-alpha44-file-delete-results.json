@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "version": "0.1.0-alpha.44",
+  "source_revision": "57bbad0e41dc9d92aeecb91ba56493de63910e20",
+  "zip_sha256": "9943271dafe04954d4d6271e9e643a3984343882172a02552914fb593e7b5264",
+  "daemon_sha256": "9f998dd5b3df480ad617db34da8300d4cffed529bbe1090ca7fbe21ed5e86970",
+  "runtime_tests_sha256": "428f07aab4df4bb585932c92c4424841c8bdec66dcd0a221d6289151212a9251",
+  "demo_sha256": "bdfd3f5f32fda8007f981e6415e46d4b687bf03ef186c64ef714ed068d67c66d",
+  "api_tests_sha256": "14097eca0e31080af6f8b5502b7108a42656fc60f9055b4cd0a1ba73eda52f0f",
+  "contract_fixture_sha256": "7accc8c0e3625396a5f9838527a9311d7908bdad605e9d8c93152f3f04ade9ff",
+  "host": {
+    "caption": "Microsoft Windows Server 2022 Standard Evaluation",
+    "version": "10.0.20348",
+    "build": "20348",
+    "architecture": "64-bit",
+    "windows_server": true,
+    "powershell": "5.1.20348.558"
+  },
+  "local_tests_passed": 985,
+  "local_tests_skipped": 0,
+  "native_tests_passed": 14,
+  "baseline_started_utc": "2026-10-23T16:50:52.0343450Z",
+  "baseline_finished_utc": "2026-10-23T16:50:54.5680723Z",
+  "portable_delete_api": {
+    "tests_skipped": 0,
+    "tests_failed": 0,
+    "tests_passed": 40,
+    "exit_code": 0
+  },
+  "live_service_deployment": {
+    "reboot_tested": false,
+    "version": "0.1.0-alpha.44",
+    "public_update_status": 200,
+    "observed_utc": "2026-10-23T16:51:15.2624859Z",
+    "game_state": "running",
+    "game_was_running": true,
+    "applied": false,
+    "runtime_only_upgrade": true,
+    "original_incoming_credentials_valid": true,
+    "outgoing_live_panel_sync_status": 204,
+    "service_state": "Running",
+    "native_config_hash_unchanged": true,
+    "panel_save_button_retested": false,
+    "executable_acl_preserved": true
+  },
+  "live_delete": {
+    "observed_utc": "2026-10-23T16:51:15.8508820Z",
+    "checks": {
+      "anonymous_delete_denied": "passed",
+      "whole_batch_path_preflight": "passed",
+      "sharing_lock_preflight": "passed",
+      "hardlink_refused": "passed",
+      "recursive_directory_and_sibling_preservation": "passed",
+      "file_and_empty_directory_batch": "passed",
+      "missing_entry_replay": "passed",
+      "owned_fixture_removed": "passed"
+    },
+    "browser_file_ui_tested": false,
+    "scope": "Fresh owned random fixture under demo data only; no existing user files selected",
+    "game_state": "running",
+    "service_state": "Running",
+    "passed": true
+  },
+  "independent_cleanup": {
+    "previous_file_manager_present": true,
+    "tunnel_task": "Running",
+    "independent_fixture_roots_remaining": 0,
+    "previous_install_marker_present": true,
+    "service": "Running"
+  },
+  "old_full_mock_scm_suite_rerun": false,
+  "browser_file_ui_tested": false,
+  "real_game_tested": false,
+  "new_reboot_tested": false
+}

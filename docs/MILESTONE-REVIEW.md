@@ -25,3 +25,7 @@ Six completed, narrowly defined deliverables were added and closed with acceptan
 README badges query GitHub milestone counts automatically; cached badges can lag. Counts here are a dated snapshot. No speculative completion date was added. Newly discovered or extended acceptance work can change denominators. The original live gate #17 remains open despite its narrow completed child issue.
 
 The same batch adds [live WSS protocol evidence](evidence/server2022-alpha43-live-websocket.md), distinguishing operator-minted synthetic-user JWTs from actual panel subuser login/removal. Runtime alpha 43 is unchanged.
+
+## Alpha 44 follow-up
+
+Accepted [#48](https://github.com/SturdyStubs/Wings-for-Windows/issues/48) for bounded pinned-handle file/directory deletion after local, portable Server 2022 and isolated live-service checks. This adds one scoped deliverable: current total is 42; M4 is 2/7 and remains open. The earlier table is the alpha 43 review snapshot. Full delete semantics, browser controls, SFTP/accounting and server-record deletion remain open. See [evidence](evidence/server2022-alpha44-file-delete.md).

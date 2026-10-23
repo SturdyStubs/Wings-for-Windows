@@ -1,6 +1,6 @@
 # Verification and release status
 
-Alpha 44 adds bounded file/directory deletion. Forty focused cases/subtests and vet pass. Clean release, portable Server 2022 and live service checks remain pending at this source revision. See [scope](FILE-DELETE.md).
+Alpha 44: **985 local cases/subtests**, zero skips, vet and clean release pass. The exact package passes **14 native VM cases**, **40 portable delete cases/subtests** and **eight live HTTPS deletion checks** under the retained non-administrator service. Independent fixture cleanup preserves prior demo files. Service/demo/tunnel remain running; browser UI and server-record deletion remain open. See [evidence](evidence/server2022-alpha44-file-delete.md) and [scope](FILE-DELETE.md).
 
 Alpha 43 follow-up: **ten live WSS origin/JWT/permission/revocation checks** pass with synthetic operator-minted identities. Demo/service/tunnel remain running and an unauthorized console command is absent. Actual panel subuser removal remains unverified. The standalone probe builds and passes vet; runtime is unchanged. See [evidence](evidence/server2022-alpha43-live-websocket.md) and [milestone review](MILESTONE-REVIEW.md).
 
