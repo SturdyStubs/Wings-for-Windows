@@ -30,8 +30,12 @@ type downloadClaims struct {
 }
 
 func (a *API) validDownload(c *downloadClaims) bool {
+	return a.validFileToken(c, "file-download")
+}
+
+func (a *API) validFileToken(c *downloadClaims, scope string) bool {
 	now := time.Now()
-	if c == nil || c.IssuedAt == nil || c.ExpiresAt == nil || c.IssuedAt.Before(a.boot) || !c.ExpiresAt.After(now) || c.ExpiresAt.Sub(c.IssuedAt.Time) > 16*time.Minute || !config.UUID.MatchString(c.Server) || !config.UUID.MatchString(c.User) || c.ID == "" || len(c.ID) > 256 || c.Unique == "" || len(c.Unique) > 256 || len(c.FilePath) > 4096 || len(c.Scope) > 128 || !slices.Contains(strings.Fields(c.Scope), "file-download") {
+	if c == nil || c.IssuedAt == nil || c.ExpiresAt == nil || c.IssuedAt.Before(a.boot) || !c.ExpiresAt.After(now) || c.ExpiresAt.Sub(c.IssuedAt.Time) > 16*time.Minute || !config.UUID.MatchString(c.Server) || !config.UUID.MatchString(c.User) || c.ID == "" || len(c.ID) > 256 || c.Unique == "" || len(c.Unique) > 256 || len(c.FilePath) > 4096 || len(c.Scope) > 128 || !slices.Contains(strings.Fields(c.Scope), scope) {
 		return false
 	}
 	for _, key := range []string{"jti:" + c.ID, "user:" + strings.ToLower(c.Server) + ":" + strings.ToLower(c.User)} {
@@ -43,12 +47,16 @@ func (a *API) validDownload(c *downloadClaims) bool {
 }
 
 func (a *API) parseDownload(token string) (*downloadClaims, error) {
+	return a.parseFileToken(token, "file-download")
+}
+
+func (a *API) parseFileToken(token, scope string) (*downloadClaims, error) {
 	if token == "" || len(token) > 8192 {
 		return nil, errors.New("invalid download token")
 	}
 	c := &downloadClaims{}
 	_, err := jwt.ParseWithClaims(token, c, func(*jwt.Token) (any, error) { return []byte(a.Manager.Config.Token), nil }, jwt.WithValidMethods([]string{"HS256"}), jwt.WithExpirationRequired(), jwt.WithIssuedAt(), jwt.WithIssuer(a.Manager.Config.PanelURL))
-	if err != nil || !a.validDownload(c) {
+	if err != nil || !a.validFileToken(c, scope) {
 		return nil, errors.New("invalid download token")
 	}
 	return c, nil

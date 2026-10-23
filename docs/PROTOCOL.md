@@ -77,6 +77,7 @@ Alpha 34 adds opt-in [manual-approval creation](PENDING-CREATION.md), with no pe
 | `POST /api/servers` | Opt-in manual-approval creation, assigned UUID v4 only, 202 pending local profile. Automatic start returns 422; [contract and limits](PENDING-CREATION.md). |
 | `POST /api/update` | Explicit `ignore_panel_config_updates` mode: authenticated bounded JSON object returns `200 {"applied":false}` without changing anything. Default mode is 501; remote application/rotation remain unsupported. |
 | `POST /api/servers/{uuid}/files/delete` | Bounded 1–100 targets / 1,024 total entries, whole-batch path/policy/link/overlap preflight, missing replay and pinned native child-first deletion. Later I/O/cancellation can retain partial effects. |
+| `POST /upload/file?token=...&directory=/...` | Scoped one-use multipart `files`; approved server/existing parent, 100 MiB aggregate/16 files, owned staging and no-replace publication. Batch publication can retain partial effects. [Scope](FILE-UPLOADS.md). |
 | `GET /download/file?token=...` | Public JWT-authenticated, server/user/file-bound one-use download; HS256/issuer/time/scope and revocation checks, bounded pinned regular-file streaming. No master bearer fallback, Range/resume or directory downloads. |
 | `GET /api/servers` | Locally registered, panel-assigned server state/configuration/utilization. |
 | `GET /api/servers/{uuid}` | One server's response. |
@@ -95,7 +96,7 @@ Alpha 34 adds opt-in [manual-approval creation](PENDING-CREATION.md), with no pe
 | `POST /api/servers/{uuid}/files/write?file=/name` | Write a confined text file up to 8 MiB. Parent directories must already exist. |
 | `POST /api/servers/{uuid}/files/create-directory` | JSON `name` and `path`; create nested directories and missing parents, 204 for success/existing directory. Bounded Windows names, denylist preflight and observed reparse/link refusal; [scope](FILE-DIRECTORIES.md). |
 
-Unknown/unsupported authenticated routes return 501, including server deletion, automatic binary provisioning, file uploads/downloads, file deletion, compression, pull, SFTP, backups and transfers. A profile that does not belong to this node is not registered and returns 404.
+Unknown/unsupported authenticated routes return 501, including server deletion, automatic binary provisioning, resumable transfers, compression, pull, SFTP, backups and transfers. A profile that does not belong to this node is not registered and returns 404.
 
 Filesystem access uses Go `os.Root` for confinement across symlinks. The path parser also rejects Windows drive/UNC syntax, traversal, alternate data streams, device names and trailing-dot/space aliases. This protects HTTP file operations; it does not sandbox executable code running under the same Windows account.
 

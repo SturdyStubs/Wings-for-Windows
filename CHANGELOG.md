@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.46 - 2026-10-23
+
+- Add public `POST /upload/file` with the panel's one-use scoped JWT and multipart `files`/directory contract. Stream up to 100 MiB aggregate into exclusive handle-pinned staging; publish up to 16 new files with no replacement after the full request is accepted.
+- Enforce raw Windows filenames, existing confined parents, requested/canonical denylist policy, revocation, cancellation, 30-second read-idle/token-expiry deadlines, four upload slots and shared bounded replay receipts. Clean up unpublished stages by exact owned handle. Existing files are preserved on collisions and oversized/malformed bodies.
+- Batch publication is not transactional; late publication failures can retain earlier new files. Crash-stage recovery, disk quotas, configurable larger limits, overwrite/resume and real browser certification remain open. Verification pending clean release and VM checks; see [scope](docs/FILE-UPLOADS.md).
+
 ## 0.1.0-alpha.45 - 2026-10-23
 
 - Add the panel/upstream signed file-download route with bounded, short-lived server/user/file claims and one-use unique IDs. Stream regular files up to 1 GiB using a pinned read handle and bounded chunks; renew write-idle deadlines without exceeding token expiry. No master bearer fallback or Range/resume support.

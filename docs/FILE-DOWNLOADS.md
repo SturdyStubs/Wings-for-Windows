@@ -16,7 +16,7 @@ The independent fixture follows reviewed Wings `router/router_download.go::getDo
 - Current approved local server and a non-root Windows-valid signed file path; query file/server overrides do not change the signed resource.
 - Requested/canonical path and ancestor denylist checks; regular files only. Observed links/reparse points, multi-hardlinks and directories are refused.
 - A native read-sharing-only source handle pins ordinary writes/deletion during transfer. The checked parent/root remain open. Existing conflicting writers return unavailable/locked instead of producing a moving ordinary-file snapshot.
-- Eight concurrent transfers and 4,096 retained one-use receipts. Expired receipts are reclaimed; unexpired receipts are never evicted to admit more links. Capacity failure returns 503.
+- Eight concurrent transfers and 4,096 retained one-use receipts shared with uploads as of alpha 46. Expired receipts are reclaimed; unexpired receipts are never evicted to admit more links. Capacity failure returns 503.
 
 The body uses 64 KiB chunks without loading the whole file. Content-Length is the opened size, Content-Type is application/octet-stream and Content-Disposition uses a safely encoded attachment filename. Cache-Control is no-store and Referrer-Policy is no-referrer. Range/resume, HEAD, conditional downloads, directory/archive creation and files over 1 GiB are not supported. Request a new signed URL for a new transfer or interrupted download.
 
