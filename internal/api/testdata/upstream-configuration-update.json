@@ -1,0 +1,7 @@
+{
+  "source": "pterodactyl/wings router/router_system.go postUpdateConfiguration at 747bc4393daf5d95fdf61d76382f5e23749cffe9; panel app/Services/Daemon/NodeClient.php update",
+  "method": "POST",
+  "path": "/api/update",
+  "request": {"uuid":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","token_id":"replacement-id","token":"replacement-secret-at-least-32-characters","api":{"port":443,"ssl":{"enabled":false}},"system":{"data":"/var/lib/pterodactyl/volumes"}},
+  "response": {"applied":false}
+}

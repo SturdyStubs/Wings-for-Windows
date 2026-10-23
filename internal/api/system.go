@@ -13,6 +13,9 @@ func (a *API) system(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	capabilities := []string{"native_executable", "job_objects", "console", "power", "files_read_write", "files_create_directory", "files_rename_move", "files_copy", "live_resource_limits", "egg_process_opt_in", "native_installer_opt_in"}
+	if a.Manager.Config.IgnorePanelConfigUpdates {
+		capabilities = append(capabilities, "configuration_updates_operator_managed")
+	}
 	if a.Manager.Config.AllowPendingCreation {
 		capabilities = append(capabilities, "pending_creation_manual_approval")
 	}

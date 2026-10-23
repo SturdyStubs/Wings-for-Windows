@@ -17,7 +17,7 @@ import (
 	"wings-windows/internal/networkpolicy"
 )
 
-const Version = "0.1.0-alpha.42"
+const Version = "0.1.0-alpha.43"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -46,21 +46,22 @@ type Profile struct {
 	MemoryMB                   int                  `json:"memory_mb"`
 }
 type Config struct {
-	AllowPendingCreation    bool               `json:"allow_pending_creation,omitempty"`
-	ConsoleLogs             *ConsoleLogs       `json:"console_logs,omitempty"`
-	SourcePath              string             `json:"-"`
-	Listen                  string             `json:"listen"`
-	PanelURL                string             `json:"panel_url"`
-	NodeUUID                string             `json:"node_uuid"`
-	TokenID                 string             `json:"token_id"`
-	Token                   string             `json:"token"`
-	DataDirectory           string             `json:"data_directory"`
-	Timezone                string             `json:"timezone,omitempty"`
-	TLS                     TLS                `json:"tls"`
-	AllowInsecureLoopback   bool               `json:"allow_insecure_loopback"`
-	Origins                 []string           `json:"allowed_origins"`
-	AllowCORSPrivateNetwork bool               `json:"allow_cors_private_network,omitempty"`
-	Profiles                map[string]Profile `json:"profiles"`
+	IgnorePanelConfigUpdates bool               `json:"ignore_panel_config_updates,omitempty"`
+	AllowPendingCreation     bool               `json:"allow_pending_creation,omitempty"`
+	ConsoleLogs              *ConsoleLogs       `json:"console_logs,omitempty"`
+	SourcePath               string             `json:"-"`
+	Listen                   string             `json:"listen"`
+	PanelURL                 string             `json:"panel_url"`
+	NodeUUID                 string             `json:"node_uuid"`
+	TokenID                  string             `json:"token_id"`
+	Token                    string             `json:"token"`
+	DataDirectory            string             `json:"data_directory"`
+	Timezone                 string             `json:"timezone,omitempty"`
+	TLS                      TLS                `json:"tls"`
+	AllowInsecureLoopback    bool               `json:"allow_insecure_loopback"`
+	Origins                  []string           `json:"allowed_origins"`
+	AllowCORSPrivateNetwork  bool               `json:"allow_cors_private_network,omitempty"`
+	Profiles                 map[string]Profile `json:"profiles"`
 }
 
 func Load(path string) (Config, error) {

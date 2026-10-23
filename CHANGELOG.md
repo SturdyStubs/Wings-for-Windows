@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.0-alpha.43 - 2026-10-23
+
+- Add the upstream operator-managed acknowledgement mode for `POST /api/update`. Explicitly enable `ignore_panel_config_updates` to return `applied: false`, preserving all native settings and credentials. Keep remote apply/rotation unsupported by default; reject malformed, non-object, multiple and oversized bodies.
+- Add a panel/upstream contract fixture and tests for authentication, response semantics, unchanged memory/disk/authentication, validation and explicit default refusal. See [scope](docs/CONFIGURATION-UPDATES.md). Release/VM verification pending at this source revision.
+
 ## 0.1.0-alpha.42 - 2026-10-22
 
 - Live follow-up: operator-reported browser console succeeds; supervised SSH-child reconnection, nine live file API groups and five game-account permission checks pass. Daemon startup is Automatic; tunnel task runs at startup. New reboot, browser file UI and subuser revocation remain unverified. User-scope credential recovery failed across SSH sessions and was replaced with machine DPAPI under operator-only ACLs after dedicated-account rotation; fresh-session recovery passes. See [evidence](docs/evidence/server2022-alpha42-live-operations.md).

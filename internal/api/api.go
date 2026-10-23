@@ -86,6 +86,10 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		failure(w, 401, "Unauthorized")
 		return
 	}
+	if r.URL.Path == "/api/update" && r.Method == http.MethodPost {
+		a.configurationUpdate(w, r)
+		return
+	}
 	if r.URL.Path == "/api/system" && r.Method == "GET" {
 		a.system(w, r)
 		return
