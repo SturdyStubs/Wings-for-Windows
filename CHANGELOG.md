@@ -6,6 +6,8 @@
 - Accept SecureString password input or prompt securely, create a dedicated enabled non-expiring game identity with self-service password changes disabled, and return only SID/name/UUID/run_as metadata. Share the maintenance lock, hold configuration against ordinary writes and roll back failed validation by the newly returned SID only.
 - Keep profile approval, permissions, credentials, password rotation and panel-driven provisioning explicit separate steps. Add collision/password/validation/rollback tests and use the packaged account command in the third-account SCM fixture. See [workflow](docs/GAME-ACCOUNTS.md).
 
+- Validate all 791 local cases/subtests, zero skipped, vet, clean package checks, 14 native and 101 combined Server 2022 checks, with independent cleanup. See [evidence](docs/evidence/server2022-alpha37-game-accounts.md).
+
 ## 0.1.0-alpha.36 - 2026-10-22
 
 - Add an elevated Windows PowerShell 5.1 command to prepare one precreated game account and empty UUID directory on a stopped managed node without rerunning initial installation over populated data/logs.
