@@ -1,5 +1,7 @@
 # Verification and release status
 
+Alpha 38 passes 815 local cases/subtests, zero skips and vet; the exact clean package passes 14 native and all 107 combined Server 2022 checks. Reviewed local code is verified and published under protected permissions, completes dedicated-account setup/game launch and denies dependency writes while preserving older data/logs. Independent cleanup passes with retained-profile limits. See [exact evidence](evidence/server2022-alpha38-game-files.md) and [operator workflow](GAME-FILES.md).
+
 Alpha 37 passes 791 local cases/subtests, zero skips and vet; the exact clean package passes 14 native and all 101 combined Server 2022 checks. Operator-created dedicated accounts pass collision/lock guards and the new-UUID permission/install/game handoff while preserving older data/logs and cross-server read denial. Independent cleanup passes with retained-profile limits. See [exact evidence](evidence/server2022-alpha37-game-accounts.md) and [operator workflow](GAME-ACCOUNTS.md).
 
 Alpha 36 passes 774 local cases/subtests, zero skips and vet; the exact clean package passes 14 native and all 96 combined Server 2022 checks. Incremental third-account permissions preserve populated older data/logs, permit new-UUID install/game launch and deny access to another server’s data. Independent cleanup passes with retained-profile limits. See [exact evidence](evidence/server2022-alpha36-game-permissions.md) and [operator workflow](GAME-PERMISSIONS.md).

@@ -6,6 +6,8 @@
 - Pin ordinary source writes during verification/copy, stage privately, flush and rehash copied bytes, apply daemon read/execute with no game write grant, then publish by same-parent directory move. Clean only owned staged paths on ordinary failure; preserve existing code/data/ACLs. No downloads, overwrites, installer execution or durable crash recovery.
 - Prevent incremental game permission preparation from exposing unfinished .stage-* code. Add hash/path/sharing/copy/promotion/stale-stage tests and exercise imported executable setup/game launch plus actual dependency write denial on Server 2022. See [workflow](docs/GAME-FILES.md).
 
+- Validate all 815 local cases/subtests, zero skipped, vet, clean package checks, 14 native and 107 combined Server 2022 checks, with independent cleanup. See [evidence](docs/evidence/server2022-alpha38-game-files.md).
+
 ## 0.1.0-alpha.37 - 2026-10-22
 
 - Add an elevated Windows PowerShell 5.1 game-account command for a stopped existing managed node. Refuse existing account names, local UUID profiles/data and stale service binding; support WhatIf without a password prompt or state changes.
