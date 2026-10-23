@@ -1,12 +1,14 @@
 # Progress toward Wings compatibility
 
-Last updated: October 23, 2026. Current version: **0.1.0-alpha.44**. Active development: **M3 — Windows lifecycle features**, with **M4 directory creation, rename/move and bounded file copying** implemented. M1/M2 remain open for live panel and isolation gates.
+Last updated: October 23, 2026. Current version: **0.1.0-alpha.45**. Active development: **M3 — Windows lifecycle features**, with **bounded M4 file management and scoped downloads** implemented. M1/M2 remain open for live panel and isolation gates.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
 This file tracks the current implementation. The audit preserves the alpha 1 baseline. A checked implementation item means code and local regression tests exist; a live verification item stays open until exercised against a real panel/host/game. Route coverage is not a completion percentage.
 
 ## Current state
+
+- Alpha 45: public `GET /download/file?token=...` accepts bounded one-use panel JWTs for an approved server/file; streams up to 1 GiB with 64 KiB buffers, eight transfer slots, 4,096 expiry-pruned receipts and expiry/revocation/policy/cancellation checks. Range/resume and full browser certification remain open. Focused checks pass; clean release/VM checks pending. See [scope](docs/FILE-DOWNLOADS.md).
 
 - Alpha 44: bounded recursive file/directory deletion with whole-batch validation, denylist/handle checks, missing-entry replay and child-before-parent native deletion. No path-based recursive fallback; later errors can retain partial deletion. 985 local cases/subtests, vet, clean release, 14 native VM cases, 40 portable delete cases and eight retained-service live checks pass; independent fixture cleanup preserves prior files. See [scope](docs/FILE-DELETE.md) and [evidence](docs/evidence/server2022-alpha44-file-delete.md).
 
@@ -63,7 +65,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - Alpha 40: panel-compatible nested directory creation with whole-path preflight, case-insensitive denylist checks, reparse refusal, confined parent traversal, bounded Windows names and inherited directory permissions. All 871 local cases/subtests, 14 packaged native cases, 38 portable API cases/subtests and 23 focused Server 2022 service checks pass; independent cleanup verifies removal with one retained/loaded profile. See [exact evidence](docs/evidence/server2022-alpha40-file-directories.md). Rename/copy/delete, scoped upload/download and SFTP remain open. See [directory scope](docs/FILE-DIRECTORIES.md).
 - Alpha 41: panel-compatible file/directory rename/move with case-only names, confined relative parent moves, batch preflight, descendant denylist scans, pinned sources and native no-replace destination protection. Existing destination parents are required; chains/swaps/overlaps are refused and execution is not transactional. All 905 local cases/subtests, 14 packaged native VM cases, 72 portable file API cases/subtests and 30 focused SCM checks pass; independent cleanup passes with one retained/loaded profile. See [scope](docs/FILE-RENAME.md) and [exact evidence](docs/evidence/server2022-alpha41-file-rename.md).
 - Alpha 42: bounded regular-file copies with upstream names, binary streaming, locked-source/no-link checks, owned temporary staging, exact-handle cleanup and no-replace publication. One-GiB source bound and 51 candidate names; quotas and durable orphan recovery remain open. All 931 local cases/subtests, 14 packaged native VM cases, 98 portable file API cases/subtests and 35 focused SCM checks pass; independent cleanup passes with one retained/loaded profile. See [scope](docs/FILE-COPY.md) and [exact evidence](docs/evidence/server2022-alpha42-file-copy.md).
-- HTTP inventory: handlers at **21 of upstream's 38 method/path combinations**, with partial behavior; **17 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
+- HTTP inventory: handlers at **22 of upstream's 38 method/path combinations**, with partial behavior; **16 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
 - Automatic binary provisioning, full file manager/SFTP, backups/restores, transfers, strong isolation and live certification remain open.
 - Unchanged Linux eggs require a Linux execution backend. Native Windows profiles do not translate Linux images/binaries.
 
@@ -171,7 +173,8 @@ Current scope remains a trusted private node. File denylist/path checks are not 
   - [x] Add the upstream rename/move route for files and directories, including case-only names, batch preflight, descendant policy checks and native no-replace protection.
   - [x] Add the upstream file-copy route with bounded binary streaming, collision-safe names and owned staging/publication.
   - [x] Add bounded file/directory deletion with whole-batch preflight, pinned-handle child-first deletion and late-child preservation.
-  - [ ] Complete broader delete/copy/rename behavior, permissions editing and scoped uploads/downloads; verify full workflows through a real panel.
+  - [x] Add bounded one-use signed file download with pinned reads and streaming authorization checks.
+  - [ ] Complete broader delete/copy/rename and download behavior, permissions editing and scoped uploads; verify full workflows through a real panel.
 - [ ] Safe archives/extraction and guarded remote fetch with progress/cancel.
 - [ ] SFTP with panel authentication, per-operation permissions, revocation and session limits.
 - [ ] Disk accounting/enforcement across file, installer, archive and game writes.

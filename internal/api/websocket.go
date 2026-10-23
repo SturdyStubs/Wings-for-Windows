@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 	"net/http"
 	"slices"
+	"strings"
 	"time"
 	"wings-windows/internal/node"
 )
@@ -25,7 +26,7 @@ func (a *API) valid(c *Claims, id string) bool {
 	if c == nil || c.Server != id || c.User == "" || c.Scope != "websocket" || c.IssuedAt == nil || c.ExpiresAt == nil || !c.ExpiresAt.After(time.Now()) || c.IssuedAt.Before(a.boot) || !c.can("websocket.connect") {
 		return false
 	}
-	for _, key := range []string{"jti:" + c.ID, "user:" + id + ":" + c.User} {
+	for _, key := range []string{"jti:" + c.ID, "user:" + strings.ToLower(id) + ":" + strings.ToLower(c.User)} {
 		if t, ok := a.revoked.Load(key); ok && !c.IssuedAt.After(t.(time.Time)) {
 			return false
 		}

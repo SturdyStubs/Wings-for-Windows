@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.0-alpha.45 - 2026-10-23
+
+- Add the panel/upstream signed file-download route with bounded, short-lived server/user/file claims and one-use unique IDs. Stream regular files up to 1 GiB using a pinned read handle and bounded chunks; renew write-idle deadlines without exceeding token expiry. No master bearer fallback or Range/resume support.
+- Recheck expiry, user/JTI revocation, policy, cancellation and shutdown during streaming. Bound transfer slots and expiry-pruned receipts; preserve current tokens when preflight/capacity fails. Normalize user UUID casing for revocation across downloads/WebSockets. Add 42 focused cases/subtests and a claim-contract fixture. Clean release/VM validation pending. See [scope](docs/FILE-DOWNLOADS.md).
+
 ## 0.1.0-alpha.44 - 2026-10-23
 
 - Add the panel/upstream file-delete contract for bounded files and directory trees. Preflight the full batch with path/denylist/descendant/link/overlap checks and hold validated NT handles before mutation. Delete children first without recursive path fallback; preserve unscanned late children. Missing entries are idempotent.

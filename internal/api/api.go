@@ -16,19 +16,22 @@ import (
 )
 
 type API struct {
-	Manager     *node.Manager
-	boot        time.Time
-	revoked     sync.Map
-	renameLocks sync.Map
-	copyLocks   sync.Map
-	deleteLocks sync.Map
-	slots       chan struct{}
-	done        chan struct{}
-	closeOnce   sync.Once
+	Manager       *node.Manager
+	boot          time.Time
+	downloadMu    sync.Mutex
+	downloadUsed  map[string]time.Time
+	downloadSlots chan struct{}
+	revoked       sync.Map
+	renameLocks   sync.Map
+	copyLocks     sync.Map
+	deleteLocks   sync.Map
+	slots         chan struct{}
+	done          chan struct{}
+	closeOnce     sync.Once
 }
 
 func New(m *node.Manager) *API {
-	return &API{Manager: m, boot: time.Now().Truncate(time.Second), slots: make(chan struct{}, 256), done: make(chan struct{})}
+	return &API{Manager: m, boot: time.Now().Truncate(time.Second), slots: make(chan struct{}, 256), done: make(chan struct{}), downloadSlots: make(chan struct{}, 8), downloadUsed: make(map[string]time.Time)}
 }
 func (a *API) Close() { a.closeOnce.Do(func() { close(a.done) }) }
 func respond(w http.ResponseWriter, status int, v any) {
@@ -69,6 +72,15 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	a.headers(w, r)
 	if r.Method == http.MethodOptions {
 		respond(w, 204, nil)
+		return
+	}
+	if r.URL.Path == "/download/file" {
+		if r.Method != http.MethodGet {
+			w.Header().Set("Allow", "GET")
+			failure(w, http.StatusMethodNotAllowed, "Use GET for signed downloads")
+			return
+		}
+		a.downloadFile(w, r)
 		return
 	}
 	parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
@@ -152,7 +164,7 @@ func (a *API) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		for _, id := range v.Servers {
-			a.revoked.Store("user:"+strings.ToLower(id)+":"+v.User, time.Now())
+			a.revoked.Store("user:"+strings.ToLower(id)+":"+strings.ToLower(v.User), time.Now())
 		}
 		respond(w, 204, nil)
 		return
