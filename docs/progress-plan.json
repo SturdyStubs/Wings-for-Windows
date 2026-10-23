@@ -151,6 +151,11 @@
           "title": "Implement and verify bounded handle-pinned file and directory deletion",
           "verified_in": "0.1.0-alpha.44",
           "notes": "Bounded files/trees only; whole-batch pinning/policy preflight, late-child preservation and partial outcomes. 985 local / 14 native / 40 portable / 8 live checks pass. Browser controls, quotas, full semantics and server-record deletion remain open. Evidence: https://github.com/SturdyStubs/Wings-for-Windows/blob/main/docs/evidence/server2022-alpha44-file-delete.md"
+        },
+        {
+          "title": "Implement and verify bounded one-use signed file downloads",
+          "verified_in": "0.1.0-alpha.45",
+          "notes": "Bounded JWT/path/replay/streaming checks: 1027 local / 14 native / 42 portable / 10 live HTTPS / 10 WSS regressions. Tokens are synthetic operator fixtures; actual panel browser links, subuser removal, uploads, resume and full transfer scope remain open. Evidence: https://github.com/SturdyStubs/Wings-for-Windows/blob/main/docs/evidence/server2022-alpha45-signed-downloads.md"
         }
       ]
     },

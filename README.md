@@ -26,6 +26,8 @@ Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.co
 GitHub Issues are the source of truth; ROADMAP.md records implementation scope and verification. Run `scripts/Update-Progress.ps1` to regenerate this section. Use `-Initialize` to add missing planned milestones/tasks; rerunning it never automatically re-closes existing issues.
 <!-- progress:end -->
 
+Alpha 45 verification: **1,027 local cases/subtests**, **14 native VM cases**, **42 signed-download cases/subtests**, **10 live HTTPS groups** and **10 WSS regressions** pass. A 9 MiB binary streams intact; scoped replay/revocation and owned fixture cleanup pass. Actual panel browser downloads remain unverified. See [evidence](docs/evidence/server2022-alpha45-signed-downloads.md).
+
 Alpha 44 verification: **985 local cases/subtests**, **14 native VM cases**, **40 deletion API cases/subtests** and **eight live HTTPS deletion checks** pass. Dedicated fixture cleanup preserves earlier files; service/demo remain running. See [evidence](docs/evidence/server2022-alpha44-file-delete.md).
 
 Alpha 43 verification: **945 local cases/subtests**, **14 native VM cases** and **14 configuration-policy cases/subtests** pass. Live HTTPS acknowledgement preserves native configuration and credentials; outgoing panel sync succeeds. The panel save-button retry is pending. See [evidence](docs/evidence/server2022-alpha43-config-policy.md).

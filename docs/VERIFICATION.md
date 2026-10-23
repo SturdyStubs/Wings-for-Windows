@@ -1,6 +1,6 @@
 # Verification and release status
 
-Alpha 45 adds bounded one-use signed downloads. Focused download tests and vet pass; clean release, portable VM and live HTTPS checks remain pending at this source revision. See [scope](FILE-DOWNLOADS.md).
+Alpha 45: **1,027 local cases/subtests**, zero skips, vet and clean release pass. The exact package passes **14 native VM cases**, **42 portable download cases/subtests**, **10 live HTTPS download groups** and **10 live WSS regression checks**. Native config/ACLs and earlier files are preserved, owned fixture cleanup passes and demo/service/tunnel remain running. Actual panel-issued/browser links remain unverified. See [evidence](evidence/server2022-alpha45-signed-downloads.md) and [scope](FILE-DOWNLOADS.md).
 
 Alpha 44: **985 local cases/subtests**, zero skips, vet and clean release pass. The exact package passes **14 native VM cases**, **40 portable delete cases/subtests** and **eight live HTTPS deletion checks** under the retained non-administrator service. Independent fixture cleanup preserves prior demo files. Service/demo/tunnel remain running; browser UI and server-record deletion remain open. See [evidence](evidence/server2022-alpha44-file-delete.md) and [scope](FILE-DELETE.md).
 

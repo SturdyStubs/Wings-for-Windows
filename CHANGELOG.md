@@ -3,7 +3,7 @@
 ## 0.1.0-alpha.45 - 2026-10-23
 
 - Add the panel/upstream signed file-download route with bounded, short-lived server/user/file claims and one-use unique IDs. Stream regular files up to 1 GiB using a pinned read handle and bounded chunks; renew write-idle deadlines without exceeding token expiry. No master bearer fallback or Range/resume support.
-- Recheck expiry, user/JTI revocation, policy, cancellation and shutdown during streaming. Bound transfer slots and expiry-pruned receipts; preserve current tokens when preflight/capacity fails. Normalize user UUID casing for revocation across downloads/WebSockets. Add 42 focused cases/subtests and a claim-contract fixture. Clean release/VM validation pending. See [scope](docs/FILE-DOWNLOADS.md).
+- Recheck expiry, user/JTI revocation, policy, cancellation and shutdown during streaming. Bound transfer slots and expiry-pruned receipts; preserve current tokens when preflight/capacity fails. Normalize user UUID casing for revocation across downloads/WebSockets. Add 42 focused cases/subtests and a claim-contract fixture. Validate 1,027 local cases/subtests, zero skips, clean release, 14 native VM cases, 42 portable download cases, 10 live HTTPS groups and 10 WSS regressions; independent fixture cleanup passes. Browser-issued links remain open. See [scope](docs/FILE-DOWNLOADS.md) and [evidence](docs/evidence/server2022-alpha45-signed-downloads.md).
 
 ## 0.1.0-alpha.44 - 2026-10-23
 

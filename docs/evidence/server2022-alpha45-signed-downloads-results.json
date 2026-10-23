@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "version": "0.1.0-alpha.45",
+  "source_revision": "ac1b3f18c4b20b0faaacf1a5303623172e026498",
+  "zip_sha256": "c49ea4781def0ff7ced83652029e270d12e2cf0184c73f991ee50d64c4e1e826",
+  "daemon_sha256": "e7f734bc012a75fbed99a7be257e6bf19ac152b524b648c907e94cd412d00a10",
+  "runtime_tests_sha256": "428f07aab4df4bb585932c92c4424841c8bdec66dcd0a221d6289151212a9251",
+  "demo_sha256": "7cdcfe8f7ed0f8f26ee668fd8c19732b9f5160ed791666618d2c5567a8134d54",
+  "api_tests_sha256": "0d333fdc4c9c5e6891e1029c978481469fc3021ce1c80dfcc1c2a261e47c89f1",
+  "contract_fixture_sha256": "dfc196b0846fe252100ae508d9b934d05ba80b3e3d9c3a0a64c9c30ac4b0091b",
+  "live_download_probe_sha256": "4737536a9058c0ff3fe142734f69ba6f97487b6569e5741ae12ff16502865358",
+  "live_download_probe_source_sha256": "2a40f71c0a8c3b56363935f375d369fc3843502ae1baf4d953129a1130ddee74",
+  "missing_fixture_consent_exit_code": 2,
+  "host": {
+    "caption": "Microsoft Windows Server 2022 Standard Evaluation",
+    "version": "10.0.20348",
+    "build": "20348",
+    "architecture": "64-bit",
+    "windows_server": true,
+    "powershell": "5.1.20348.558"
+  },
+  "local_tests_passed": 1027,
+  "local_tests_skipped": 0,
+  "native_tests_passed": 14,
+  "baseline_started_utc": "2026-10-23T19:55:19.8717320Z",
+  "baseline_finished_utc": "2026-10-23T19:55:22.3881533Z",
+  "portable_download_api": {
+    "tests_skipped": 0,
+    "tests_failed": 0,
+    "tests_passed": 42,
+    "exit_code": 0
+  },
+  "live_service_deployment": {
+    "reboot_tested": false,
+    "version": "0.1.0-alpha.45",
+    "public_update_status": 200,
+    "observed_utc": "2026-10-23T19:56:53.6902292Z",
+    "game_state": "running",
+    "game_was_running": true,
+    "applied": false,
+    "runtime_only_upgrade": true,
+    "original_incoming_credentials_valid": true,
+    "outgoing_live_panel_sync_status": 204,
+    "upgrade_config_hash_unchanged": true,
+    "service_state": "Running",
+    "native_config_hash_unchanged": true,
+    "panel_save_button_retested": false,
+    "executable_acl_preserved": true
+  },
+  "live_download": {
+    "browser_download_tested": false,
+    "checks": {
+      "empty_file_download": true,
+      "fresh_post_revocation_link_accepted": true,
+      "large_binary_integrity_and_headers": true,
+      "one_use_replay_rejected": true,
+      "owned_fixture_removed": true,
+      "query_path_override_ignored": true,
+      "range_refusal_preserves_full_link": true,
+      "same_jti_new_unique_accepted": true,
+      "synthetic_user_revocation_enforced": true,
+      "wrong_scope_rejected": true
+    },
+    "identity_source": "operator-minted synthetic file JWTs; not real panel-issued links",
+    "large_bytes": 9437184,
+    "observed_utc": "2026-10-23T19:56:54Z",
+    "passed": true
+  },
+  "live_websocket_regression": {
+    "checks": {
+      "allowed_origin_synthetic_auth": true,
+      "expired_token_rejected": true,
+      "fresh_post_revocation_token_accepted": true,
+      "jti_revocation_and_replay_rejected": true,
+      "missing_console_permission_rejected": true,
+      "missing_power_permission_rejected": true,
+      "synthetic_user_revocation_and_replay_rejected": true,
+      "untrusted_origin_rejected": true,
+      "wrong_issuer_rejected": true,
+      "wrong_server_rejected": true
+    },
+    "identity_source": "operator-minted synthetic JWTs; not a real panel subuser",
+    "observed_utc": "2026-10-23T19:57:00Z",
+    "panel_subuser_removal_tested": false,
+    "passed": true
+  },
+  "independent_cleanup": {
+    "tunnel_task": "Running",
+    "previous_file_manager_present": true,
+    "service": "Running",
+    "previous_install_marker_present": true,
+    "probe_roots_remaining": 0,
+    "daemon_account": ".\\WingsRuntime",
+    "game_state": "running"
+  },
+  "old_full_mock_scm_suite_rerun": false,
+  "actual_panel_issued_links_tested": false,
+  "browser_download_tested": false,
+  "real_panel_subuser_removal_tested": false,
+  "real_game_tested": false,
+  "new_reboot_tested": false
+}

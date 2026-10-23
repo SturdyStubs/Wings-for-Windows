@@ -29,3 +29,7 @@ The same batch adds [live WSS protocol evidence](evidence/server2022-alpha43-liv
 ## Alpha 44 follow-up
 
 Accepted [#48](https://github.com/SturdyStubs/Wings-for-Windows/issues/48) for bounded pinned-handle file/directory deletion after local, portable Server 2022 and isolated live-service checks. This adds one scoped deliverable: current total is 42; M4 is 2/7 and remains open. The earlier table is the alpha 43 review snapshot. Full delete semantics, browser controls, SFTP/accounting and server-record deletion remain open. See [evidence](evidence/server2022-alpha44-file-delete.md).
+
+## Alpha 45 follow-up
+
+Accepted [#49](https://github.com/SturdyStubs/Wings-for-Windows/issues/49) for bounded one-use signed file downloads after local, portable Server 2022, live HTTPS and WSS regression checks. Current total is 43 deliverables; M4 is 3/8 and stays open. Operator-minted live tokens do not close actual panel-issued browser download or subuser-removal gates. Uploads/resume, SFTP and accounting remain open. See [evidence](evidence/server2022-alpha45-signed-downloads.md).
