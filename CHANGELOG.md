@@ -48,14 +48,14 @@
 - Fail closed on storage/corruption errors and expose uncertainty separately from local setup success. No automatic retry, partial-data rollback or transactional delivery guarantee is claimed.
 - Validate 761 local cases/subtests, zero skips, vet, a clean release, 14 packaged native Server 2022 cases and all 89 combined service checks, including daemon interruption during setup and independent cleanup.
 
-## 0.1.0-alpha.34 â€” 2026-10-22
+## 0.1.0-alpha.34 — 2026-10-22
 
 - Add opt-in manual-approval creation through POST /api/servers. Verify assigned UUID v4 using node credentials, retain a pending record and expose its approval status without creating data, accounts, installers or game processes.
 - Reconstruct pending entries from assigned-server discovery after restart; allow zero-profile bootstrap, idempotent pending retries and at most 1,024 entries. Reject unsupported automatic start explicitly. Approved profile duplicates remain conflicts.
 - Block pending power/install/file operations; local profile approval and a daemon restart hand off to existing native reinstall. Update node/demo setup guidance without claiming automatic provisioning or live panel certification.
 - Verify 731 local cases/subtests with zero skips, vet, a clean release, 14 packaged native Server 2022 cases and all 79 combined service checks. Independently inspect cleanup and retain explicit profile/history and mock-only limits.
 
-## 0.1.0-alpha.33 â€” 2026-10-22
+## 0.1.0-alpha.33 — 2026-10-22
 
 - Add locally approved native data/setup installers through Wings install/reinstall routes, serialized with power controls. Reinstall stops a running game; kill, suspension and shutdown cancel the installer job tree. Protected game binaries must already be provisioned.
 - Reuse game-account launch guards, network policy and resource caps; protect installer code/dependencies in ACL, egg rewrite, log reader and initial managed-layout checks. Bound runtime, captured lines and total output.
@@ -166,21 +166,21 @@
 - Final alpha 17 package passes 11 actual Server 2022 SCM demo checks, including registration/start rollback and full preexisting DACL restoration. Independent cleanup audit confirms no temporary users, rights, tasks, service or processes remain; one loaded profile is retained.
 - Add 14 planner cases/subtests without changing local accounts/rights/ACLs. Full suite: 206 cases/subtests, zero skipped; vet passed. Document actual Server 2022 SCM demo validation and remaining reboot/profile, real panel/game and WFP gates.
 
-## Unreleased â€” direct Server 2022 validation
+## Unreleased — direct Server 2022 validation
 
 - Verify the unchanged alpha 16 package over SSH on Server 2022 build 20348: default runner, all 14 native cases/subtests and retrieved full reports/logs.
 - Validate eight real separate-account native stages from SYSTEM and non-administrator daemon password-backed tasks. Confirm actual child SID, own/temp writes, peer/private read denial, daemon memory denial, stdio and graceful exit.
 - Retain the developer-only probe source and sanitized evidence. No daemon protocol/runtime changes or new release artifact are introduced by this evidence update.
 - Record key-authenticated SSH credential-store failure (1312), successful password-backed provisioning, cleanup of temporary users/rights/tasks/credentials, and intentionally retained loaded profile. SCM, recovery, panel/game and network gates remain open.
 
-## 0.1.0-alpha.16 â€” October 20, 2026
+## 0.1.0-alpha.16 — October 20, 2026
 
 - Fix Test-Host.ps1 default package resolution by evaluating script-relative paths after parameter binding, with a MyInvocation fallback. Resolve the default output directory in the body beside the package, avoiding Windows PowerShell startup working-directory quirks.
 - Reproduce the parameter-free Windows PowerShell -File invocation in clean release builds, from outside the package. Previous package verification passed explicit paths and missed this failure.
 - Document the alpha 15 workaround: run from the extraction root with -PackageDirectory .; retain all existing package integrity and coverage requirements.
 - Full suite remains 192 cases/subtests, zero skipped; portable default-invocation baseline passes 14 cases/subtests. The user reports 14 passing cases on Server 2022 after using the explicit-path workaround; record the reviewed metadata and matching executable hashes without the full SID. Distinct-account/service/panel/network gates remain open.
 
-## 0.1.0-alpha.15 â€” October 20, 2026
+## 0.1.0-alpha.15 — October 20, 2026
 
 - Package a compiled native runtime-test binary and exact test/hash manifest; allow an explicit existing harmless fixture so the VM needs neither Go nor repository source.
 - Add Test-Host.ps1: verify clean/matching source revisions and binary hashes, record OS/build/invoking-token metadata, run every manifest test with zero skips, and save JSON plus logs in a new evidence directory.
@@ -188,7 +188,7 @@
 - Add a staged Windows Server VM workflow and baseline/remaining-gate matrix. Verify local no-Go execution, damaged/dirty packages, reused output directories and incomplete test inventory rejection.
 - Full development suite: 192 cases/subtests, zero skipped; portable native baseline: 14 cases/subtests, zero skipped. Actual Server 2022/service/panel/game validation remains pending; M2 remains open.
 
-## 0.1.0-alpha.14 â€” October 20, 2026
+## 0.1.0-alpha.14 — October 20, 2026
 
 - Check effective game-token DACL grants for executable read/execute, declared dependency reads and working/temporary-directory list, traverse, metadata and file/subdirectory creation before network-policy installation or process creation.
 - Add the same read-only checker to `--check-identity` as the ordered `launch_access` stage. Missing directories fail; no permission repair, root creation, test write or extra account logon occurs.
@@ -196,7 +196,7 @@
 - Verify real restricted-token file opens and allowed/denied temporary-file creation against ACL preflight results; add missing/type/cancellation/denial fixtures and node/diagnostic contracts. Full suite: 191 cases/subtests, zero skipped.
 - Document conservative traversal requirements and the remaining existing-child, inheritance, loader, race and live deployment gates. M2 remains open.
 
-## 0.1.0-alpha.13 â€” October 18, 2026
+## 0.1.0-alpha.13 — October 18, 2026
 
 - Retain read-sharing-only launch handles before the identity ACL audit until network setup, suspended process creation, job assignment and resume finish. Cover nonrecursive protected paths, executable, working directory and ancestors; release on success or failure.
 - Reject conflicting writers, observed reparse points, non-single-link files and more than 1,024 distinct path components. Preserve case variants, cancellation and rollback after partial acquisition. No silent fallback to unguarded identity startup.
@@ -204,7 +204,7 @@
 - Add actual Windows sharing/rename, partial rollback, bound, link and pinned-image creation tests, including a restricted-token child. The full suite passes 175 cases/subtests with zero skipped.
 - Document updater conflicts, diagnostic exclusions and startup-only scope. ACL changes, writable mappings, recursive/runtime/loader races and separate-account/live-host validation remain open; M2 is incomplete.
 
-## 0.1.0-alpha.12 â€” October 18, 2026
+## 0.1.0-alpha.12 — October 18, 2026
 
 - Add explicit --check-network-policy <UUID> operator diagnostic, requiring configured block_connections and successful identity preflight before any temporary WFP installation.
 - Read back owned rule IDs/count/content, sublayer and exact SID matcher, close the session even on readback/cancellation failure, then independently inspect cleanup through a second session.
@@ -212,7 +212,7 @@
 - Add injected-backend altered/stale/inspection/close/observer/cancellation tests and node/CLI preflight gating. Automated tests install no real filters.
 - Document the command's temporary account-blocking effect, permissions, cleanup/time-limit semantics and separate live traffic/deployment gates. M2 remains incomplete.
 
-## 0.1.0-alpha.11 â€” October 18, 2026
+## 0.1.0-alpha.11 — October 18, 2026
 
 - Start network enforcement plumbing with optional network_policy.mode block_connections for dedicated run_as identities. Prepare four hard SID-scoped IPv4/IPv6 connect/receive-accept block rules before creating the process; default remains unmanaged.
 - Use dynamic WFP sessions with partial-install rollback, cancellation checks and no unmanaged fallback. Pin tailscale/wf bindings and include its/netipx runtime notices.
@@ -220,7 +220,7 @@
 - Test rule contracts and install/rollback errors with an injected engine; test descendant-before-lease-release ordering using an actual job and fake policy lease. No real firewall/filter change occurs in local tests.
 - Actual WFP installation/traffic behavior, allocation allowlists, crash/restart cleanup and full network isolation remain unverified/open. M2 is not complete.
 
-## 0.1.0-alpha.10 â€” October 18, 2026
+## 0.1.0-alpha.10 — October 18, 2026
 
 - Add `--check-identity <UUID>` with ordered JSON profile, file, credential-presence, batch-logon/token, daemon-access, filesystem and service-privilege checks. Stop on the first failure and mark later checks not_run.
 - Reuse startup's protected-path rule builder without manager initialization, panel sync, root creation or process launch. The command explicitly attempts account logon when earlier stages pass.
@@ -228,7 +228,7 @@
 - Add missing-credential, invalid/shared/unknown-profile, missing-file and cancellation regressions; document deployment workflow, synchronous-logon limits and the remaining Windows Server/service validation gate.
 - No successfully provisioned second account or live deployment is certified by local diagnostic tests. Full M2 enforcement/recovery remains open.
 
-## 0.1.0-alpha.9 â€” October 18, 2026
+## 0.1.0-alpha.9 — October 18, 2026
 
 - Continue M2 with local `--credential-status <UUID>` JSON metadata and `--remove-credential <UUID>` exact-target removal. Missing entries are handled idempotently; neither operation loads node config, logs on an account or changes running processes.
 - Require `-Replace` for deliberate same-account credential rotation; refuse accidental overwrite, account-name changes and rotation of a missing target. Retain secure-input handling and clear returned credential memory copies.
@@ -236,7 +236,7 @@
 - Add temporary fake-credential lifecycle regressions and document inspection, rotation, retirement, concurrency limits and interrupted-password-change recovery.
 - Windows account provisioning/deletion, actual password changes, token revocation, durable recovery and live service validation remain open. These tools do not complete M2.
 
-## 0.1.0-alpha.8 â€” October 18, 2026
+## 0.1.0-alpha.8 — October 18, 2026
 
 - Continue M2 with read-only daemon process and primary-token DACL guards before identity launches. Reject dangerous memory, injection, duplication, termination, token adjustment and ownership/security grants.
 - Protect all configured game executables and declared dependency files against game-account writes/replacement. Merge duplicate path rules deterministically without weakening stricter secret policy; retain case-distinct declarations.
@@ -244,7 +244,7 @@
 - Add actual Windows restricted-token impersonation checks proving daemon memory reads and primary-token duplication are denied, plus process/token rights and generated code-rule regressions.
 - Keep previously acquired handles, transitive loader/mount rules, permission races, network enforcement and successful separate-account Windows Server deployment open. M2 is not complete.
 
-## 0.1.0-alpha.7 â€” October 18, 2026
+## 0.1.0-alpha.7 — October 18, 2026
 
 - Continue M2 with handle-derived ACL/metadata checks and ancestor deletion/ownership/DACL checks up to the local drive root.
 - Recursively audit existing descendants of other configured server roots, including known child files behind a root that denies listing. Enforce 100,000 entry visits, 64 path components, batched enumeration and startup cancellation; incomplete scans abort launch.
@@ -252,16 +252,16 @@
 - Add actual NTFS hardlink/junction fixtures and a real restricting-token ACL fixture that demonstrates the root-only bypass and its recursive rejection. Test ancestor coverage, bounds/cancellation and rename rejection while pinned.
 - Keep scan atomicity, future file/ACL/reparse changes, complete mount/process/network policy and successful separate-account Windows Server validation open. M2 enforcement and adversarial/live gates are not complete.
 
-## 0.1.0-alpha.6 â€” October 18, 2026
+## 0.1.0-alpha.6 — October 18, 2026
 
 - Start M2 enforcement with optional local `run_as` references: pinned non-built-in SID, UUID-bound Credential Manager target and distinct account per configured server.
 - Read credentials from the daemon account's credential set, perform local batch logon, reject SID mismatch, daemon identity and selected privileged groups, then remove privileges with CreateRestrictedToken. Clear temporary password buffers on return.
 - Launch through CreateProcessAsUser while retaining suspended creation, explicit inherited handles, Job Object assignment before resume and termination on failure. Identity failures never fall back to the daemon account.
 - Add read-only AccessCheck rejection for exposed configuration/TLS keys, writable daemon binary/parent directories and accessible other server roots. This is a DACL snapshot, not recursive/link/race/network confinement.
 - Include a secure-input credential storage helper; do not create accounts, grant rights, alter ACLs or modify firewall policy automatically.
-- Test real restricted child privileges/console/job termination, credential round-trip cleanup, reference bounds and DACL grants. Successful separate-account Windows Server/service deployment remains unverified; M2 issues #19â€“21 stay open.
+- Test real restricted child privileges/console/job termination, credential round-trip cleanup, reference bounds and DACL grants. Successful separate-account Windows Server/service deployment remains unverified; M2 issues #19–21 stay open.
 
-## 0.1.0-alpha.5 â€” October 18, 2026
+## 0.1.0-alpha.5 — October 18, 2026
 
 - Add local profile schema v1. Normalize existing omitted/zero versions to v1 and reject unsupported future versions.
 - Add read-only preflight for Windows PE applications, declared amd64/386 architecture, optional minimum Windows build and up to 64 explicitly declared absolute dependency files. Text files, DLL/object applications and unsupported architectures fail before launch.
@@ -270,7 +270,7 @@
 - Record the planned per-server native identity/token/ACL stage and separate virtualization direction for untrusted hosting. No identity/isolation configuration is enabled by this release.
 - Add profile/PE/OS/dependency regressions, start recheck coverage and guarded installation-callback tests. Real panel/game/Windows Server validation remains open.
 
-## 0.1.0-alpha.4 â€” October 18, 2026
+## 0.1.0-alpha.4 — October 18, 2026
 
 - Accept HTTP power actions asynchronously with bounded `wait_seconds` lock acquisition. Limit pending requests to 16; kill and shutdown invalidate queued starts/restarts as well as active work. WebSocket power remains immediate.
 - Report measured Windows CPU count, physical memory, kernel version and data filesystem. Match the system-v2 schema while keeping unavailable Docker counters separate from native server counts.
@@ -278,7 +278,7 @@
 - Honor recent-log size requests and return 502 for commands when no process is alive.
 - Add Windows queue/cancellation and independent HTTP/system contract regressions. Live panel/TLS/subuser/file validation remains open; M1 is not complete.
 
-## 0.1.0-alpha.3 â€” October 18, 2026
+## 0.1.0-alpha.3 — October 18, 2026
 
 - Add opt-in `use_egg_process_configuration` for supported Windows eggs. Decode process settings from node discovery and individual fetches; apply multiple literal/regex readiness matchers, ANSI stripping and command/SIGKILL stop strategies. Preserve local profile behavior by default.
 - Reject unsupported signals, Docker-native stop strategies, missing readiness and unimplemented config-file rewrites explicitly in egg-driven mode.
@@ -289,7 +289,7 @@
 
 Live deployment remains a separate open gate. Config-file rewriting, Windows Ctrl+C/CTRL_BREAK adapters and other unsupported egg behavior are not supplied by the opt-in setting.
 
-## 0.1.0-alpha.2 â€” October 18, 2026
+## 0.1.0-alpha.2 — October 18, 2026
 
 First compatibility-fix batch after auditing upstream Wings `747bc43`.
 
@@ -305,7 +305,7 @@ First compatibility-fix batch after auditing upstream Wings `747bc43`.
 
 Live panel/game/service validation remains pending. Existing Linux eggs are unsupported by the native Windows backend. There is no automatic installer, full file manager/SFTP, backup/restore/transfer support or container-equivalent isolation yet.
 
-## 0.1.0-alpha.1 â€” October 18, 2026
+## 0.1.0-alpha.1 — October 18, 2026
 
 - Initial native EXE runtime with suspended process creation, Windows Job Objects and optional job resource limits.
 - Basic node bearer API, panel synchronization, power, stdout/stderr/stdin console, status, readiness and root-process statistics.

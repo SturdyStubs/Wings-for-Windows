@@ -1,8 +1,8 @@
 # Progress toward Wings compatibility
 
-Last updated: October 22, 2026. Current version: **0.1.0-alpha.40**. Active development: **M3 â€” Windows lifecycle features**, with the first **M4 file-manager directory operation** implemented. M1/M2 remain open for live panel and isolation gates.
+Last updated: October 22, 2026. Current version: **0.1.0-alpha.40**. Active development: **M3 — Windows lifecycle features**, with the first **M4 file-manager directory operation** implemented. M1/M2 remain open for live panel and isolation gates.
 
-[Repository](https://github.com/SturdyStubs/Wings-for-Windows) Â· [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) Â· [Changelog](CHANGELOG.md) Â· [Original audit](docs/WINGS-PARITY-AUDIT.md) Â· [Verification](docs/VERIFICATION.md)
+[Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
 This file tracks the current implementation. The audit preserves the alpha 1 baseline. A checked implementation item means code and local regression tests exist; a live verification item stays open until exercised against a real panel/host/game. Route coverage is not a completion percentage.
 
@@ -53,7 +53,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - Automatic binary provisioning, full file manager/SFTP, backups/restores, transfers, strong isolation and live certification remain open.
 - Unchanged Linux eggs require a Linux execution backend. Native Windows profiles do not translate Linux images/binaries.
 
-## M1: Core protocol compatibility â€” in progress
+## M1: Core protocol compatibility — in progress
 
 [Tracking issue #1](https://github.com/SturdyStubs/Wings-for-Windows/issues/1)
 
@@ -82,7 +82,7 @@ README badges query milestone counts automatically. Close an implementation issu
 
 The seed definitions are in `docs/progress-plan.json`. `scripts/Update-Progress.ps1 -Initialize` adds missing planned milestones/issues and records seeded historical work; it does not re-close existing issues. Run without the switch to refresh README links. Reopened issues lower the live counts automatically, subject to badge caching. Issue state in GitHub is authoritative over historical seed metadata.
 
-## M2: Isolation and supported threat model â€” in progress, required before untrusted hosting
+## M2: Isolation and supported threat model — in progress, required before untrusted hosting
 
 [Tracking issue #2](https://github.com/SturdyStubs/Wings-for-Windows/issues/2)
 
@@ -111,7 +111,7 @@ The seed definitions are in `docs/progress-plan.json`. `scripts/Update-Progress.
 
 Current scope remains a trusted private node. File denylist/path checks are not process isolation.
 
-## M3: Windows provisioning and lifecycle recovery â€” in progress
+## M3: Windows provisioning and lifecycle recovery — in progress
 
 [Tracking issue #3](https://github.com/SturdyStubs/Wings-for-Windows/issues/3)
 
@@ -146,9 +146,9 @@ Current scope remains a trusted private node. File denylist/path checks are not 
   - [x] Add bounded game log-file console output and optional log-only readiness with stale-history skipping, rotation handling and cancellation.
   - [x] Add account-scoped per-server RCON credential references and managed service provisioning, rotation, metadata/removal and namespace separation.
   - [ ] Verify real games, extend RCON/log adapters, add Windows control events and validate broader account/profile/password lifecycle.
-- [ ] Complete a real game's create â†’ install â†’ start â†’ stop/restart â†’ reinstall â†’ delete workflow from the panel.
+- [ ] Complete a real game's create → install → start → stop/restart → reinstall → delete workflow from the panel.
 
-## M4: Full files and SFTP â€” in progress
+## M4: Full files and SFTP — in progress
 
 [Tracking issue #4](https://github.com/SturdyStubs/Wings-for-Windows/issues/4)
 
@@ -160,7 +160,7 @@ Current scope remains a trusted private node. File denylist/path checks are not 
 - [ ] Disk accounting/enforcement across file, installer, archive and game writes.
 - [ ] Locked/long paths, disk-full, malicious archive and link/race tests.
 
-## M5: Backups and transfers â€” planned
+## M5: Backups and transfers — planned
 
 [Tracking issue #5](https://github.com/SturdyStubs/Wings-for-Windows/issues/5)
 
@@ -169,7 +169,7 @@ Current scope remains a trusted private node. File denylist/path checks are not 
 - [ ] Source/destination transfers, streaming/integrity, progress, cancel and failure cleanup.
 - [ ] Recover from interrupted operations; restore and boot a real game successfully.
 
-## M6: Operational parity and deployment validation â€” planned
+## M6: Operational parity and deployment validation — planned
 
 [Tracking issue #6](https://github.com/SturdyStubs/Wings-for-Windows/issues/6)
 
