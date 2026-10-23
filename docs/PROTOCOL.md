@@ -76,6 +76,7 @@ Alpha 34 adds opt-in [manual-approval creation](PENDING-CREATION.md), with no pe
 | `GET /api/system?v=2` | Upstream-shaped system information with measured physical memory and Windows version. Docker is explicitly unavailable with zero container counters; separate `native` fields report server state counts, actual data filesystem and lack of container isolation. |
 | `POST /api/servers` | Opt-in manual-approval creation, assigned UUID v4 only, 202 pending local profile. Automatic start returns 422; [contract and limits](PENDING-CREATION.md). |
 | `POST /api/update` | Explicit `ignore_panel_config_updates` mode: authenticated bounded JSON object returns `200 {"applied":false}` without changing anything. Default mode is 501; remote application/rotation remain unsupported. |
+| `POST /api/servers/{uuid}/files/delete` | Bounded 1–100 targets / 1,024 total entries, whole-batch path/policy/link/overlap preflight, missing replay and pinned native child-first deletion. Later I/O/cancellation can retain partial effects. |
 | `GET /api/servers` | Locally registered, panel-assigned server state/configuration/utilization. |
 | `GET /api/servers/{uuid}` | One server's response. |
 | `POST /api/servers/{uuid}/install`, `POST /api/servers/{uuid}/reinstall` | Opt-in approved native data/setup executable; 202 asynchronous, 501 without recipe, 400 suspended, 409 busy. Reinstall stops the game. Emits installer events and callback booleans; [limits](NATIVE-INSTALLERS.md). |

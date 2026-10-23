@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.0-alpha.44 - 2026-10-23
+
+- Add the panel/upstream file-delete contract for bounded files and directory trees. Preflight the full batch with path/denylist/descendant/link/overlap checks and hold validated NT handles before mutation. Delete children first without recursive path fallback; preserve unscanned late children. Missing entries are idempotent.
+- Refuse root/traversal, alias overlaps, observed reparse/multi-hardlink files, oversized trees and ordinary sharing locks. Recheck canonical path/policy before each mutation, preserve read-only attributes, honor cancellation and document irreversible partial outcomes. Add 40 focused cases/subtests; vet passes. Clean release/VM checks pending. See [scope](docs/FILE-DELETE.md).
+
 ## 0.1.0-alpha.43 - 2026-10-23
 
 - Refresh all six GitHub milestone descriptions and accept six evidence-backed scoped deliverables while preserving the broad open gates. Add an explicitly authorized live WSS probe; ten origin/JWT/permission/synthetic-revocation checks pass on the existing runtime. Real panel subuser removal remains open. See [review](docs/MILESTONE-REVIEW.md) and [evidence](docs/evidence/server2022-alpha43-live-websocket.md).

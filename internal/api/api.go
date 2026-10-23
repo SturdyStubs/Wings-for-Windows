@@ -21,6 +21,7 @@ type API struct {
 	revoked     sync.Map
 	renameLocks sync.Map
 	copyLocks   sync.Map
+	deleteLocks sync.Map
 	slots       chan struct{}
 	done        chan struct{}
 	closeOnce   sync.Once
