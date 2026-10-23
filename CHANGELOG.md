@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.37 - 2026-10-22
+
+- Add an elevated Windows PowerShell 5.1 game-account command for a stopped existing managed node. Refuse existing account names, local UUID profiles/data and stale service binding; support WhatIf without a password prompt or state changes.
+- Accept SecureString password input or prompt securely, create a dedicated enabled non-expiring game identity with self-service password changes disabled, and return only SID/name/UUID/run_as metadata. Share the maintenance lock, hold configuration against ordinary writes and roll back failed validation by the newly returned SID only.
+- Keep profile approval, permissions, credentials, password rotation and panel-driven provisioning explicit separate steps. Add collision/password/validation/rollback tests and use the packaged account command in the third-account SCM fixture. See [workflow](docs/GAME-ACCOUNTS.md).
+
 ## 0.1.0-alpha.36 - 2026-10-22
 
 - Add an elevated Windows PowerShell 5.1 command to prepare one precreated game account and empty UUID directory on a stopped managed node without rerunning initial installation over populated data/logs.

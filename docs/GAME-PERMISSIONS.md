@@ -2,7 +2,7 @@
 
 Alpha 36 adds `scripts/Set-ServiceGamePermissions.ps1` for an existing managed installation with populated data and logs. It prepares a **new, empty server directory** without rerunning initial service setup. Run it as an administrator in **Windows PowerShell 5.1** during a maintenance window with `WingsWindowsNative` stopped.
 
-First create a dedicated, enabled, non-administrator local game account yourself. Add an approved profile keyed by the full server UUID, with that account's canonical `run_as.sid` and `credential_target` equal to `WingsWindows/FULL-UUID`. All configured game identities must be distinct from each other and the daemon. Provision the approved executable, installer and required files under the managed `bin` directory before proceeding.
+First create a dedicated, enabled, non-administrator local game account with the [account helper](GAME-ACCOUNTS.md), before adding its UUID profile, or provision it manually. Add an approved profile keyed by the full server UUID, with that account's canonical `run_as.sid` and `credential_target` equal to `WingsWindows/FULL-UUID`. All configured game identities must be distinct from each other and the daemon. Provision the approved executable, installer and required files under the managed `bin` directory before proceeding.
 
 ```powershell
 Stop-Service WingsWindowsNative
@@ -18,7 +18,7 @@ $server = 'YOUR-FULL-SERVER-UUID'
 - Creates the selected server's directory and `.tmp` if absent, with protected SYSTEM/Administrators full control and daemon/selected-game modify access.
 - Grants that game account `SeBatchLogonRight` if absent, preserving preexisting rights. An explicit deny-batch right aborts preparation.
 
-After preparation, use [service credential provisioning](SERVICE-CREDENTIALS.md) to store the new game's credential under the daemon identity. Account creation, password management and credential storage are separate operations. Start the service, invoke panel **Reinstall** for the [approved native setup recipe](NATIVE-INSTALLERS.md), then start the server manually. See [pending creation](PENDING-CREATION.md) for the UUID approval handoff.
+After preparation, use [service credential provisioning](SERVICE-CREDENTIALS.md) to store the new game's credential under the daemon identity. Account creation, password management and credential storage are separate operations; alpha 37 supplies an [operator account-creation command](GAME-ACCOUNTS.md). Start the service, invoke panel **Reinstall** for the [approved native setup recipe](NATIVE-INSTALLERS.md), then start the server manually. See [pending creation](PENDING-CREATION.md) for the UUID approval handoff.
 
 ## Requirements and limits
 

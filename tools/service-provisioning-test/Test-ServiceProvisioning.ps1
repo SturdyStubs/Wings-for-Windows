@@ -1,6 +1,7 @@
 #Requires -RunAsAdministrator
-param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON,[switch]$TestLogFile,[switch]$TestRCONCredential,[switch]$TestNativeInstaller,[switch]$TestPendingCreation,[switch]$TestInstallState,[switch]$TestGamePermissions)
+param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON,[switch]$TestLogFile,[switch]$TestRCONCredential,[switch]$TestNativeInstaller,[switch]$TestPendingCreation,[switch]$TestInstallState,[switch]$TestGamePermissions,[switch]$TestGameAccount)
 $ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
+if($TestGameAccount -and -not $TestGamePermissions){throw 'Game account fixture requires permission phase'}
 if($TestGamePermissions -and (-not $TestInstallState -or $PrepareReboot)){throw 'Game permissions fixture requires install-state phase and cannot prepare reboot'}
 if($TestInstallState -and (-not $TestPendingCreation -or $PrepareReboot)){throw 'Install state fixture requires pending creation phase and cannot prepare reboot'}
 if($TestPendingCreation -and (-not $TestNativeInstaller -or $PrepareReboot)){throw 'Pending creation fixture requires native installer phase and cannot prepare reboot'}
@@ -92,7 +93,7 @@ try {
  Copy-Item -LiteralPath (Join-Path $Package 'scripts\Store-GameCredential.ps1') -Destination (Join-Path $Root 'bin\Store-GameCredential.ps1')
  New-Item -ItemType Directory -Path (Join-Path $Root 'bin\scripts') | Out-Null
  foreach($file in @('Store-GameCredential.ps1','Set-ServiceGameCredential.ps1','CredentialBridge.psm1','CredentialTask.ps1','NodeSetup.psm1')){Copy-Item -LiteralPath (Join-Path $Staging $file) -Destination (Join-Path $Root ('bin\scripts\'+$file))}
- foreach($file in @('GamePermissions.psm1','Set-ServiceGamePermissions.ps1')){Copy-Item -LiteralPath (Join-Path $Package ('scripts\'+$file)) -Destination (Join-Path $Root ('bin\scripts\'+$file))}
+ foreach($file in @('GamePermissions.psm1','Set-ServiceGamePermissions.ps1','GameAccounts.psm1','New-ServiceGameAccount.ps1')){Copy-Item -LiteralPath (Join-Path $Package ('scripts\'+$file)) -Destination (Join-Path $Root ('bin\scripts\'+$file))}
  foreach($file in @('Store-RCONCredential.ps1','Set-ServiceRCONCredential.ps1')){Copy-Item -LiteralPath (Join-Path $Package ('scripts\'+$file)) -Destination (Join-Path $Root ('bin\scripts\'+$file))}
  $first=[Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback,0);$second=[Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback,0);$first.Start();$second.Start();$panelPort=$first.LocalEndpoint.Port;$nodePort=$second.LocalEndpoint.Port;$first.Stop();$second.Stop()
  $b=New-Object byte[] 32;$rng=[Security.Cryptography.RandomNumberGenerator]::Create();try{$rng.GetBytes($b);$nodeToken=[Convert]::ToBase64String($b)}finally{$rng.Dispose()}
@@ -662,7 +663,25 @@ try {
   $extraOriginalConfiguration=[IO.File]::ReadAllText($configuration)
   $extraID=[guid]::NewGuid().ToString();$extraName='WwAdd_'+$suffix;$extraPassword=New-TestPassword
   if(Get-LocalUser -Name $extraName -ErrorAction SilentlyContinue){throw 'Extra fixture account exists'}
-  New-LocalUser -Name $extraName -Password $extraPassword -Description 'Disposable incremental game identity'|Out-Null;$extraGameCreated=$true
+  if($TestGameAccount){
+   $accountCommand=Join-Path $Root 'bin\scripts\New-ServiceGameAccount.ps1'
+   & $accountCommand -InstallationRoot $Root -ServerUUID $extraID -AccountName $extraName -WhatIf
+   if((Get-LocalUser -Name $extraName -ErrorAction SilentlyContinue) -or (Test-Path -LiteralPath (Join-Path $Root ('data\'+$extraID))) -or [IO.File]::ReadAllText($configuration) -cne $extraOriginalConfiguration){throw 'Account WhatIf changed local state'}
+   $report.checks.game_account_whatif_has_no_account_config_or_data_mutation='passed'
+   $lockPath=Join-Path $Root 'private\credential-provisioning.lock';$gate=[IO.File]::Open($lockPath,[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
+   try{$rejected=$false;try{& $accountCommand -InstallationRoot $Root -ServerUUID $extraID -AccountName $extraName -Password $extraPassword|Out-Null}catch{$rejected=$true};if(-not $rejected -or (Get-LocalUser -Name $extraName -ErrorAction SilentlyContinue)){throw 'Concurrent provisioning allowed account mutation'}}finally{$gate.Dispose()}
+   $report.checks.game_account_shared_operation_lock_rejected='passed'
+   $createdAccount=& $accountCommand -InstallationRoot $Root -ServerUUID $extraID -AccountName $extraName -Password $extraPassword
+   $extraGameCreated=$true
+   $extraSID=$createdAccount.sid;$report.extra_identity_sid=$extraSID
+   $actual=Get-LocalUser -Name $extraName
+   if($actual.SID.Value -cne $createdAccount.sid -or -not $actual.Enabled -or $actual.UserMayChangePassword -or $actual.PasswordExpires -or $createdAccount.run_as.credential_target -cne ('WingsWindows/'+$extraID) -or [IO.File]::ReadAllText($configuration) -cne $extraOriginalConfiguration -or @([WingsWindows.NodeSetup]::Rights($actual.SID.Value)).Count){throw 'Created account metadata, password flags or mutation scope invalid'}
+   $report.checks.game_account_created_identity_metadata_no_rights_or_config_change='passed'
+   $rejected=$false;try{& $accountCommand -InstallationRoot $Root -ServerUUID $extraID -AccountName $extraName -Password $extraPassword|Out-Null}catch{$rejected=$true};if(-not $rejected -or (Get-LocalUser -Name $extraName).SID.Value -cne $createdAccount.sid){throw 'Existing account was adopted or replaced'}
+   $report.checks.game_account_existing_name_refused='passed'
+   $rejected=$false;try{& $accountCommand -InstallationRoot $Root -ServerUUID $ServerID -AccountName ('WwNo_'+$suffix) -Password $extraPassword|Out-Null}catch{$rejected=$true};if(-not $rejected -or (Get-LocalUser -Name ('WwNo_'+$suffix) -ErrorAction SilentlyContinue)){throw 'Existing UUID allowed account mutation'}
+   $report.checks.game_account_existing_profile_uuid_refused='passed'
+  }else{New-LocalUser -Name $extraName -Password $extraPassword -Description 'Disposable incremental game identity'|Out-Null;$extraGameCreated=$true}
   $extraSID=(Get-LocalUser -Name $extraName).SID.Value;$report.extra_identity_sid=$extraSID
   $edited=$extraOriginalConfiguration|ConvertFrom-Json
   $profile=($edited.profiles.$ServerID|ConvertTo-Json -Depth 30)|ConvertFrom-Json

@@ -20,6 +20,8 @@ Windows Native ---------- node credentials -----> panel /api/remote
 
 Alpha 36 adds an operator-only [incremental game permission command](GAME-PERMISSIONS.md). It does not expose an HTTP provisioning route or change upstream route coverage. Account creation and credential storage remain separate.
 
+Alpha 37 adds an operator-only [game-account creation command](GAME-ACCOUNTS.md). It returns identity/profile metadata without rewriting node JSON or adding an HTTP route. Automatic panel-driven provisioning remains open.
+
 ## Packages
 
 Alpha 32 adds optional [account-scoped RCON credential references](RCON-CREDENTIALS.md) and local metadata/remove CLI. Existing network command routes and transport authentication remain unchanged; no new panel route or actual-game certification is implied.
