@@ -2,6 +2,8 @@
 
 ## 0.1.0-alpha.42 - 2026-10-22
 
+- First live demo lifecycle passes through public HTTPS: native installation and real panel callback, marker read, start, console echo and stop. Dedicated non-administrator daemon/game accounts are provisioned; the service remains Running with manual startup and the demo offline. Browser/WebSocket, real-game and automatic tunnel/reboot gates remain open. See [evidence](docs/evidence/server2022-alpha42-live-demo.md).
+
 - First live node handshake: authenticated system requests return 200 over Windows loopback and public VPS HTTPS; server listing returns 200 with no servers. Runtime configuration updates, demo lifecycle/browser workflows and permanent service/tunnel setup remain open. See [handshake evidence](docs/evidence/server2022-alpha42-live-handshake.md).
 
 - Add the panel/upstream regular-file copy contract, same-directory numbered names and compound tar extensions. Stream primary bytes with a 1 GiB source bound; do not overwrite existing or late-created destinations.

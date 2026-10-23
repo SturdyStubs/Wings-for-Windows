@@ -1,0 +1,28 @@
+{
+  "started_utc": "2026-10-23T06:51:12.7653474Z",
+  "checks": {
+    "install_and_live_callback": "passed",
+    "install_marker_read": "passed",
+    "start_running": "passed",
+    "console_command_and_log": "passed",
+    "stop_offline": "passed"
+  },
+  "trigger": "Direct authenticated node API over public HTTPS; live panel assignment and installation callback",
+  "browser_tested": false,
+  "passed": true,
+  "finished_utc": "2026-10-23T06:51:16.0414949Z",
+  "deployment": {
+    "fixture_game_processes": 0,
+    "operator_credentials_present": true,
+    "daemon_administrator": false,
+    "dedicated_daemon": true,
+    "service_state": "Running",
+    "startup": "Manual",
+    "game_administrator": false,
+    "credential_tasks_remaining": 0
+  },
+  "real_game_tested": false,
+  "panel_browser_websocket_tested": false,
+  "reboot_tested_this_batch": false,
+  "automatic_tunnel_reconnection_tested": false
+}

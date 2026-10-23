@@ -8,6 +8,8 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 
 ## Current state
 
+- First live demo lifecycle passes through public HTTPS: native installation and real panel callback, marker read, start, console echo and stop. Dedicated non-administrator daemon/game accounts are provisioned; the service remains Running with manual startup and the demo offline. Browser/WebSocket, real-game and automatic tunnel/reboot gates remain open. See [evidence](docs/evidence/server2022-alpha42-live-demo.md).
+
 - First live node handshake: authenticated system requests return 200 over Windows loopback and public VPS HTTPS; server listing returns 200 with no servers. Runtime configuration updates, demo lifecycle/browser workflows and permanent service/tunnel setup remain open. See [handshake evidence](docs/evidence/server2022-alpha42-live-handshake.md).
 
 - Native Windows EXE runtime, Job Objects, basic power/console/status and root-process statistics: locally tested.

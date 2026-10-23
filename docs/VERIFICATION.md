@@ -1,5 +1,7 @@
 # Verification and release status
 
+First live demo lifecycle passes through public HTTPS: native installation and real panel callback, marker read, start, console echo and stop. Dedicated non-administrator daemon/game accounts are provisioned; the service remains Running with manual startup and the demo offline. Browser/WebSocket, real-game and automatic tunnel/reboot gates remain open. See [evidence](evidence/server2022-alpha42-live-demo.md).
+
 First live node handshake: authenticated system requests return 200 over Windows loopback and public VPS HTTPS; server listing returns 200 with no servers. Runtime configuration updates, demo lifecycle/browser workflows and permanent service/tunnel setup remain open. See [handshake evidence](evidence/server2022-alpha42-live-handshake.md).
 
 Alpha 42 passes **931 local cases/subtests**, zero skips and vet. The exact clean package passes **14 native VM cases**, **98 directory/rename/copy API cases/subtests** and **35 focused Server 2022 service checks**, including five new copy checks under the non-administrator daemon and distinct game identity. Independent cleanup passes with one retained/loaded profile. No real panel/game or new reboot is claimed; the older combined 114-check fixture was not rerun. See [exact evidence](evidence/server2022-alpha42-file-copy.md) and [scope](FILE-COPY.md).
