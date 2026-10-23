@@ -56,6 +56,19 @@ func main() {
 		if writeFixtureLog(line) {
 			continue
 		}
+		if line == "probe-code-write" {
+			file, err := os.OpenFile(os.Getenv("CODE_WRITE_PROBE_PATH"), os.O_WRONLY, 0)
+			switch {
+			case os.IsPermission(err):
+				fmt.Println("CODE_WRITE_PROBE_DENIED")
+			case err == nil:
+				file.Close()
+				fmt.Println("CODE_WRITE_PROBE_ALLOWED")
+			default:
+				fmt.Println("CODE_WRITE_PROBE_ERROR")
+			}
+			continue
+		}
 		if line == "probe-log-access" || line == "probe-recovery-access" || line == "probe-intent-access" || line == "probe-install-access" || line == "probe-other-data-access" {
 			variable, prefix := "LOG_PROBE_PATH", "LOG_PROBE"
 			if line == "probe-recovery-access" {

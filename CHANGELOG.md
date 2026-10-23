@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.38 - 2026-10-22
+
+- Add a stopped-node administrator command to import approved local game files into a new bin/games/UUID directory using a pinned SHA-256 manifest. Bound files/bytes/paths; reject links, duplicates, traversal, stale staging and existing destinations.
+- Pin ordinary source writes during verification/copy, stage privately, flush and rehash copied bytes, apply daemon read/execute with no game write grant, then publish by same-parent directory move. Clean only owned staged paths on ordinary failure; preserve existing code/data/ACLs. No downloads, overwrites, installer execution or durable crash recovery.
+- Prevent incremental game permission preparation from exposing unfinished .stage-* code. Add hash/path/sharing/copy/promotion/stale-stage tests and exercise imported executable setup/game launch plus actual dependency write denial on Server 2022. See [workflow](docs/GAME-FILES.md).
+
 ## 0.1.0-alpha.37 - 2026-10-22
 
 - Add an elevated Windows PowerShell 5.1 game-account command for a stopped existing managed node. Refuse existing account names, local UUID profiles/data and stale service binding; support WhatIf without a password prompt or state changes.

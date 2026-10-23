@@ -104,6 +104,7 @@ function Get-GamePermissionPlan([string]$InstallationRoot,[string]$ServerUUID,[s
     while($queue.Count){
         $parent=$queue.Dequeue()
         foreach($child in Get-ChildItem -LiteralPath $parent.Path -Force){
+            if($parent.Kind -eq 'code' -and $child.Name -like '.stage-*'){throw 'Unfinished code staging must be inspected before granting game permissions.'}
             Assert-GamePermissionPath $child.FullName
             if($paths.Count -ge 10000){throw 'Permission planning exceeds 10000 entries.'}
             $item=[pscustomobject]@{Path=$child.FullName;Kind=$parent.Kind};$paths.Add($item)

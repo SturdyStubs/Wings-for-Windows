@@ -67,7 +67,7 @@ func main() {
 		if !config.UUID.MatchString(pendingID) || strings.EqualFold(pendingID, id) {
 			return nil
 		}
-		return &node.RemoteServer{UUID: pendingID, Settings: node.Settings{UUID: pendingID, Invocation: "unapproved-request.exe", Environment: map[string]any{"OTHER_DATA_PROBE_PATH": filepath.Join(c.DataDirectory, id, "install.marker")}}}
+		return &node.RemoteServer{UUID: pendingID, Settings: node.Settings{UUID: pendingID, Invocation: "unapproved-request.exe", Environment: map[string]any{"OTHER_DATA_PROBE_PATH": filepath.Join(c.DataDirectory, id, "install.marker"), "CODE_WRITE_PROBE_PATH": filepath.Join(filepath.Dir(c.DataDirectory), "bin", "games", pendingID, "dependency.txt")}}}
 	}
 	var callbackMu sync.Mutex
 	mux := http.NewServeMux()

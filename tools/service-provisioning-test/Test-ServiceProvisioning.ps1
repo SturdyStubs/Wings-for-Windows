@@ -1,6 +1,7 @@
 #Requires -RunAsAdministrator
-param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON,[switch]$TestLogFile,[switch]$TestRCONCredential,[switch]$TestNativeInstaller,[switch]$TestPendingCreation,[switch]$TestInstallState,[switch]$TestGamePermissions,[switch]$TestGameAccount)
+param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON,[switch]$TestLogFile,[switch]$TestRCONCredential,[switch]$TestNativeInstaller,[switch]$TestPendingCreation,[switch]$TestInstallState,[switch]$TestGamePermissions,[switch]$TestGameAccount,[switch]$TestGameFiles)
 $ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
+if($TestGameFiles -and -not $TestGameAccount){throw 'Game files fixture requires account phase'}
 if($TestGameAccount -and -not $TestGamePermissions){throw 'Game account fixture requires permission phase'}
 if($TestGamePermissions -and (-not $TestInstallState -or $PrepareReboot)){throw 'Game permissions fixture requires install-state phase and cannot prepare reboot'}
 if($TestInstallState -and (-not $TestPendingCreation -or $PrepareReboot)){throw 'Install state fixture requires pending creation phase and cannot prepare reboot'}
@@ -93,7 +94,7 @@ try {
  Copy-Item -LiteralPath (Join-Path $Package 'scripts\Store-GameCredential.ps1') -Destination (Join-Path $Root 'bin\Store-GameCredential.ps1')
  New-Item -ItemType Directory -Path (Join-Path $Root 'bin\scripts') | Out-Null
  foreach($file in @('Store-GameCredential.ps1','Set-ServiceGameCredential.ps1','CredentialBridge.psm1','CredentialTask.ps1','NodeSetup.psm1')){Copy-Item -LiteralPath (Join-Path $Staging $file) -Destination (Join-Path $Root ('bin\scripts\'+$file))}
- foreach($file in @('GamePermissions.psm1','Set-ServiceGamePermissions.ps1','GameAccounts.psm1','New-ServiceGameAccount.ps1')){Copy-Item -LiteralPath (Join-Path $Package ('scripts\'+$file)) -Destination (Join-Path $Root ('bin\scripts\'+$file))}
+ foreach($file in @('GamePermissions.psm1','Set-ServiceGamePermissions.ps1','GameAccounts.psm1','New-ServiceGameAccount.ps1','GameFiles.psm1','Import-ServiceGameFiles.ps1')){Copy-Item -LiteralPath (Join-Path $Package ('scripts\'+$file)) -Destination (Join-Path $Root ('bin\scripts\'+$file))}
  foreach($file in @('Store-RCONCredential.ps1','Set-ServiceRCONCredential.ps1')){Copy-Item -LiteralPath (Join-Path $Package ('scripts\'+$file)) -Destination (Join-Path $Root ('bin\scripts\'+$file))}
  $first=[Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback,0);$second=[Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback,0);$first.Start();$second.Start();$panelPort=$first.LocalEndpoint.Port;$nodePort=$second.LocalEndpoint.Port;$first.Stop();$second.Stop()
  $b=New-Object byte[] 32;$rng=[Security.Cryptography.RandomNumberGenerator]::Create();try{$rng.GetBytes($b);$nodeToken=[Convert]::ToBase64String($b)}finally{$rng.Dispose()}
@@ -683,11 +684,41 @@ try {
    $report.checks.game_account_existing_profile_uuid_refused='passed'
   }else{New-LocalUser -Name $extraName -Password $extraPassword -Description 'Disposable incremental game identity'|Out-Null;$extraGameCreated=$true}
   $extraSID=(Get-LocalUser -Name $extraName).SID.Value;$report.extra_identity_sid=$extraSID
+  if($TestGameFiles){
+   $beforeImport=@{};foreach($p in @((Get-Item -LiteralPath $Root),(Get-Item -LiteralPath (Join-Path $Root 'bin')),(Get-Item -LiteralPath (Join-Path $Root ('data\'+$ServerID))),(Get-Item -LiteralPath (Join-Path $Root 'logs')))+@(Get-ChildItem -LiteralPath (Join-Path $Root ('data\'+$ServerID)) -Recurse -Force)+@(Get-ChildItem -LiteralPath (Join-Path $Root 'logs') -Recurse -Force)){$beforeImport[$p.FullName]=@{ACL=(Get-Acl -LiteralPath $p.FullName).Sddl;Hash=$null};if(-not $p.PSIsContainer){$beforeImport[$p.FullName].Hash=(Get-FileHash -LiteralPath $p.FullName -Algorithm SHA256).Hash}}
+   $importCommand=Join-Path $Root 'bin\scripts\Import-ServiceGameFiles.ps1'
+   $source=Join-Path $Staging 'approved-game-files';New-Item -ItemType Directory -Path $source|Out-Null
+   Copy-Item -LiteralPath (Join-Path $Package 'wings-windows-demo.exe') -Destination (Join-Path $source 'server.exe')
+   [IO.File]::WriteAllText((Join-Path $source 'dependency.txt'),'APPROVED_DEPENDENCY')
+   $manifest=Join-Path $Staging 'game-files-manifest.json'
+   $fileEntries=@(@{path='server.exe';sha256=(Get-FileHash -LiteralPath (Join-Path $source 'server.exe') -Algorithm SHA256).Hash},@{path='dependency.txt';sha256=(Get-FileHash -LiteralPath (Join-Path $source 'dependency.txt') -Algorithm SHA256).Hash})
+   [IO.File]::WriteAllText($manifest,(@{schema_version=1;files=$fileEntries}|ConvertTo-Json -Depth 6),[Text.UTF8Encoding]::new($false))
+   $importOptions=@{InstallationRoot=$Root;ServerUUID=$extraID;SourceDirectory=$source;ManifestPath=$manifest;ManifestSHA256=(Get-FileHash -LiteralPath $manifest -Algorithm SHA256).Hash}
+   $importedRoot=Join-Path $Root ('bin\games\'+$extraID)
+   & $importCommand @importOptions -WhatIf
+   if(Test-Path -LiteralPath (Join-Path $Root 'bin\games')){throw 'Code import WhatIf created directories'}
+   $report.checks.game_files_whatif_creates_no_code='passed'
+   $badOptions=$importOptions.Clone();$badOptions.ManifestSHA256='0'*64
+   $rejected=$false;try{& $importCommand @badOptions|Out-Null}catch{$rejected=$true};if(-not $rejected -or (Test-Path -LiteralPath $importedRoot)){throw 'Bad manifest hash accepted'}
+   $report.checks.game_files_manifest_hash_mismatch_rejected='passed'
+   $dependency=Join-Path $source 'dependency.txt';[IO.File]::WriteAllText($dependency,'CORRUPT_SOURCE')
+   $rejected=$false;try{& $importCommand @importOptions|Out-Null}catch{$rejected=$true};if(-not $rejected -or (Test-Path -LiteralPath $importedRoot)){throw 'Bad source hash accepted'}
+   [IO.File]::WriteAllText($dependency,'APPROVED_DEPENDENCY')
+   $report.checks.game_files_source_hash_mismatch_rejected='passed'
+   $imported=& $importCommand @importOptions
+   if(-not $imported.imported -or $imported.files -ne 2 -or (Get-FileHash -LiteralPath (Join-Path $importedRoot 'server.exe') -Algorithm SHA256).Hash -ne $fileEntries[0].sha256 -or [IO.File]::ReadAllText($configuration) -cne $extraOriginalConfiguration){throw 'Protected code import content/configuration mismatch'}
+   foreach($path in $beforeImport.Keys){if((Get-Acl -LiteralPath $path).Sddl -cne $beforeImport[$path].ACL -or ($beforeImport[$path].Hash -and (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ne $beforeImport[$path].Hash)){throw 'Import changed an existing parent/data/log ACL or content'}}
+   foreach($path in @($importedRoot,(Join-Path $importedRoot 'server.exe'),(Join-Path $importedRoot 'dependency.txt'))){$acl=Get-Acl -LiteralPath $path;$rules=@($acl.GetAccessRules($true,$true,[Security.Principal.SecurityIdentifier]));foreach($rule in $rules){if($rule.IdentityReference.Value -notin @('S-1-5-18','S-1-5-32-544',$daemonSid)){throw 'Imported code exposes an unexpected identity'};if($rule.IdentityReference.Value -eq $daemonSid -and ([int]$rule.FileSystemRights -band 0x116)){throw 'Daemon can modify imported code'}}}
+   $report.checks.game_files_verified_copy_protected_daemon_read_only='passed'
+   $rejected=$false;try{& $importCommand @importOptions|Out-Null}catch{$rejected=$true};if(-not $rejected -or (Get-FileHash -LiteralPath (Join-Path $importedRoot 'server.exe') -Algorithm SHA256).Hash -ne $fileEntries[0].sha256){throw 'Existing code was overwritten'}
+   $report.checks.game_files_existing_destination_refused='passed'
+  }
   $edited=$extraOriginalConfiguration|ConvertFrom-Json
   $profile=($edited.profiles.$ServerID|ConvertTo-Json -Depth 30)|ConvertFrom-Json
   $profile.run_as.sid=$extraSID;$profile.run_as.credential_target='WingsWindows/'+$extraID
   $profile.arguments=@('spawn');$profile.use_egg_process_configuration=$false;$profile.egg_config_files=@();$profile.restore_running=$false
   $profile.allowed_environment=@('OTHER_DATA_PROBE_PATH');$profile.installer.arguments=@('install','success');$profile.installer.timeout_seconds=10
+  if($TestGameFiles){$profile.executable=Join-Path $importedRoot 'server.exe';$profile.installer.executable=$profile.executable;$profile.allowed_environment+=@('CODE_WRITE_PROBE_PATH')}
   $edited.profiles|Add-Member -NotePropertyName $extraID -NotePropertyValue $profile
   [IO.File]::WriteAllText($configuration,($edited|ConvertTo-Json -Depth 30),[Text.UTF8Encoding]::new($false))
   [IO.File]::WriteAllText((Join-Path $Root 'private\pending-uuid.txt'),$extraID)
@@ -718,13 +749,20 @@ try {
   Invoke-RestMethod -Uri ($extraURI+'/power') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body '{"action":"start"}' -TimeoutSec 5|Out-Null
   $until=[DateTime]::UtcNow.AddSeconds(12);do{$extra=Get-NodeAPI ('/api/servers/'+$extraID);if($extra.state -eq 'running'){break};Start-Sleep -Milliseconds 100}while([DateTime]::UtcNow -lt $until)
   if($extra.state -ne 'running'){throw 'New UUID did not run'}
-  $owned=@();foreach($process in Get-CimInstance Win32_Process -Filter "Name='wings-windows-demo.exe'"){$owner=Invoke-CimMethod -InputObject $process -MethodName GetOwnerSid;if($owner.Sid -eq $extraSID){$owned+=@($process.ProcessId)}}
+  $gameFileName=[IO.Path]::GetFileName($profile.executable)
+  $owned=@();foreach($process in Get-CimInstance Win32_Process -Filter ("Name='"+$gameFileName+"'")){$owner=Invoke-CimMethod -InputObject $process -MethodName GetOwnerSid;if($owner.Sid -eq $extraSID){$owned+=@($process.ProcessId)}}
   if($owned.Count -lt 2){throw 'New game tree did not use the new SID'}
   $report.checks.game_permissions_new_uuid_game_tree_uses_new_sid='passed'
   Invoke-RestMethod -Uri ($extraURI+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body '{"commands":["probe-other-data-access"]}' -TimeoutSec 5|Out-Null
   $until=[DateTime]::UtcNow.AddSeconds(5);do{$lines=(Get-NodeAPI ('/api/servers/'+$extraID+'/logs')).data;if('OTHER_DATA_PROBE_DENIED' -in $lines){break};Start-Sleep -Milliseconds 100}while([DateTime]::UtcNow -lt $until)
   if('OTHER_DATA_PROBE_DENIED' -notin $lines){throw 'New identity can read existing game data'}
   $report.checks.game_permissions_other_server_data_read_denied='passed'
+  if($TestGameFiles){
+   Invoke-RestMethod -Uri ($extraURI+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body '{"commands":["probe-code-write"]}' -TimeoutSec 5|Out-Null
+   $until=[DateTime]::UtcNow.AddSeconds(5);do{$lines=(Get-NodeAPI ('/api/servers/'+$extraID+'/logs')).data;if('CODE_WRITE_PROBE_DENIED' -in $lines){break};Start-Sleep -Milliseconds 100}while([DateTime]::UtcNow -lt $until)
+   if('CODE_WRITE_PROBE_DENIED' -notin $lines -or [IO.File]::ReadAllText((Join-Path $importedRoot 'dependency.txt')) -cne 'APPROVED_DEPENDENCY'){throw 'Actual game identity can write protected dependency'}
+   $report.checks.game_files_actual_imported_game_dependency_write_denied='passed'
+  }
   Invoke-RestMethod -Uri ($extraURI+'/power') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body '{"action":"kill"}' -TimeoutSec 5|Out-Null
   $until=[DateTime]::UtcNow.AddSeconds(5);do{$alive=@($owned|Where-Object{Get-Process -Id $_ -ErrorAction SilentlyContinue});if(-not $alive.Count){break};Start-Sleep -Milliseconds 100}while([DateTime]::UtcNow -lt $until)
   if($alive.Count){throw 'New game tree survived kill'}

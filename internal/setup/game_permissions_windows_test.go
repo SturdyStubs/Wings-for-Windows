@@ -17,7 +17,7 @@ func TestIncrementalGamePermissionPlanningAndRollback(t *testing.T) {
 	}
 	const id = "11111111-1111-4111-8111-111111111111"
 	const other = "22222222-2222-4222-8222-222222222222"
-	for _, mode := range []string{"plan-only", "apply", "rollback", "preexisting-right-rollback", "unexpected-acl", "deny-batch", "populated-target", "external-exe", "duplicate-sid", "hardlink", "junction", "stale-plan"} {
+	for _, mode := range []string{"plan-only", "apply", "rollback", "preexisting-right-rollback", "unexpected-acl", "deny-batch", "populated-target", "external-exe", "duplicate-sid", "hardlink", "junction", "stale-plan", "staged-code"} {
 		t.Run(mode, func(t *testing.T) {
 			root := t.TempDir()
 			for _, dir := range []string{"bin", "private", "data", "logs", filepath.Join("data", other), filepath.Join("logs", "console", other)} {
@@ -26,6 +26,11 @@ func TestIncrementalGamePermissionPlanningAndRollback(t *testing.T) {
 				}
 			}
 			exe := filepath.Join(root, "bin", "fixture.exe")
+			if mode == "staged-code" {
+				if err := os.Mkdir(filepath.Join(root, "bin", ".stage-fixture"), 0700); err != nil {
+					t.Fatal(err)
+				}
+			}
 			for _, file := range []string{exe, filepath.Join(root, "data", other, "save.txt"), filepath.Join(root, "logs", "console", other, "console.jsonl")} {
 				if err := os.WriteFile(file, []byte("KEEP_EXISTING_DATA"), 0600); err != nil {
 					t.Fatal(err)

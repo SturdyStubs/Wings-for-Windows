@@ -22,6 +22,8 @@ Alpha 36 adds an operator-only [incremental game permission command](GAME-PERMIS
 
 Alpha 37 adds an operator-only [game-account creation command](GAME-ACCOUNTS.md). It returns identity/profile metadata without rewriting node JSON or adding an HTTP route. Automatic panel-driven provisioning remains open.
 
+Alpha 38 adds an operator-only [verified local game-file importer](GAME-FILES.md) and blocks unfinished code staging during incremental permission preparation. It adds no HTTP route; automatic game downloads and code updates remain open.
+
 ## Packages
 
 Alpha 32 adds optional [account-scoped RCON credential references](RCON-CREDENTIALS.md) and local metadata/remove CLI. Existing network command routes and transport authentication remain unchanged; no new panel route or actual-game certification is implied.

@@ -25,7 +25,7 @@ The result contains the account name, local username, SID, server UUID and `run_
 
 ## Complete the handoff
 
-1. Add your approved executable/installer profile under `profiles.FULL-UUID`, using the returned `run_as.sid` and `WingsWindows/FULL-UUID` credential target. This is an explicit operator edit; the helper does not rewrite JSON or choose software.
+1. Provision approved code under managed `bin`, optionally with the [verified local importer](GAME-FILES.md) before UUID profile approval. Add your approved executable/installer profile under `profiles.FULL-UUID`, using the returned `run_as.sid` and `WingsWindows/FULL-UUID` credential target. This is an explicit operator edit; the helper does not rewrite JSON or choose software.
 2. Run the [incremental permission helper](GAME-PERMISSIONS.md), first with WhatIf, then apply.
 3. Use [service credential provisioning](SERVICE-CREDENTIALS.md) with the same game username/password and the registered daemon credential. Prompt for the password again if its earlier SecureString was disposed.
 4. Restart the service, invoke the approved native installer and start manually. Follow the [node walkthrough](PANEL-WINDOWS-SETUP.md) and [pending-creation handoff](PENDING-CREATION.md).
