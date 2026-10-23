@@ -26,7 +26,7 @@ Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.co
 GitHub Issues are the source of truth; ROADMAP.md records implementation scope and verification. Run `scripts/Update-Progress.ps1` to regenerate this section. Use `-Initialize` to add missing planned milestones/tasks; rerunning it never automatically re-closes existing issues.
 <!-- progress:end -->
 
-Alpha 46 upload verification is pending the clean build and Server 2022 checks. See [upload scope](docs/FILE-UPLOADS.md).
+Alpha 46: **1,079 local cases/subtests**, zero skips, vet and clean release; **14 native** and **52 portable upload** cases/subtests pass on Server 2022. Ten live upload/service/cleanup groups and all ten download plus ten WSS regressions pass. Public small uploads work and retained-service 9 MiB integrity passes; **public 9 MiB uploads return proxy 413 and remain pending**. Actual browser-issued links remain unverified. See [evidence](docs/evidence/server2022-alpha46-signed-uploads.md) and [proxy setup/limits](docs/FILE-UPLOADS.md).
 
 Alpha 45 verification: **1,027 local cases/subtests**, **14 native VM cases**, **42 signed-download cases/subtests**, **10 live HTTPS groups** and **10 WSS regressions** pass. A 9 MiB binary streams intact; scoped replay/revocation and owned fixture cleanup pass. Actual panel browser downloads remain unverified. See [evidence](docs/evidence/server2022-alpha45-signed-downloads.md).
 

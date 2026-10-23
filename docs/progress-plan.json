@@ -156,6 +156,11 @@
           "title": "Implement and verify bounded one-use signed file downloads",
           "verified_in": "0.1.0-alpha.45",
           "notes": "Bounded JWT/path/replay/streaming checks: 1027 local / 14 native / 42 portable / 10 live HTTPS / 10 WSS regressions. Tokens are synthetic operator fixtures; actual panel browser links, subuser removal, uploads, resume and full transfer scope remain open. Evidence: https://github.com/SturdyStubs/Wings-for-Windows/blob/main/docs/evidence/server2022-alpha45-signed-downloads.md"
+        },
+        {
+          "title": "Implement and verify bounded one-use multipart uploads",
+          "verified_in": "0.1.0-alpha.46",
+          "notes": "Scoped acceptance: 1079 local / 14 native / 52 portable upload / 10 live upload-service-cleanup / 10 download / 10 WSS regressions. Retained service 9 MiB and public small uploads pass; public 9 MiB remains proxy-limited (413). Browser-issued links, real subuser removal, overwrite/resume, quotas, SFTP and durable staging recovery remain in open parent gates. Evidence: https://github.com/SturdyStubs/Wings-for-Windows/blob/main/docs/evidence/server2022-alpha46-signed-uploads.md"
         }
       ]
     },

@@ -4,7 +4,7 @@
 
 - Add public `POST /upload/file` with the panel's one-use scoped JWT and multipart `files`/directory contract. Stream up to 100 MiB aggregate into exclusive handle-pinned staging; publish up to 16 new files with no replacement after the full request is accepted.
 - Enforce raw Windows filenames, existing confined parents, requested/canonical denylist policy, revocation, cancellation, 30-second read-idle/token-expiry deadlines, four upload slots and shared bounded replay receipts. Clean up unpublished stages by exact owned handle. Existing files are preserved on collisions and oversized/malformed bodies.
-- Batch publication is not transactional; late publication failures can retain earlier new files. Crash-stage recovery, disk quotas, configurable larger limits, overwrite/resume and real browser certification remain open. Verification pending clean release and VM checks; see [scope](docs/FILE-UPLOADS.md).
+- Batch publication is not transactional; late publication failures can retain earlier new files. Crash-stage recovery, disk quotas, configurable larger limits, overwrite/resume and real browser certification remain open. Validate 1,079 local cases/subtests (zero skips), vet, clean release, 14 native and 52 portable Server 2022 cases; ten live upload/service/cleanup groups, ten download and ten WSS regressions pass. Public small uploads and retained-service 9 MiB integrity work; public 9 MiB is proxy-blocked (413) and remains pending. See [scope](docs/FILE-UPLOADS.md) and [evidence](docs/evidence/server2022-alpha46-signed-uploads.md).
 
 ## 0.1.0-alpha.45 - 2026-10-23
 

@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "version": "0.1.0-alpha.46",
+  "source_revision": "b60a46aa0b93783845cab81d43dac013ca4a1356",
+  "source_dirty": false,
+  "zip_sha256": "daeea085736c9653d6b046dcf611831dc8170e50bea8b828402bb7d5409b55be",
+  "daemon_sha256": "10678353a404887f899a387f63fcaaf67b1c281a494b5b7015f5a34628998926",
+  "runtime_tests_sha256": "428f07aab4df4bb585932c92c4424841c8bdec66dcd0a221d6289151212a9251",
+  "demo_sha256": "3d4fd934fba4980b7f7bf48bc1ad42eb31597b5277a2f9506582e613b9d448ba",
+  "api_tests_sha256": "b1f226fa76516abfb8907ef47d6a4c50e7c6a1b32d4af875d14d7110f586135b",
+  "contract_fixture_sha256": "dfcb2bf654461a6859a28e65b46c53f15b83e1f9ba4e9edabe6771668ecb5b25",
+  "live_upload_probe_sha256": "5dd599ce69c5c3d4a6b91927397bd4a0eb8cc8011cd356c25ae7ee9c2613842b",
+  "live_upload_probe_source_sha256": "5cb8fa9b8b31364789cbd483473bdf6d0d9444d93c43728c7dd46272d4d2ee2e",
+  "missing_fixture_consent_exit_code": 2,
+  "host": {
+    "caption": "Microsoft Windows Server 2022 Standard Evaluation",
+    "version": "10.0.20348",
+    "build": "20348",
+    "architecture": "64-bit",
+    "windows_server": true,
+    "powershell": "5.1.20348.558"
+  },
+  "local_tests_passed": 1079,
+  "local_tests_skipped": 0,
+  "native_tests_passed": 14,
+  "baseline_started_utc": "2026-10-23T22:13:27.7295263Z",
+  "baseline_finished_utc": "2026-10-23T22:13:30.2270839Z",
+  "portable_upload_api": {
+    "tests_skipped": 0,
+    "tests_failed": 0,
+    "tests_passed": 52,
+    "exit_code": 0
+  },
+  "live_service_deployment": {
+    "reboot_tested": false,
+    "version": "0.1.0-alpha.46",
+    "public_update_status": 200,
+    "observed_utc": "2026-10-23T22:14:03.0295383Z",
+    "game_state": "running",
+    "game_was_running": true,
+    "applied": false,
+    "runtime_only_upgrade": true,
+    "original_incoming_credentials_valid": true,
+    "outgoing_live_panel_sync_status": 204,
+    "upgrade_config_hash_unchanged": true,
+    "service_state": "Running",
+    "native_config_hash_unchanged": true,
+    "panel_save_button_retested": false,
+    "executable_acl_preserved": true
+  },
+  "live_upload": {
+    "browser_upload_tested": false,
+    "checks": {
+      "existing_file_preserved": true,
+      "fresh_post_revocation_link_accepted": true,
+      "no_temporary_uploads_remain": true,
+      "one_use_replay_rejected": true,
+      "owned_fixture_removed": true,
+      "public_binary_multipart_and_empty": true,
+      "raw_traversal_filename_rejected": true,
+      "retained_service_large_binary_integrity": true,
+      "synthetic_user_revocation_enforced": true,
+      "wrong_scope_rejected": true
+    },
+    "identity_source": "operator-minted synthetic upload JWTs; not real panel-issued links",
+    "large_bytes": 9437184,
+    "observed_utc": "2026-10-23T22:14:08Z",
+    "passed": true,
+    "public_large_upload_status": 413,
+    "public_large_upload_verified": false,
+    "public_proxy_size_gate_pending": true
+  },
+  "live_download_regression": {
+    "browser_download_tested": false,
+    "checks": {
+      "empty_file_download": true,
+      "fresh_post_revocation_link_accepted": true,
+      "large_binary_integrity_and_headers": true,
+      "one_use_replay_rejected": true,
+      "owned_fixture_removed": true,
+      "query_path_override_ignored": true,
+      "range_refusal_preserves_full_link": true,
+      "same_jti_new_unique_accepted": true,
+      "synthetic_user_revocation_enforced": true,
+      "wrong_scope_rejected": true
+    },
+    "identity_source": "operator-minted synthetic file JWTs; not real panel-issued links",
+    "large_bytes": 9437184,
+    "observed_utc": "2026-10-23T22:14:35Z",
+    "passed": true
+  },
+  "live_websocket_regression": {
+    "checks": {
+      "allowed_origin_synthetic_auth": true,
+      "expired_token_rejected": true,
+      "fresh_post_revocation_token_accepted": true,
+      "jti_revocation_and_replay_rejected": true,
+      "missing_console_permission_rejected": true,
+      "missing_power_permission_rejected": true,
+      "synthetic_user_revocation_and_replay_rejected": true,
+      "untrusted_origin_rejected": true,
+      "wrong_issuer_rejected": true,
+      "wrong_server_rejected": true
+    },
+    "identity_source": "operator-minted synthetic JWTs; not a real panel subuser",
+    "observed_utc": "2026-10-23T22:14:41Z",
+    "panel_subuser_removal_tested": false,
+    "passed": true
+  },
+  "independent_cleanup_audit": {
+    "marker_present": true,
+    "observed_utc": "2026-10-23T22:14:52.0178536Z",
+    "earlier_file_manager_data_present": true,
+    "tunnel": "Running",
+    "service_account": ".\\WingsRuntime",
+    "upload_probe_roots": 0,
+    "download_probe_roots": 0,
+    "profile_count": 1,
+    "game": "running",
+    "service": "Running"
+  },
+  "preliminary_harness_failure": "After native validation completed, a local staging-helper download call was mistakenly renamed upload and raised TypeError before fetching the report. Corrected helper resumed the same extracted package, fetched the original native report and ran all portable tests. No production-code change or hidden failed test rerun.",
+  "limits": [
+    "Public 9 MiB upload returned 413 before the 100 MiB native limit; reverse proxy body-size gate remains pending.",
+    "Synthetic operator-signed requests only; actual panel browser upload and real subuser removal remain unverified.",
+    "100 MiB native boundary tested in portable/local API suite; retained nonadministrator service large test is 9 MiB.",
+    "No new real game, reboot or combined mock SCM certification.",
+    "No disk quota, overwrite/resume, transactional batch publication or durable temporary-file recovery."
+  ]
+}

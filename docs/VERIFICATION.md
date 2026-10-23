@@ -1,6 +1,6 @@
 # Verification and release status
 
-Alpha 46 adds bounded one-use multipart uploads. Its 52 focused upload cases/subtests pass locally; full clean build and Server 2022 evidence are pending. See [scope](FILE-UPLOADS.md).
+Alpha 46: **1,079 local cases/subtests**, zero skips, vet and clean release; **14 native** and **52 portable upload** cases/subtests pass on Server 2022. Ten live upload/service/cleanup groups and all ten download plus ten WSS regressions pass. Public small uploads work and retained-service 9 MiB integrity passes; **public 9 MiB uploads return proxy 413 and remain pending**. Actual browser-issued links remain unverified. See [evidence](evidence/server2022-alpha46-signed-uploads.md) and [proxy setup/limits](FILE-UPLOADS.md).
 
 Alpha 45: **1,027 local cases/subtests**, zero skips, vet and clean release pass. The exact package passes **14 native VM cases**, **42 portable download cases/subtests**, **10 live HTTPS download groups** and **10 live WSS regression checks**. Native config/ACLs and earlier files are preserved, owned fixture cleanup passes and demo/service/tunnel remain running. Actual panel-issued/browser links remain unverified. See [evidence](evidence/server2022-alpha45-signed-downloads.md) and [scope](FILE-DOWNLOADS.md).
 

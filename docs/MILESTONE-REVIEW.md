@@ -33,3 +33,8 @@ Accepted [#48](https://github.com/SturdyStubs/Wings-for-Windows/issues/48) for b
 ## Alpha 45 follow-up
 
 Accepted [#49](https://github.com/SturdyStubs/Wings-for-Windows/issues/49) for bounded one-use signed file downloads after local, portable Server 2022, live HTTPS and WSS regression checks. Current total is 43 deliverables; M4 is 3/8 and stays open. Operator-minted live tokens do not close actual panel-issued browser download or subuser-removal gates. Uploads/resume, SFTP and accounting remain open. See [evidence](evidence/server2022-alpha45-signed-downloads.md).
+
+
+## Alpha 46 follow-up
+
+Accepted [#50](https://github.com/SturdyStubs/Wings-for-Windows/issues/50) for bounded one-use multipart uploads after local/portable Server 2022, retained-service large-file and public small-file checks. Current total is 44 deliverables; M4 is 4/9 and stays open. Public 9 MiB uploads currently return proxy 413; configure the dedicated HTTPS Nginx body limit and retest. Actual browser-issued uploads, subuser removal, broader semantics, SFTP and accounting remain open. The scoped task does not certify those gates. See [evidence](evidence/server2022-alpha46-signed-uploads.md).
