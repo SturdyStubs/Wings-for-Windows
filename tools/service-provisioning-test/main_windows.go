@@ -26,6 +26,7 @@ func main() {
 		break
 	}
 	server := node.RemoteServer{UUID: id, Settings: node.Settings{UUID: id, Environment: map[string]any{}}}
+	server.Settings.Egg.FileDenylist = []string{"file-manager-private/", "*.file-manager-secret"}
 	if len(c.Profiles[id].EggConfigFiles) > 0 {
 		server.ProcessConfiguration = &node.ProcessConfiguration{}
 		server.ProcessConfiguration.Startup.Done = []string{"regex:^SERVER_READY$"}

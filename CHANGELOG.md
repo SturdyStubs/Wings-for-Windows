@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.40 - 2026-10-22
+
+- Add the panel/upstream `POST /files/create-directory` contract, nested parents and idempotent existing-directory success. Preserve native ENOTDIR handling and directory contents/permissions.
+- Validate full Windows paths and egg denylist prefixes before mutation, reject observed reparse/link entries, traverse through confined directory handles and retain inherited DACLs. Bound request bytes, depth and component lengths; cancellation or later I/O failure can retain new parents without destructive rollback.
+- Add upstream/panel fixtures, invalid/malformed/auth/denylist/link/Unicode/long-path/cancellation regressions and an optional non-administrator SCM/distinct-game-account directory phase. Route coverage is now 17/38, with partial semantics; M4 and live panel/game certification remain open. See [scope](docs/FILE-DIRECTORIES.md) and [verification](docs/VERIFICATION.md).
+
 ## 0.1.0-alpha.39 - 2026-10-22
 
 - Add stopped-node staging inspection with bounded content/owner/group/DACL fingerprints and an explicit fingerprint-approved quarantine command. Refuse unsupported names, unsafe ACLs/owners, links, configured path references and existing quarantine destinations.

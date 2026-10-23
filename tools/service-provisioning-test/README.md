@@ -1,5 +1,7 @@
 # Developer-only service provisioning fixture
 
+Alpha 40 adds independent `-TestFileDirectories` (incompatible with reboot preparation). It adds five checks to either the basic or combined suite: bearer rejection without mutation, nested create/replay/list/write under the non-administrator SCM daemon, denylist preflight without stray parents, invalid/file-collision preservation, and actual distinct-game-account reads/writes through inherited directory DACLs. Rebuild the mock and use the matching alpha 40 demo. This is a loopback mock panel fixture, not live panel certification.
+
 `-TestRCONCredential` adds seven checks after Source RCON: service-account store/inspect/overwrite rules, unconfigured-server rejection, actual vault authentication, inability of the distinct game context to resolve the daemon entry, deliberate replacement, removal preserving the game credential, and no environment fallback. Its extra cleanup flag confirms removal. Failed/uncertain provisioning retains conservative cleanup responsibility before service/account deletion. This cannot prepare a reboot.
 
 `-TestLogFile` adds five checks after `-TestSourceRCON`: stale/stdout readiness exclusion, RCON-driven log readiness/console, rotation/truncation, kill releasing directory pins and safe malformed-text failure while the game remains controllable. The directory move probe validates both absolute paths stay inside the exact disposable data root. This phase cannot prepare a reboot and does not certify a real game.

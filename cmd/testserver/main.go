@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 	"wings-windows/internal/identity"
@@ -50,6 +51,21 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		line := scanner.Text()
+		if line == "probe-file-directories" {
+			dir := filepath.Join("file-manager", "nested")
+			body, err := os.ReadFile(filepath.Join(dir, "panel.cfg"))
+			if err == nil && string(body) == "panel-written" {
+				err = os.WriteFile(filepath.Join(dir, "game.cfg"), []byte("game-written"), 0600)
+				if err == nil {
+					fmt.Println("DIRECTORY_PROBE_OK")
+				} else {
+					fmt.Println("DIRECTORY_PROBE_ERROR")
+				}
+			} else {
+				fmt.Println("DIRECTORY_PROBE_ERROR")
+			}
+			continue
+		}
 		if probeRCONCredential(line) {
 			continue
 		}

@@ -1,6 +1,7 @@
 #Requires -RunAsAdministrator
-param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON,[switch]$TestLogFile,[switch]$TestRCONCredential,[switch]$TestNativeInstaller,[switch]$TestPendingCreation,[switch]$TestInstallState,[switch]$TestGamePermissions,[switch]$TestGameAccount,[switch]$TestGameFiles,[switch]$TestStageRecovery)
+param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON,[switch]$TestLogFile,[switch]$TestRCONCredential,[switch]$TestNativeInstaller,[switch]$TestPendingCreation,[switch]$TestInstallState,[switch]$TestGamePermissions,[switch]$TestGameAccount,[switch]$TestGameFiles,[switch]$TestStageRecovery,[switch]$TestFileDirectories)
 $ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
+if($TestFileDirectories -and $PrepareReboot){throw 'File directory fixture is separate from reboot preparation'}
 if($TestStageRecovery -and -not $TestGameFiles){throw 'Stage recovery fixture requires game files phase'}
 if($TestGameFiles -and -not $TestGameAccount){throw 'Game files fixture requires account phase'}
 if($TestGameAccount -and -not $TestGamePermissions){throw 'Game account fixture requires permission phase'}
@@ -256,6 +257,35 @@ try {
  $deadline=[DateTime]::UtcNow.AddSeconds(5);$echoed=$false
  do{$log=Get-NodeAPI ('/api/servers/'+$ServerID+'/logs');$echoed='ECHO:SCM console test' -in $log.data;if(-not $echoed){Start-Sleep -Milliseconds 100}}while(-not $echoed -and [DateTime]::UtcNow -lt $deadline)
  if(-not $echoed){throw 'Service console echo missing'};$report.checks.service_console='passed'
+ if($TestFileDirectories){
+  $fileURI='http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/files/'
+  function Invoke-DirectoryFixture([string]$Body,[int]$Expected=204,[switch]$Anonymous) {
+   $headers=@{};if(-not $Anonymous){$headers.Authorization='Bearer '+$nodeToken}
+   $status=0
+   try{$response=Invoke-WebRequest -UseBasicParsing -Uri ($fileURI+'create-directory') -Method Post -Headers $headers -ContentType application/json -Body $Body -TimeoutSec 5;$status=[int]$response.StatusCode}catch{if(-not $_.Exception.Response){throw};$status=[int]$_.Exception.Response.StatusCode}
+   if($status -ne $Expected){throw ('Directory fixture HTTP status '+$status+' expected '+$Expected)}
+  }
+  Invoke-DirectoryFixture '{"name":"file-manager/nested","path":"/"}' -Expected 401 -Anonymous
+  if(Test-Path -LiteralPath (Join-Path $Root ('data\'+$ServerID+'\file-manager'))){throw 'Anonymous directory request mutated data'}
+  $report.checks.file_directory_authentication='passed'
+  Invoke-DirectoryFixture '{"name":"nested","path":"/file-manager/"}'
+  Invoke-DirectoryFixture '{"name":"nested","path":"/file-manager/"}'
+  Invoke-RestMethod -Uri ($fileURI+'write?file=/file-manager/nested/panel.cfg') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -Body 'panel-written' -TimeoutSec 5|Out-Null
+  if('nested' -notin @((Get-NodeAPI ('/api/servers/'+$ServerID+'/files/list-directory?directory=/file-manager')).name)){throw 'Nested directory absent from file listing'}
+  $report.checks.file_directory_service_create_replay_list_write='passed'
+  foreach($body in @('{"name":"child","path":"FILE-MANAGER-PRIVATE"}','{"name":"blocked-parent/new.file-manager-secret"}')){Invoke-DirectoryFixture $body -Expected 403}
+  if((Test-Path -LiteralPath (Join-Path $Root ('data\'+$ServerID+'\FILE-MANAGER-PRIVATE'))) -or (Test-Path -LiteralPath (Join-Path $Root ('data\'+$ServerID+'\blocked-parent')))){throw 'Denied directory request left parents'}
+  $report.checks.file_directory_denylist_no_partial_parents='passed'
+  foreach($body in @('{"name":"../escape","path":"invalid-parent"}','{"name":"CON.cfg","path":"invalid-parent"}')){Invoke-DirectoryFixture $body -Expected 422}
+  Invoke-DirectoryFixture '{"name":"child","path":"file-manager/nested/panel.cfg"}' -Expected 400
+  if((Test-Path -LiteralPath (Join-Path $Root ('data\'+$ServerID+'\invalid-parent'))) -or (Get-NodeAPI ('/api/servers/'+$ServerID+'/files/contents?file=/file-manager/nested/panel.cfg')) -ne 'panel-written'){throw 'Rejected directory input changed data'}
+  $report.checks.file_directory_invalid_paths_preserve_data='passed'
+  Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body '{"commands":["probe-file-directories"]}' -TimeoutSec 5|Out-Null
+  $until=[DateTime]::UtcNow.AddSeconds(5);$probe=$false
+  do{$probe='DIRECTORY_PROBE_OK' -in (Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data;if(-not $probe){Start-Sleep -Milliseconds 50}}while(-not $probe -and [DateTime]::UtcNow -lt $until)
+  if(-not $probe -or (Get-NodeAPI ('/api/servers/'+$ServerID+'/files/contents?file=/file-manager/nested/game.cfg')) -ne 'game-written'){throw 'Distinct game account cannot use inherited directory ACLs'}
+  $report.checks.file_directory_distinct_game_read_write_inherited_acl='passed'
+ }
  if($TestConsoleLogs){
   Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body '{"commands":["probe-log-access"]}'|Out-Null
   $until=[DateTime]::UtcNow.AddSeconds(5);$denied=$false

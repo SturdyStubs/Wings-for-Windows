@@ -16,6 +16,10 @@ func fileCreated(info os.FileInfo) time.Time {
 	}
 	return info.ModTime()
 }
+func fileIsReparse(info os.FileInfo) bool {
+	data, ok := info.Sys().(*syscall.Win32FileAttributeData)
+	return info.Mode()&os.ModeSymlink != 0 || ok && data.FileAttributes&windows.FILE_ATTRIBUTE_REPARSE_POINT != 0
+}
 func finalPath(f *os.File) (string, error) {
 	buffer := make([]uint16, 32768)
 	count, err := windows.GetFinalPathNameByHandle(windows.Handle(f.Fd()), &buffer[0], uint32(len(buffer)), 0)

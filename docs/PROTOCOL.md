@@ -26,6 +26,8 @@ Alpha 38 adds an operator-only [verified local game-file importer](GAME-FILES.md
 
 Alpha 39 adds operator-only [staging inspection and quarantine](GAME-FILE-RECOVERY.md), with fingerprint approval and retained bytes. It adds no HTTP route, automatic promotion/resume or durable crash journal.
 
+Alpha 40 adds the existing panel/upstream [directory creation contract](FILE-DIRECTORIES.md), including missing parents, existing-directory replay, Windows path bounds and denylist/link checks. It is the first M4 addition; other file mutations, scoped upload/download and SFTP remain open.
+
 ## Packages
 
 Alpha 32 adds optional [account-scoped RCON credential references](RCON-CREDENTIALS.md) and local metadata/remove CLI. Existing network command routes and transport authentication remain unchanged; no new panel route or actual-game certification is implied.
@@ -82,8 +84,9 @@ Alpha 34 adds opt-in [manual-approval creation](PENDING-CREATION.md), with no pe
 | `GET /api/servers/{uuid}/files/list-directory?directory=/` | List a confined directory, up to 10,000 entries; uses the upstream metadata schema and hides denied paths. Legacy `/files/list` remains an alias. |
 | `GET /api/servers/{uuid}/files/contents?file=/name` | Read a regular text file up to 8 MiB. |
 | `POST /api/servers/{uuid}/files/write?file=/name` | Write a confined text file up to 8 MiB. Parent directories must already exist. |
+| `POST /api/servers/{uuid}/files/create-directory` | JSON `name` and `path`; create nested directories and missing parents, 204 for success/existing directory. Bounded Windows names, denylist preflight and observed reparse/link refusal; [scope](FILE-DIRECTORIES.md). |
 
-Unknown/unsupported authenticated routes return 501, including server deletion, automatic binary provisioning, file uploads/downloads, directory creation, file deletion/renaming, compression, pull, SFTP, backups and transfers. A profile that does not belong to this node is not registered and returns 404.
+Unknown/unsupported authenticated routes return 501, including server deletion, automatic binary provisioning, file uploads/downloads, file deletion/renaming, compression, pull, SFTP, backups and transfers. A profile that does not belong to this node is not registered and returns 404.
 
 Filesystem access uses Go `os.Root` for confinement across symlinks. The path parser also rejects Windows drive/UNC syntax, traversal, alternate data streams, device names and trailing-dot/space aliases. This protects HTTP file operations; it does not sandbox executable code running under the same Windows account.
 
