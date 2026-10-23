@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "version": "0.1.0-alpha.40",
+  "source_revision": "166eae87abb1800701d219ba864e765421ae3444",
+  "zip_sha256": "6f6ac3b25d6b7d95402b3fab5eb5e169ba6b1be88bef71dd78ae9902aaf5dd96",
+  "runtime_tests_sha256": "428f07aab4df4bb585932c92c4424841c8bdec66dcd0a221d6289151212a9251",
+  "demo_sha256": "ad08ac61d48fbcf4eefd217cafd8d6abf8d51478cfa00a1301cf66fe88f7bdd4",
+  "api_tests_sha256": "6214ce76a23cf4290802627eb9177b22f57b6f78216b36fc83eb4a48a681e378",
+  "api_contract_fixture_sha256": "9167f08915a6d06837ce7386982bda0b6f6dcb40153b7fddd685001fdb3e2a8e",
+  "service_fixture_sha256": "3b4296dad21f57b1347efcb13a36ca4bf4e32e2ed9b2c09032bb736a1bed3b0c",
+  "mock_panel_sha256": "7fe036339ebaacc09f2783ce95079e8766f6ecb08f446a911e48126719a33861",
+  "host": {
+    "caption": "Microsoft Windows Server 2022 Standard Evaluation",
+    "version": "10.0.20348",
+    "build": "20348",
+    "architecture": "64-bit",
+    "windows_server": true,
+    "powershell": "5.1.20348.558"
+  },
+  "local_tests_passed": 871,
+  "local_tests_skipped": 0,
+  "packaged_native_tests_passed": 14,
+  "baseline_started_utc": "2026-10-23T05:03:40.5752416Z",
+  "baseline_finished_utc": "2026-10-23T05:03:43.0455087Z",
+  "directory_api": {
+    "tests_skipped": 0,
+    "tests_failed": 0,
+    "tests_passed": 38,
+    "exit_code": 0
+  },
+  "service": {
+    "passed": true,
+    "checks": {
+      "installer_rollback": "passed",
+      "installer_start_failure_rollback": "passed",
+      "installer_account_rights_acls": "passed",
+      "public_bad_service_password_cleanup": "passed",
+      "public_operation_lock_rejected": "passed",
+      "public_preexisting_batch_right_preserved": "passed",
+      "public_credential_overwrite_rejected": "passed",
+      "public_credential_wrong_identity_rejected": "passed",
+      "public_credential_replace_inspect": "passed",
+      "credential_bootstrap": "passed",
+      "scm_service_start_and_api": "passed",
+      "actual_service_identity": "passed",
+      "separate_game_start": "passed",
+      "service_console": "passed",
+      "file_directory_authentication": "passed",
+      "file_directory_service_create_replay_list_write": "passed",
+      "file_directory_denylist_no_partial_parents": "passed",
+      "file_directory_invalid_paths_preserve_data": "passed",
+      "file_directory_distinct_game_read_write_inherited_acl": "passed",
+      "actual_game_tree_identity": "passed",
+      "scm_stop_kills_game_tree": "passed",
+      "service_restart_and_game_stop": "passed",
+      "public_credential_remove_inspect": "passed"
+    },
+    "error": null,
+    "cleanup": {
+      "credential_removed": true,
+      "service_removed": true,
+      "mock_stopped": true,
+      "accounts_and_rights_removed": true
+    }
+  },
+  "independent_cleanup_audit": {
+    "credential_tasks_remaining": 0,
+    "explicit_rights_remaining": 0,
+    "passed": true,
+    "event_source_remaining": 0,
+    "retained_profiles": 1,
+    "forced_profile_unload_or_deletion": false,
+    "owned_processes_remaining": 0,
+    "accounts_remaining": 0,
+    "fixture_data_retained": true,
+    "service_remaining": 0,
+    "loaded_profiles": 1,
+    "mock_processes_remaining": 0
+  },
+  "scope": "Panel/upstream directory-create contract, bounded Windows paths, denylist/link checks and inherited DACLs. Harmless fixture and loopback mock; no real panel/game, reboot, SFTP, disk-quota or broad isolation certification.",
+  "preliminary_portable_api_attempt": {
+    "tests_passed": 37,
+    "tests_failed": 1,
+    "reason": "Uploaded test bundle omitted testdata/upstream-create-directory.json; corrected staging/workdir, all 38 final checks pass. Production code unchanged.",
+    "log_sha256": "d90a035aee81beb8c4681998ea94694cf283f50c03b2dd20aef83f827e14ae6d"
+  },
+  "live_panel_tested": false,
+  "real_game_tested": false,
+  "reboot_tested_this_batch": false
+}

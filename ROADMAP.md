@@ -1,8 +1,8 @@
 # Progress toward Wings compatibility
 
-Last updated: October 22, 2026. Current version: **0.1.0-alpha.40**. Active development: **M3 — Windows lifecycle features**, with the first **M4 file-manager directory operation** implemented. M1/M2 remain open for live panel and isolation gates.
+Last updated: October 22, 2026. Current version: **0.1.0-alpha.40**. Active development: **M3 â€” Windows lifecycle features**, with the first **M4 file-manager directory operation** implemented. M1/M2 remain open for live panel and isolation gates.
 
-[Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
+[Repository](https://github.com/SturdyStubs/Wings-for-Windows) Â· [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) Â· [Changelog](CHANGELOG.md) Â· [Original audit](docs/WINGS-PARITY-AUDIT.md) Â· [Verification](docs/VERIFICATION.md)
 
 This file tracks the current implementation. The audit preserves the alpha 1 baseline. A checked implementation item means code and local regression tests exist; a live verification item stays open until exercised against a real panel/host/game. Route coverage is not a completion percentage.
 
@@ -48,12 +48,12 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - Alpha 37: operator-only game-account creation for an unused UUID/name, with SecureString input, WhatIf, collision/lock guards, SID/profile output and owned-SID validation rollback. The created account completes new-UUID permission, credential, installer and game launch handoff. All 791 local cases/subtests, 14 packaged native cases and 101 combined Server 2022 checks pass; independent three-identity cleanup verified. Automatic panel-driven provisioning, password rotation/deletion and broader lifecycle remain open. See [workflow](docs/GAME-ACCOUNTS.md) and [evidence](docs/evidence/server2022-alpha37-game-accounts.md).
 - Alpha 38: manifest/hash-approved local game-file import with source sharing guards, private staging, flushed copy verification, daemon read-only code ACLs and same-parent new-directory publication. Refuse overwrites and stale staging; the imported executable completes dedicated-account setup/game launch and dependency write denial. All 815 local cases/subtests, 14 packaged native cases and 107 combined Server 2022 checks pass; independent three-identity cleanup verified. Automatic downloads/updates, durable promotion recovery and panel-driven provisioning remain open. See [workflow](docs/GAME-FILES.md) and [evidence](docs/evidence/server2022-alpha38-game-files.md).
 - Alpha 39: bounded staging inspection and fingerprint-approved quarantine into administrator-only private storage, with retained bytes, no deletion/publication and explicit stale-content/ACL, path-reference and maintenance-lock guards. All 833 local cases/subtests, 14 packaged native cases and 114 combined Server 2022 checks pass using simulated interrupted-copy staging followed by the normal import/setup/game handoff; independent cleanup verified. Actual crash/reboot and durable promotion recovery remain open. See [workflow](docs/GAME-FILE-RECOVERY.md) and [evidence](docs/evidence/server2022-alpha39-stage-recovery.md).
-- Alpha 40: panel-compatible nested directory creation with whole-path preflight, case-insensitive denylist checks, reparse refusal, confined parent traversal, bounded Windows names and inherited directory permissions. Local and Server 2022 release evidence is recorded in [verification](docs/VERIFICATION.md). Rename/copy/delete, scoped upload/download and SFTP remain open. See [directory scope](docs/FILE-DIRECTORIES.md).
+- Alpha 40: panel-compatible nested directory creation with whole-path preflight, case-insensitive denylist checks, reparse refusal, confined parent traversal, bounded Windows names and inherited directory permissions. All 871 local cases/subtests, 14 packaged native cases, 38 portable API cases/subtests and 23 focused Server 2022 service checks pass; independent cleanup verifies removal with one retained/loaded profile. See [exact evidence](docs/evidence/server2022-alpha40-file-directories.md). Rename/copy/delete, scoped upload/download and SFTP remain open. See [directory scope](docs/FILE-DIRECTORIES.md).
 - HTTP inventory: handlers at **17 of upstream's 38 method/path combinations**, with partial behavior; **21 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
 - Automatic binary provisioning, full file manager/SFTP, backups/restores, transfers, strong isolation and live certification remain open.
 - Unchanged Linux eggs require a Linux execution backend. Native Windows profiles do not translate Linux images/binaries.
 
-## M1: Core protocol compatibility — in progress
+## M1: Core protocol compatibility â€” in progress
 
 [Tracking issue #1](https://github.com/SturdyStubs/Wings-for-Windows/issues/1)
 
@@ -82,7 +82,7 @@ README badges query milestone counts automatically. Close an implementation issu
 
 The seed definitions are in `docs/progress-plan.json`. `scripts/Update-Progress.ps1 -Initialize` adds missing planned milestones/issues and records seeded historical work; it does not re-close existing issues. Run without the switch to refresh README links. Reopened issues lower the live counts automatically, subject to badge caching. Issue state in GitHub is authoritative over historical seed metadata.
 
-## M2: Isolation and supported threat model — in progress, required before untrusted hosting
+## M2: Isolation and supported threat model â€” in progress, required before untrusted hosting
 
 [Tracking issue #2](https://github.com/SturdyStubs/Wings-for-Windows/issues/2)
 
@@ -111,7 +111,7 @@ The seed definitions are in `docs/progress-plan.json`. `scripts/Update-Progress.
 
 Current scope remains a trusted private node. File denylist/path checks are not process isolation.
 
-## M3: Windows provisioning and lifecycle recovery — in progress
+## M3: Windows provisioning and lifecycle recovery â€” in progress
 
 [Tracking issue #3](https://github.com/SturdyStubs/Wings-for-Windows/issues/3)
 
@@ -146,9 +146,9 @@ Current scope remains a trusted private node. File denylist/path checks are not 
   - [x] Add bounded game log-file console output and optional log-only readiness with stale-history skipping, rotation handling and cancellation.
   - [x] Add account-scoped per-server RCON credential references and managed service provisioning, rotation, metadata/removal and namespace separation.
   - [ ] Verify real games, extend RCON/log adapters, add Windows control events and validate broader account/profile/password lifecycle.
-- [ ] Complete a real game's create → install → start → stop/restart → reinstall → delete workflow from the panel.
+- [ ] Complete a real game's create â†’ install â†’ start â†’ stop/restart â†’ reinstall â†’ delete workflow from the panel.
 
-## M4: Full files and SFTP — in progress
+## M4: Full files and SFTP â€” in progress
 
 [Tracking issue #4](https://github.com/SturdyStubs/Wings-for-Windows/issues/4)
 
@@ -160,7 +160,7 @@ Current scope remains a trusted private node. File denylist/path checks are not 
 - [ ] Disk accounting/enforcement across file, installer, archive and game writes.
 - [ ] Locked/long paths, disk-full, malicious archive and link/race tests.
 
-## M5: Backups and transfers — planned
+## M5: Backups and transfers â€” planned
 
 [Tracking issue #5](https://github.com/SturdyStubs/Wings-for-Windows/issues/5)
 
@@ -169,7 +169,7 @@ Current scope remains a trusted private node. File denylist/path checks are not 
 - [ ] Source/destination transfers, streaming/integrity, progress, cancel and failure cleanup.
 - [ ] Recover from interrupted operations; restore and boot a real game successfully.
 
-## M6: Operational parity and deployment validation — planned
+## M6: Operational parity and deployment validation â€” planned
 
 [Tracking issue #6](https://github.com/SturdyStubs/Wings-for-Windows/issues/6)
 
