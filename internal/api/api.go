@@ -20,6 +20,7 @@ type API struct {
 	boot        time.Time
 	revoked     sync.Map
 	renameLocks sync.Map
+	copyLocks   sync.Map
 	slots       chan struct{}
 	done        chan struct{}
 	closeOnce   sync.Once

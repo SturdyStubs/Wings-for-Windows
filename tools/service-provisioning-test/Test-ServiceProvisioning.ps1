@@ -1,6 +1,7 @@
 #Requires -RunAsAdministrator
-param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON,[switch]$TestLogFile,[switch]$TestRCONCredential,[switch]$TestNativeInstaller,[switch]$TestPendingCreation,[switch]$TestInstallState,[switch]$TestGamePermissions,[switch]$TestGameAccount,[switch]$TestGameFiles,[switch]$TestStageRecovery,[switch]$TestFileDirectories,[switch]$TestFileRename)
+param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON,[switch]$TestLogFile,[switch]$TestRCONCredential,[switch]$TestNativeInstaller,[switch]$TestPendingCreation,[switch]$TestInstallState,[switch]$TestGamePermissions,[switch]$TestGameAccount,[switch]$TestGameFiles,[switch]$TestStageRecovery,[switch]$TestFileDirectories,[switch]$TestFileRename,[switch]$TestFileCopy)
 $ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
+if($TestFileCopy -and -not $TestFileRename){throw 'File copy fixture requires rename phase'}
 if($TestFileRename -and -not $TestFileDirectories){throw 'File rename fixture requires directory phase'}
 if($TestFileDirectories -and $PrepareReboot){throw 'File directory fixture is separate from reboot preparation'}
 if($TestStageRecovery -and -not $TestGameFiles){throw 'Stage recovery fixture requires game files phase'}
@@ -322,6 +323,33 @@ try {
   Invoke-RenameFixture '{"root":"/","files":[{"from":"file-manager/moved/first.cfg","to":"../escape"}]}' -Expected 422
   if((Get-NodeAPI ('/api/servers/'+$ServerID+'/files/contents?file=/file-manager/moved/first.cfg')) -ne 'first'){throw 'Denied move changed source'}
   $report.checks.file_rename_descendant_denylist_and_traversal='passed'
+ }
+ if($TestFileCopy){
+  function Invoke-CopyFixture([string]$Body,[int]$Expected=204,[switch]$Anonymous){
+   $headers=@{};if(-not $Anonymous){$headers.Authorization='Bearer '+$nodeToken};$status=0
+   try{$response=Invoke-WebRequest -UseBasicParsing -Uri ($fileURI+'copy') -Method Post -Headers $headers -ContentType application/json -Body $Body -TimeoutSec 5;$status=[int]$response.StatusCode}catch{if(-not $_.Exception.Response){throw};$status=[int]$_.Exception.Response.StatusCode}
+   if($status -ne $Expected){throw ('Copy fixture HTTP status '+$status+' expected '+$Expected)}
+  }
+  Invoke-CopyFixture '{"location":"/file-manager/moved/Panel-Renamed.cfg"}' -Expected 401 -Anonymous
+  if(Test-Path -LiteralPath (Join-Path $Root ('data\'+$ServerID+'\file-manager\moved\Panel-Renamed copy.cfg'))){throw 'Anonymous copy created a file'}
+  $report.checks.file_copy_authentication='passed'
+  Invoke-CopyFixture '{"location":"/file-manager/moved/Panel-Renamed.cfg"}'
+  Invoke-CopyFixture '{"location":"/file-manager/moved/Panel-Renamed.cfg"}'
+  foreach($name in @('Panel-Renamed.cfg','Panel-Renamed%20copy.cfg','Panel-Renamed%20copy%201.cfg')){if((Get-NodeAPI ('/api/servers/'+$ServerID+'/files/contents?file=/file-manager/moved/'+$name)) -ne 'panel-written'){throw 'Copy bytes or numbered name mismatch'}}
+  $report.checks.file_copy_service_content_and_numbered_collision='passed'
+  Invoke-RestMethod -Uri ($fileURI+'write?file=/copy-denied.cfg') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -Body 'keep' -TimeoutSec 5|Out-Null
+  Invoke-CopyFixture '{"location":"/copy-denied.cfg"}' -Expected 403
+  Invoke-CopyFixture '{"location":"../escape"}' -Expected 422
+  Invoke-CopyFixture '{"location":"/file-manager/moved"}' -Expected 404
+  if((Get-NodeAPI ('/api/servers/'+$ServerID+'/files/contents?file=/copy-denied.cfg')) -ne 'keep'){throw 'Denied copy changed source'}
+  $report.checks.file_copy_denylist_and_type_guards='passed'
+  Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body '{"commands":["probe-file-copies"]}' -TimeoutSec 5|Out-Null
+  $until=[DateTime]::UtcNow.AddSeconds(5);$probe=$false
+  do{$probe='COPY_PROBE_OK' -in (Get-NodeAPI ('/api/servers/'+$ServerID+'/logs')).data;if(-not $probe){Start-Sleep -Milliseconds 50}}while(-not $probe -and [DateTime]::UtcNow -lt $until)
+  if(-not $probe -or (Get-NodeAPI ('/api/servers/'+$ServerID+'/files/contents?file=/file-manager/moved/copy-game.cfg')) -ne 'game-copy-access'){throw 'Distinct game account cannot use copied file inheritance'}
+  $report.checks.file_copy_distinct_game_read_write='passed'
+  if(@(Get-ChildItem -LiteralPath (Join-Path $Root ('data\'+$ServerID)) -Recurse -Force -Filter '.wings-copy-*').Count){throw 'Successful copies retained temporary staging'}
+  $report.checks.file_copy_no_staging_residue='passed'
  }
  if($TestConsoleLogs){
   Invoke-RestMethod -Uri ('http://127.0.0.1:'+$nodePort+'/api/servers/'+$ServerID+'/commands') -Headers @{Authorization=('Bearer '+$nodeToken)} -Method Post -ContentType application/json -Body '{"commands":["probe-log-access"]}'|Out-Null

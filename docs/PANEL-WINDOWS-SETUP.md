@@ -2,6 +2,8 @@
 
 Use a disposable, trusted test node. The native daemon runs Windows executables; unchanged Linux eggs and Docker images are not supported. This guide prepares a harmless console demo before a game-specific Windows recipe. A real panel/node/game integration run remains an open validation gate. Alpha 34 adds opt-in [manual-approval creation](PENDING-CREATION.md): retain the panel record first, then bind its full UUID to an approved Windows profile. Automatic installation/start during creation remains unavailable.
 
+For a private VM behind a remote VPS, see the [proposed live connection plan](LIVE-PANEL-CONNECTION.md). DNS alone does not provide a route; actual proxy/tunnel deployment and live validation remain pending.
+
 ## 1. Prepare the Windows host
 
 Use Windows Server 2022 amd64 for the first test, matching our fixture host. Extract the release into `C:\WingsWindows\bin`, create empty `private`, `data` and optional `logs` directories, and run packaged `scripts\Test-Host.ps1`. That offline test does not connect a panel.

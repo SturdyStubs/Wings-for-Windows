@@ -30,6 +30,8 @@ Alpha 40 adds the existing panel/upstream [directory creation contract](FILE-DIR
 
 Alpha 41 adds [file/directory rename and move](FILE-RENAME.md) with the existing panel request shape, native no-replace behavior, case-only names, batch preflight and descendant policy checks. Existing destination parents are required; dependent operations and broader filesystem behavior remain open.
 
+Alpha 42 adds [regular-file copy](FILE-COPY.md), bounded binary streaming and staged no-replace publication. Full disk accounting/enforcement, recursive copy and interrupted-copy recovery remain open.
+
 ## Packages
 
 Alpha 32 adds optional [account-scoped RCON credential references](RCON-CREDENTIALS.md) and local metadata/remove CLI. Existing network command routes and transport authentication remain unchanged; no new panel route or actual-game certification is implied.
@@ -85,6 +87,7 @@ Alpha 34 adds opt-in [manual-approval creation](PENDING-CREATION.md), with no pe
 | `POST /api/deauthorize-user` | Revoke existing user tokens with JSON `user` and optional `servers`. An empty server list revokes access on all locally registered servers. |
 | `GET /api/servers/{uuid}/files/list-directory?directory=/` | List a confined directory, up to 10,000 entries; uses the upstream metadata schema and hides denied paths. Legacy `/files/list` remains an alias. |
 | `GET /api/servers/{uuid}/files/contents?file=/name` | Read a regular text file up to 8 MiB. |
+| `POST /api/servers/{uuid}/files/copy` | JSON `location`; copy one regular file to a numbered sibling. 1 GiB source cap, owned staging/no-replace publication, no panel quota enforcement. [Scope](FILE-COPY.md). |
 | `PUT /api/servers/{uuid}/files/rename` | JSON `root` and `files: [{from,to}]`; file/directory move/rename, case-only names and ignored missing sources. No overwrite; bounded preflight and existing destination parents required. [Scope](FILE-RENAME.md). |
 | `POST /api/servers/{uuid}/files/write?file=/name` | Write a confined text file up to 8 MiB. Parent directories must already exist. |
 | `POST /api/servers/{uuid}/files/create-directory` | JSON `name` and `path`; create nested directories and missing parents, 204 for success/existing directory. Bounded Windows names, denylist preflight and observed reparse/link refusal; [scope](FILE-DIRECTORIES.md). |

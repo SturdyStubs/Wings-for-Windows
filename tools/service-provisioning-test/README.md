@@ -1,5 +1,7 @@
 # Developer-only service provisioning fixture
 
+Alpha 42 adds `-TestFileCopy`, requiring `-TestFileRename`, for five more checks: bearer rejection; copied bytes/numbered collisions; denylist/traversal/type rejection; actual distinct-game-account access to inherited copy permissions; and no successful-copy staging residue. The focused basic/directory/rename/copy fixture has 35 checks. Rebuild the matching demo/mock and use an immutable package; no reboot or live panel/game claim.
+
 Alpha 41 adds `-TestFileRename`, requiring `-TestFileDirectories`, for seven more checks: bearer rejection, file batch/content preservation, case-only/no-op behavior, directory moves with unchanged DACLs, actual distinct-game-account reads/writes after the move, whole-batch collision preservation, and descendant denylist/traversal rejection. The focused basic-plus-directories-plus-rename fixture has 30 checks. Rebuild the matching demo/mock and use an immutable package. No reboot or live panel/game certification.
 
 Alpha 40 adds independent `-TestFileDirectories` (incompatible with reboot preparation). It adds five checks to either the basic or combined suite: bearer rejection without mutation, nested create/replay/list/write under the non-administrator SCM daemon, denylist preflight without stray parents, invalid/file-collision preservation, and actual distinct-game-account reads/writes through inherited directory DACLs. Rebuild the mock and use the matching alpha 40 demo. This is a loopback mock panel fixture, not live panel certification.
