@@ -1,6 +1,7 @@
 #Requires -RunAsAdministrator
-param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON,[switch]$TestLogFile,[switch]$TestRCONCredential,[switch]$TestNativeInstaller,[switch]$TestPendingCreation,[switch]$TestInstallState,[switch]$TestGamePermissions,[switch]$TestGameAccount,[switch]$TestGameFiles)
+param([string]$Staging,[string]$Package,[string]$Root,[string]$GameName,[string]$DaemonName,[string]$ServerID,[switch]$TestCrashRecovery,[switch]$TestConsoleLogs,[switch]$TestServiceEvents,[switch]$TestPersistentRecovery,[switch]$TestEggText,[switch]$TestEggJSON,[switch]$TestEggProperties,[switch]$TestEggINI,[switch]$TestEggYAML,[switch]$TestEggXML,[switch]$PrepareReboot,[switch]$TestRestoreRunning,[switch]$TestSourceRCON,[switch]$TestLogFile,[switch]$TestRCONCredential,[switch]$TestNativeInstaller,[switch]$TestPendingCreation,[switch]$TestInstallState,[switch]$TestGamePermissions,[switch]$TestGameAccount,[switch]$TestGameFiles,[switch]$TestStageRecovery)
 $ErrorActionPreference='Stop';$ProgressPreference='SilentlyContinue'
+if($TestStageRecovery -and -not $TestGameFiles){throw 'Stage recovery fixture requires game files phase'}
 if($TestGameFiles -and -not $TestGameAccount){throw 'Game files fixture requires account phase'}
 if($TestGameAccount -and -not $TestGamePermissions){throw 'Game account fixture requires permission phase'}
 if($TestGamePermissions -and (-not $TestInstallState -or $PrepareReboot)){throw 'Game permissions fixture requires install-state phase and cannot prepare reboot'}
@@ -94,7 +95,7 @@ try {
  Copy-Item -LiteralPath (Join-Path $Package 'scripts\Store-GameCredential.ps1') -Destination (Join-Path $Root 'bin\Store-GameCredential.ps1')
  New-Item -ItemType Directory -Path (Join-Path $Root 'bin\scripts') | Out-Null
  foreach($file in @('Store-GameCredential.ps1','Set-ServiceGameCredential.ps1','CredentialBridge.psm1','CredentialTask.ps1','NodeSetup.psm1')){Copy-Item -LiteralPath (Join-Path $Staging $file) -Destination (Join-Path $Root ('bin\scripts\'+$file))}
- foreach($file in @('GamePermissions.psm1','Set-ServiceGamePermissions.ps1','GameAccounts.psm1','New-ServiceGameAccount.ps1','GameFiles.psm1','Import-ServiceGameFiles.ps1')){Copy-Item -LiteralPath (Join-Path $Package ('scripts\'+$file)) -Destination (Join-Path $Root ('bin\scripts\'+$file))}
+ foreach($file in @('GamePermissions.psm1','Set-ServiceGamePermissions.ps1','GameAccounts.psm1','New-ServiceGameAccount.ps1','GameFiles.psm1','Import-ServiceGameFiles.ps1','GameFileRecovery.psm1','Resolve-ServiceGameStaging.ps1')){Copy-Item -LiteralPath (Join-Path $Package ('scripts\'+$file)) -Destination (Join-Path $Root ('bin\scripts\'+$file))}
  foreach($file in @('Store-RCONCredential.ps1','Set-ServiceRCONCredential.ps1')){Copy-Item -LiteralPath (Join-Path $Package ('scripts\'+$file)) -Destination (Join-Path $Root ('bin\scripts\'+$file))}
  $first=[Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback,0);$second=[Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback,0);$first.Start();$second.Start();$panelPort=$first.LocalEndpoint.Port;$nodePort=$second.LocalEndpoint.Port;$first.Stop();$second.Stop()
  $b=New-Object byte[] 32;$rng=[Security.Cryptography.RandomNumberGenerator]::Create();try{$rng.GetBytes($b);$nodeToken=[Convert]::ToBase64String($b)}finally{$rng.Dispose()}
@@ -695,8 +696,44 @@ try {
    [IO.File]::WriteAllText($manifest,(@{schema_version=1;files=$fileEntries}|ConvertTo-Json -Depth 6),[Text.UTF8Encoding]::new($false))
    $importOptions=@{InstallationRoot=$Root;ServerUUID=$extraID;SourceDirectory=$source;ManifestPath=$manifest;ManifestSHA256=(Get-FileHash -LiteralPath $manifest -Algorithm SHA256).Hash}
    $importedRoot=Join-Path $Root ('bin\games\'+$extraID)
+   if($TestStageRecovery){
+    $recovery=Join-Path $Root 'bin\scripts\Resolve-ServiceGameStaging.ps1'
+    $stageName='.stage-'+[guid]::NewGuid().ToString('N');$stage=Join-Path $Root ('bin\games\'+$stageName)
+    $gamesParent=Join-Path $Root 'bin\games';New-Item -ItemType Directory -Path $gamesParent|Out-Null
+    function Set-FixtureRecoveryACL([string]$Path,[string]$SDDL){$acl=[Security.AccessControl.FileSecurity]::new();if(Test-Path -LiteralPath $Path -PathType Container){$acl=[Security.AccessControl.DirectorySecurity]::new()};$acl.SetSecurityDescriptorSddlForm($SDDL,[Security.AccessControl.AccessControlSections]::Access);if($acl -is [Security.AccessControl.DirectorySecurity]){[IO.Directory]::SetAccessControl($Path,$acl)}else{[IO.File]::SetAccessControl($Path,$acl)}}
+    $adminACL='D:P(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)'
+    Set-FixtureRecoveryACL $gamesParent ($adminACL+'(A;OICI;FRFX;;;'+$daemonSid+')(A;OICI;FRFX;;;'+$gameSid+')')
+    New-Item -ItemType Directory -Path $stage|Out-Null;Set-FixtureRecoveryACL $stage $adminACL
+    $partial=Join-Path $stage 'partial.exe';[IO.File]::WriteAllText($partial,'SIMULATED_INTERRUPTED_COPY')
+    Set-FixtureRecoveryACL $partial ($adminACL+'(A;;FRFX;;;'+$daemonSid+')')
+    $inspected=& $recovery -InstallationRoot $Root -StageName $stageName
+    if($inspected.fingerprint -notmatch '^[0-9a-f]{64}$' -or $inspected.files -ne 1 -or $inspected.daemon_readable_entries -ne 1){throw 'Stage inspection metadata mismatch'}
+    $report.checks.stage_recovery_inspection_reports_partial_copy_fingerprint='passed'
+    $rejected=$false;try{& $importCommand @importOptions|Out-Null}catch{$rejected=$true};if(-not $rejected -or (Test-Path -LiteralPath $importedRoot)){throw 'Unfinished staging did not block import'}
+    $report.checks.stage_recovery_unfinished_stage_blocks_import='passed'
+    $options=@{InstallationRoot=$Root;StageName=$stageName;ExpectedFingerprint=$inspected.fingerprint;Quarantine=$true}
+    $stageACL=(Get-Acl -LiteralPath $stage).Sddl
+    & $recovery @options -WhatIf
+    if(-not(Test-Path -LiteralPath $stage) -or (Test-Path -LiteralPath (Join-Path $Root 'private\code-quarantine')) -or (Get-Acl -LiteralPath $stage).Sddl -cne $stageACL){throw 'Recovery WhatIf mutated state'}
+    $report.checks.stage_recovery_whatif_preserves_code_and_acls='passed'
+    $gate=[IO.File]::Open((Join-Path $Root 'private\credential-provisioning.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
+    try{$rejected=$false;try{& $recovery @options|Out-Null}catch{$rejected=$true};if(-not $rejected -or (Get-Acl -LiteralPath $stage).Sddl -cne $stageACL -or -not(Test-Path -LiteralPath $stage)){throw 'Concurrent maintenance allowed quarantine mutation'}}finally{$gate.Dispose()}
+    $report.checks.stage_recovery_shared_maintenance_lock_refused='passed'
+    [IO.File]::WriteAllText($partial,'CHANGED_PARTIAL_COPY')
+    $rejected=$false;try{& $recovery @options|Out-Null}catch{$rejected=$true};if(-not $rejected -or -not(Test-Path -LiteralPath $stage)){throw 'Stale fingerprint allowed quarantine'}
+    $report.checks.stage_recovery_changed_fingerprint_refused='passed'
+    $options.ExpectedFingerprint=(& $recovery -InstallationRoot $Root -StageName $stageName).fingerprint
+    $moved=& $recovery @options
+    if($moved.state -ne 'quarantined' -or (Test-Path -LiteralPath $stage) -or [IO.File]::ReadAllText((Join-Path $moved.destination 'partial.exe')) -cne 'CHANGED_PARTIAL_COPY'){throw 'Stage quarantine changed or lost bytes'}
+    foreach($path in @((Join-Path $Root 'private\code-quarantine'),$moved.destination,(Join-Path $moved.destination 'partial.exe'))){$rules=(Get-Acl -LiteralPath $path).GetAccessRules($true,$true,[Security.Principal.SecurityIdentifier]);foreach($rule in $rules){if($rule.IdentityReference.Value -notin @('S-1-5-18','S-1-5-32-544')){throw 'Quarantine retains non-administrator access'}}}
+    if(@(& $recovery -InstallationRoot $Root).Count -ne 0){throw 'Resolved stage still blocks code import'}
+    $report.checks.stage_recovery_quarantine_retains_bytes_and_admin_only_acls='passed'
+    $rejected=$false;try{& $recovery @options|Out-Null}catch{$rejected=$true};if(-not $rejected -or [IO.File]::ReadAllText((Join-Path $moved.destination 'partial.exe')) -cne 'CHANGED_PARTIAL_COPY'){throw 'Recovery replay damaged retained quarantine'}
+    $report.checks.stage_recovery_replay_refused_and_quarantine_preserved='passed'
+   }
+   $parentExisted=Test-Path -LiteralPath (Join-Path $Root 'bin\games')
    & $importCommand @importOptions -WhatIf
-   if(Test-Path -LiteralPath (Join-Path $Root 'bin\games')){throw 'Code import WhatIf created directories'}
+   if((Test-Path -LiteralPath (Join-Path $Root 'bin\games')) -ne $parentExisted -or (Test-Path -LiteralPath $importedRoot)){throw 'Code import WhatIf created directories'}
    $report.checks.game_files_whatif_creates_no_code='passed'
    $badOptions=$importOptions.Clone();$badOptions.ManifestSHA256='0'*64
    $rejected=$false;try{& $importCommand @badOptions|Out-Null}catch{$rejected=$true};if(-not $rejected -or (Test-Path -LiteralPath $importedRoot)){throw 'Bad manifest hash accepted'}

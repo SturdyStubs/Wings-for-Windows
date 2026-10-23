@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.39 - 2026-10-22
+
+- Add stopped-node staging inspection with bounded content/owner/group/DACL fingerprints and an explicit fingerprint-approved quarantine command. Refuse unsupported names, unsafe ACLs/owners, links, configured path references and existing quarantine destinations.
+- Recheck under the shared maintenance lock and held configuration, seal the selected stage to SYSTEM/Administrators and move it into private/code-quarantine without deleting or publishing files. Failed moves retain bytes and any stricter ACLs for inspection.
+- Add inspection, quarantine, stale fingerprint, path-reference, link/ACL, empty-stage, move failure and destination-race tests plus a simulated interrupted-copy Server 2022 fixture. No actual crash/reboot, durable journal, automatic resume/deletion or live game/panel certification is claimed. See [workflow](docs/GAME-FILE-RECOVERY.md).
+
 ## 0.1.0-alpha.38 - 2026-10-22
 
 - Add a stopped-node administrator command to import approved local game files into a new bin/games/UUID directory using a pinned SHA-256 manifest. Bound files/bytes/paths; reject links, duplicates, traversal, stale staging and existing destinations.

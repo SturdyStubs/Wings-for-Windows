@@ -26,7 +26,7 @@ try {
     Write-Output "Tests passed: $passedTests (including subtests); skipped: $skippedTests"
     & $GoExecutable vet ./...
     if ($LASTEXITCODE -ne 0) { throw 'Go vet failed.' }
-    $version = '0.1.0-alpha.38'
+    $version = '0.1.0-alpha.39'
     $stage = Join-Path $projectRoot ('dist\stage-' + [guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $stage -Force | Out-Null
     $revision = 'unavailable'
@@ -64,6 +64,7 @@ try {
     Copy-Item -LiteralPath 'scripts\GamePermissions.psm1','scripts\Set-ServiceGamePermissions.ps1' -Destination (Join-Path $stage 'scripts')
     Copy-Item -LiteralPath 'scripts\GameAccounts.psm1','scripts\New-ServiceGameAccount.ps1' -Destination (Join-Path $stage 'scripts')
     Copy-Item -LiteralPath 'scripts\GameFiles.psm1','scripts\Import-ServiceGameFiles.ps1' -Destination (Join-Path $stage 'scripts')
+    Copy-Item -LiteralPath 'scripts\GameFileRecovery.psm1','scripts\Resolve-ServiceGameStaging.ps1' -Destination (Join-Path $stage 'scripts')
     Copy-Item -LiteralPath 'scripts\Update-Progress.ps1' -Destination (Join-Path $stage 'scripts')
     Copy-Item -LiteralPath 'scripts\Store-GameCredential.ps1' -Destination (Join-Path $stage 'scripts')
     Copy-Item -LiteralPath 'scripts\Store-RCONCredential.ps1','scripts\Set-ServiceRCONCredential.ps1' -Destination (Join-Path $stage 'scripts')

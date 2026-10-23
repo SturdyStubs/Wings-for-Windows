@@ -2,9 +2,9 @@
 
 Run native Windows game-server executables through a Pterodactyl panel. This is a separate Go daemon implementing a **subset of the Wings protocol**, with Windows Job Objects replacing the Docker process runtime.
 
-**Version: 0.1.0-alpha.38. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
+**Version: 0.1.0-alpha.39. Experimental, for a trusted operator and disposable test servers.** Local Windows process and protocol tests pass; a live panel, Windows Server host and real game server have not yet been verified together. This is not an official Pterodactyl release or a drop-in replacement for upstream Wings.
 
-Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). The current release adds [verified local game-file import](docs/GAME-FILES.md), building on [account creation](docs/GAME-ACCOUNTS.md), [incremental permissions](docs/GAME-PERMISSIONS.md) and [installer recovery](docs/INSTALL-RECOVERY.md). Start with the [Windows node and demo walkthrough](docs/PANEL-WINDOWS-SETUP.md) for manual profile approval, service setup and native data/setup installation.
+Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.com/SturdyStubs/Wings-for-Windows/milestones), [changelog](CHANGELOG.md) and [original parity audit](docs/WINGS-PARITY-AUDIT.md). The current release adds [staging inspection and quarantine](docs/GAME-FILE-RECOVERY.md), building on [verified file import](docs/GAME-FILES.md), [account creation](docs/GAME-ACCOUNTS.md), [incremental permissions](docs/GAME-PERMISSIONS.md) and [installer recovery](docs/INSTALL-RECOVERY.md). Start with the [Windows node and demo walkthrough](docs/PANEL-WINDOWS-SETUP.md) for manual profile approval, service setup and native data/setup installation.
 
 <!-- progress:start -->
 
@@ -38,6 +38,7 @@ For a new panel node, start with the [Windows node and demo egg walkthrough](doc
 | Installer recovery | Opt-in durable latest result, restart inspection, explicit notification retry and conservative interrupted-attempt failure reporting. [Scope](docs/INSTALL-RECOVERY.md). |
 | Native setup recipes | Opt-in install/reinstall routes, restricted local executable approval, bounded output, cancellation and panel completion callbacks. Protected game binaries must already exist; [scope](docs/NATIVE-INSTALLERS.md). |
 | Native executables | Versioned local profiles, PE architecture checks, optional minimum Windows build and dependency-file requirements before startup or installation acknowledgement. Argument arrays without shell expansion. |
+| Staging recovery | Inspect content/ACL fingerprints and explicitly retain one unfinished stage in administrator-only quarantine. No deletion, resume or automatic publication. [Workflow](docs/GAME-FILE-RECOVERY.md). |
 | Protected game-file import | Stage local manifest/hash-approved files, verify copied bytes and publish a new UUID code directory without overwrites or game write access. [Workflow](docs/GAME-FILES.md). |
 | Game account creation | Operator-only creation for an unused UUID/name, secure password input, SID/profile output and owned-SID validation rollback. [Workflow](docs/GAME-ACCOUNTS.md). |
 | Incremental permissions | Prepare a precreated game account for one new UUID on a stopped managed node, preserving populated older data/logs. [Workflow](docs/GAME-PERMISSIONS.md). |
@@ -84,8 +85,8 @@ cd Wings-for-Windows
 If Go is not on PATH, pass `-GoExecutable C:\path\to\go.exe`. The script runs the Windows integration tests and `go vet`, then creates:
 
 ```text
-dist/wings-windows-native-0.1.0-alpha.38-windows-amd64.zip
-dist/wings-windows-native-0.1.0-alpha.38-windows-amd64.zip.sha256
+dist/wings-windows-native-0.1.0-alpha.39-windows-amd64.zip
+dist/wings-windows-native-0.1.0-alpha.39-windows-amd64.zip.sha256
 ```
 
 The archive includes the daemon, a harmless console demo executable, compiled runtime tests, a host-report script, configuration example, documentation and service script. Docker, Node, PHP and a C compiler are not needed to build it. Native integration tests compile a temporary demo executable using Go.

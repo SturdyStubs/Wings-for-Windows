@@ -1,6 +1,6 @@
 # Progress toward Wings compatibility
 
-Last updated: October 22, 2026. Current version: **0.1.0-alpha.38**. Active development: **M3 — Windows lifecycle features**. M1/M2 remain open for live panel and isolation gates.
+Last updated: October 22, 2026. Current version: **0.1.0-alpha.39**. Active development: **M3 — Windows lifecycle features**. M1/M2 remain open for live panel and isolation gates.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
@@ -122,7 +122,8 @@ Current scope remains a trusted private node. File denylist/path checks are not 
   - [x] Prepare one precreated game identity and empty UUID directory on a stopped existing managed node, with bounded ACL validation, rollback and preserved other-server data/logs. [Operator workflow](docs/GAME-PERMISSIONS.md).
   - [x] Create one dedicated game account for an unused UUID/name through a stopped-node operator command, with SecureString input, profile-binding output and owned-SID validation rollback. [Workflow](docs/GAME-ACCOUNTS.md).
   - [x] Import hash-approved local files through protected staging and verified same-parent publication into a new UUID code directory, with no overwrites or game write grants. [Workflow](docs/GAME-FILES.md).
-  - [ ] Add automatic protected game-binary download/update/promotion recovery, panel-driven account/create/install/start, server deletion and broader interrupted-operation recovery.
+  - [x] Inspect bounded unfinished code staging and explicitly quarantine one fingerprint-approved tree with bytes retained and administrator-only ACLs. [Workflow](docs/GAME-FILE-RECOVERY.md).
+  - [ ] Add automatic protected game-binary download/update/promotion recovery and a durable journal, panel-driven account/create/install/start, server deletion and broader interrupted-operation recovery.
 - [ ] Egg configuration parsers for text, JSON, YAML, INI, properties and XML.
   - [x] Add opt-in plain-text file parser with exact local approval, startup integration and bounded/guarded writes.
   - [x] Add a bounded JSON subset with nested/array/wildcard paths, literal conditions, preserved numeric precision and shared startup integration.
