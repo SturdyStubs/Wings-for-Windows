@@ -549,6 +549,76 @@ func TestExtractPublicationGuardsAndPartialOutcome(t *testing.T) {
 		})
 	}
 }
+
+func TestExtractIncompleteOutputCleanup(t *testing.T) {
+	for _, kind := range []string{"cancel", "policy"} {
+		t.Run(kind, func(t *testing.T) {
+			var denied atomic.Bool
+			a, _ := setupWithSettings(t, func(s *node.Settings) {
+				if denied.Load() {
+					s.Egg.FileDenylist = []string{"new/data"}
+				}
+			})
+			putDownload(t, a, "bundle", testGzip(t, testTar(t, tarTestEntry{name: "new/data", kind: tar.TypeReg, data: bytes.Repeat([]byte("x"), 256<<10)})))
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			fired := false
+			check := func() error {
+				if ctx.Err() != nil {
+					return &directoryFailure{408, "cancelled"}
+				}
+				if !fired {
+					list, e := os.ReadDir(filepath.Join(a.Manager.Get(serverID).Root, "new"))
+					if os.IsNotExist(e) {
+						return nil
+					}
+					if e != nil {
+						return e
+					}
+					for _, entry := range list {
+						if entry.Name() == "data" {
+							info, e := entry.Info()
+							if e != nil {
+								return e
+							}
+							if info.Size() > 0 {
+								fired = true
+								if kind == "cancel" {
+									cancel()
+									return &directoryFailure{408, "cancelled"}
+								}
+								denied.Store(true)
+								return a.Manager.Get(serverID).Sync(context.Background())
+							}
+						}
+					}
+				}
+				return nil
+			}
+			e := extractArchive(ctx, a.Manager.Get(serverID), "", "bundle", check)
+			var failure *directoryFailure
+			if !fired || !errors.As(e, &failure) {
+				t.Fatal("did not interrupt nonempty output", fired, e)
+			}
+			want := 408
+			if kind == "policy" {
+				want = 403
+			}
+			if failure.status != want {
+				t.Fatal(e)
+			}
+			if _, e = os.Stat(filepath.Join(a.Manager.Get(serverID).Root, "new", "data")); !os.IsNotExist(e) {
+				t.Fatal("incomplete final file retained", e)
+			}
+			if extractStages(t, a) != 0 {
+				t.Fatal("stages retained")
+			}
+			if _, e = os.Stat(filepath.Join(a.Manager.Get(serverID).Root, "new")); e != nil {
+				t.Fatal("published empty directory should remain", e)
+			}
+		})
+	}
+}
 func TestExtractAdmissionAndCancellation(t *testing.T) {
 	a, _ := setup(t)
 	b := testGzip(t, testTar(t, tarTestEntry{name: "data", kind: tar.TypeReg}))

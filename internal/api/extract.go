@@ -27,6 +27,8 @@ type extractEntry struct {
 	directory bool
 	explicit  bool
 	file      *os.File
+	output    *os.File
+	size      int64
 	published bool
 	stage     string
 }
@@ -197,15 +199,22 @@ func extractArchive(ctx context.Context, s *node.Server, base, sourceName string
 	defer func() {
 		for i := len(entries) - 1; i >= 0; i-- {
 			entry := entries[i]
-			if entry.file == nil {
-				continue
-			}
-			if !entry.published {
-				if discardCopyStage(entry.file) != nil {
-					err = &directoryFailure{500, "Extraction failed; an owned temporary file may remain"}
+			if entry.output != nil {
+				if !entry.published {
+					if discardCopyStage(entry.output) != nil {
+						err = &directoryFailure{500, "Extraction failed; an owned incomplete output may remain"}
+					}
 				}
+				entry.output.Close()
 			}
-			entry.file.Close()
+			if entry.file != nil {
+				if !entry.directory {
+					if discardCopyStage(entry.file) != nil {
+						err = &directoryFailure{500, "Extraction cleanup failed; an owned temporary file may remain"}
+					}
+				}
+				entry.file.Close()
+			}
 		}
 	}()
 	add := func(name string, dir, explicit bool) (*extractEntry, error) {
@@ -297,10 +306,11 @@ func extractArchive(ctx context.Context, s *node.Server, base, sourceName string
 			return e
 		}
 		entry.stage = ".wings-extract-" + hex.EncodeToString(random[:]) + ".tmp"
+		entry.size = h.Size
 		if e = current(entry.stage, false); e != nil {
 			return e
 		}
-		entry.file, e = openCopyHandle(parent, entry.stage, true)
+		entry.file, e = createExtractStage(parent, entry.stage)
 		if e != nil {
 			return e
 		}
@@ -386,7 +396,26 @@ func extractArchive(ctx context.Context, s *node.Server, base, sourceName string
 			if e != nil || !strings.EqualFold(actual, path.Join(parentName, entry.stage)) {
 				return &directoryFailure{409, "Extraction staging changed"}
 			}
-			if e = renameNoReplace(entry.file, destination, path.Base(entry.name)); e != nil {
+			entry.output, e = openCopyHandle(destination, path.Base(entry.name), true)
+			if e != nil {
+				return e
+			}
+			if _, e = entry.file.Seek(0, io.SeekStart); e != nil {
+				return e
+			}
+			guard := func() error {
+				if e := checkSource(); e != nil {
+					return e
+				}
+				return current(entry.name, false)
+			}
+			if e = copyBytes(ctx, downloadReader{r: entry.file, check: guard}, copyWriter{ctx: ctx, w: entry.output}, entry.size); e != nil {
+				return e
+			}
+			if e = entry.output.Sync(); e != nil {
+				return e
+			}
+			if e = guard(); e != nil {
 				return e
 			}
 		}

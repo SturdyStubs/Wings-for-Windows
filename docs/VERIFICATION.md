@@ -1,6 +1,6 @@
 # Verification and release status
 
-Alpha 48 adds tar.gz extraction. All 67 focused extraction cases/subtests pass; full clean build and Server 2022 checks pending. See [scope](FILE-EXTRACTION.md).
+Alpha 48 adds tar.gz extraction. All 70 focused extraction cases/subtests pass locally. Initial portable Server 2022 checks caught a rename-sharing incompatibility (62 pass/5 fail); upgrade was withheld. Exclusive output creation/copy fixes the issue; corrected full build and final VM checks pending. See [scope](FILE-EXTRACTION.md).
 
 Alpha 47: **1,117 local cases/subtests**, zero skips, vet and clean release; **14 native** and **38 portable compress** cases/subtests pass on Server 2022. **Eleven live archive checks** pass, including public HTTPS creation/download and SHA256-verified 9 MiB random binary round trip; ten upload and ten WSS regressions pass. Configuration/ACLs and earlier data are preserved, fixtures cleaned up, and service/demo/tunnel remain running. Extraction and actual browser Compress remain open. See [evidence](evidence/server2022-alpha47-archive-creation.md) and [scope](FILE-ARCHIVES.md).
 
