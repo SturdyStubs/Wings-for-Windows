@@ -48,16 +48,17 @@ func main() {
 		json.NewEncoder(os.Stdout).Encode(map[string]any{"host_key_created": true, "fingerprint": ssh.FingerprintSHA256(signer.PublicKey())})
 		return
 	}
-	if len(os.Args) != 5 || (os.Args[4] != "--allow-disposable-key-and-revocation" && os.Args[4] != "--allow-disposable-key-and-uploads") {
+	if len(os.Args) != 5 || (os.Args[4] != "--allow-disposable-key-and-revocation" && os.Args[4] != "--allow-disposable-key-and-uploads" && os.Args[4] != "--allow-disposable-key-and-management") {
 		fmt.Fprintln(os.Stderr, "arguments: native-config panel-HTTPS-base approved-demo-UUID --allow-disposable-key-and-revocation; Client key on stdin")
 		os.Exit(2)
 	}
-	uploadMode := os.Args[4] == "--allow-disposable-key-and-uploads"
+	managementMode := os.Args[4] == "--allow-disposable-key-and-management"
+	uploadMode := os.Args[4] == "--allow-disposable-key-and-uploads" || managementMode
 	key, e := bufio.NewReader(io.LimitReader(os.Stdin, 1025)).ReadString('\n')
 	need(e == nil || e == io.EOF)
 	key = strings.TrimSpace(key)
 	checks := map[string]bool{}
-	report := map[string]any{"observed_utc": time.Now().UTC().Format(time.RFC3339), "identity_source": "real panel Client key registers ephemeral SSH public key; node authenticates with real remote SFTP API", "public_sftp_tested": false, "actual_subuser_removal_tested": false, "checks": checks, "new_file_uploads_tested": uploadMode, "passed": false}
+	report := map[string]any{"observed_utc": time.Now().UTC().Format(time.RFC3339), "identity_source": "real panel Client key registers ephemeral SSH public key; node authenticates with real remote SFTP API", "public_sftp_tested": false, "actual_subuser_removal_tested": false, "checks": checks, "new_file_uploads_tested": uploadMode, "file_management_tested": managementMode, "passed": false}
 	failed := false
 	fingerprint := ""
 	keyName := ""
@@ -128,7 +129,7 @@ func main() {
 		}
 		if root != nil {
 			if owned {
-				for _, name := range []string{"binary", "new", "renamed", "uploaded", "empty", "aborted", "revoked-upload"} {
+				for _, name := range []string{"binary", "new", "renamed", "uploaded", "empty", "aborted", "revoked-upload", "managed/source", "managed/renamed", "managed-moved/source", "managed-moved/renamed", "managed", "managed-moved", "revoked-directory"} {
 					if e := root.Remove(dir + "/" + name); e != nil && !os.IsNotExist(e) {
 						failed = true
 					}
@@ -159,14 +160,15 @@ func main() {
 		TokenID string `json:"token_id"`
 		Data    string `json:"data_directory"`
 		SFTP    struct {
-			AllowUploads bool   `json:"allow_uploads"`
-			Listen       string `json:"listen"`
-			HostKey      string `json:"host_key"`
+			AllowFileManagement bool   `json:"allow_file_management"`
+			AllowUploads        bool   `json:"allow_uploads"`
+			Listen              string `json:"listen"`
+			HostKey             string `json:"host_key"`
 		} `json:"sftp"`
 		Profiles map[string]json.RawMessage `json:"profiles"`
 	}
 	need(json.Unmarshal(b, &cfg) == nil)
-	need(cfg.SFTP.AllowUploads == uploadMode)
+	need(cfg.SFTP.AllowUploads == uploadMode && cfg.SFTP.AllowFileManagement == managementMode)
 	id := os.Args[3]
 	need(id == "58e8c7f9-4923-43b3-b431-90b2bf4edf4f" && regexp.MustCompile(`^127\.0\.0\.1:\d+$`).MatchString(cfg.SFTP.Listen))
 	_, ok := cfg.Profiles[id]
@@ -274,8 +276,14 @@ func main() {
 	} else {
 		checks["sftp_upload_refused"] = true
 	}
-	need(client.Remove(dir+"/binary") != nil && client.Rename(dir+"/binary", dir+"/renamed") != nil && client.Chmod(dir+"/binary", 0777) != nil && client.Mkdir(dir+"/new") != nil)
-	checks["sftp_mutations_refused"] = true
+	if managementMode {
+		exerciseManagement(client, root, dir, checks)
+		need(client.PosixRename(dir+"/binary", dir+"/uploaded") != nil && client.Chmod(dir+"/binary", 0777) != nil && client.Symlink(dir+"/binary", dir+"/new") != nil)
+		checks["unsupported_sftp_mutations_refused"] = true
+	} else {
+		need(client.Remove(dir+"/binary") != nil && client.Rename(dir+"/binary", dir+"/renamed") != nil && client.Chmod(dir+"/binary", 0777) != nil && client.Mkdir(dir+"/new") != nil)
+		checks["sftp_mutations_refused"] = true
+	}
 	for _, name := range []string{"../private/config.json", `C:\WingsWindows\private\config.json`, "install.marker:stream"} {
 		if f, e := client.Open(name); e == nil {
 			f.Close()
@@ -328,6 +336,12 @@ func main() {
 		_, e = root.Stat(dir + "/revoked-upload")
 		need(os.IsNotExist(e))
 		checks["revoked_upload_not_published"] = true
+	}
+	if managementMode {
+		need(revoked.Mkdir(dir+"/revoked-directory") != nil)
+		_, e = root.Stat(dir + "/revoked-directory")
+		need(os.IsNotExist(e))
+		checks["revoked_management_refused"] = true
 	}
 	revoked.Close()
 	checks["scoped_node_user_revocation_stops_open_sftp_read"] = true
@@ -401,4 +415,37 @@ func exerciseUploads(client *sftp.Client, root *os.Root, dir string, data []byte
 	need(os.IsNotExist(e))
 	checks["disconnected_upload_discarded"] = true
 	abortedClient.Close()
+}
+
+func exerciseManagement(c *sftp.Client, root *os.Root, dir string, checks map[string]bool) {
+	need(c.Mkdir(dir+"/managed") == nil)
+	checks["sftp_create_directory"] = true
+	f, e := c.Create(dir + "/managed/source")
+	need(e == nil)
+	_, e = f.Write([]byte("managed bytes"))
+	need(e == nil && f.Close() == nil)
+	need(c.Rename(dir+"/managed/source", dir+"/managed/renamed") == nil)
+	b, e := root.ReadFile(dir + "/managed/renamed")
+	need(e == nil && string(b) == "managed bytes")
+	checks["sftp_rename_file"] = true
+	need(c.Rename(dir+"/managed", dir+"/managed-moved") == nil)
+	b, e = root.ReadFile(dir + "/managed-moved/renamed")
+	need(e == nil && string(b) == "managed bytes")
+	checks["sftp_rename_nonempty_directory"] = true
+	before, e := root.ReadFile(dir + "/uploaded")
+	need(e == nil)
+	need(c.Rename(dir+"/managed-moved/renamed", dir+"/uploaded") != nil)
+	after, e := root.ReadFile(dir + "/uploaded")
+	need(e == nil && bytes.Equal(before, after))
+	checks["sftp_rename_collision_preserves_destination"] = true
+	need(c.RemoveDirectory(dir+"/managed-moved") != nil && c.Remove(dir+"/managed-moved") != nil && c.RemoveDirectory(dir+"/managed-moved/renamed") != nil)
+	checks["sftp_wrong_type_and_nonempty_delete_refused"] = true
+	need(c.Remove(dir+"/managed-moved/renamed") == nil)
+	_, e = root.Stat(dir + "/managed-moved/renamed")
+	need(os.IsNotExist(e))
+	checks["sftp_remove_regular_file"] = true
+	need(c.RemoveDirectory(dir+"/managed-moved") == nil)
+	_, e = root.Stat(dir + "/managed-moved")
+	need(os.IsNotExist(e))
+	checks["sftp_remove_empty_directory"] = true
 }

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.55 - 2026-10-24
+
+- Add independent `sftp.allow_file_management` for single-directory creation, no-replace file/directory rename/move, regular-file deletion and empty-directory removal. Default false; require file.create/update/delete respectively. Reuse native pinned handles and HTTP rename/delete contention locks; reject root/aliases/links, collisions and wrong entry types. Never recursively delete through SFTP.
+- Bound commands to four node-wide slots and cooperative ten-second contexts; directory rename scans at most 1000 entries / 32 child levels. Refuse publication if the immutable egg policy identity changes during preparation. Other mutations, overwrite/append and public deployment remain open.
+- Extend native/encrypted-protocol tests, real-panel probe and remaining-work assessment. Clean release/live validation pending.
+
 ## 0.1.0-alpha.54 - 2026-10-24
 
 - Add explicit `sftp.allow_uploads` for new files only, retaining read-only behavior by default. Require file.create and write/create flags; refuse overwrite, append, implicit parents and other mutations. Accept ordinary create/read-write opens while refusing reads through the unpublished upload handle.

@@ -1,12 +1,14 @@
 # Progress toward Wings compatibility
 
-Last updated: October 24, 2026. Current version: **0.1.0-alpha.54**. Active development: **M3 — Windows lifecycle features**, with **bounded M4 file management and scoped transfers** implemented. M1/M2 remain open for live panel and isolation gates.
+Last updated: October 24, 2026. Current version: **0.1.0-alpha.55**. Active development: **M3 — Windows lifecycle features**, with **bounded M4 file management and scoped transfers** implemented. M1/M2 remain open for live panel and isolation gates.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
 This file tracks the current implementation. The audit preserves the alpha 1 baseline. A checked implementation item means code and local regression tests exist; a live verification item stays open until exercised against a real panel/host/game. Route coverage is not a completion percentage.
 
 ## Current state
+
+- Alpha 55 candidate: independent opt-in SFTP mkdir, no-replace rename/move, single-file delete and empty-directory removal. Permissions, native confinement, shared mutation locks and bounded policy-checked scans covered locally; clean release/live validation pending. [Scope](docs/SFTP.md).
 
 - Alpha 54: opt-in staged new-file SFTP uploads with clean-close/no-replace publication, bounded random-order packets and disconnect/revocation cleanup. Clean release: 1,515 local; Server 2022: 14 native / 74 backend and integrated-protocol / 34 SSH subsystem / 13 config cases. Eighteen real-panel read-only, 23 real-panel upload and 19 Client API/token groups pass; HTTP upload regression passes. Only planned flag added, same protected host key, zero stages/fixtures, demo/service/tunnel Running. Full #30 stays open; M4 remains 5/10. [Scope](docs/SFTP.md), [evidence](docs/evidence/server2022-alpha54-sftp-uploads.md).
 

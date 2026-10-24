@@ -18,7 +18,7 @@ import (
 	"wings-windows/internal/networkpolicy"
 )
 
-const Version = "0.1.0-alpha.54"
+const Version = "0.1.0-alpha.55"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -47,9 +47,10 @@ type Profile struct {
 	MemoryMB                   int                  `json:"memory_mb"`
 }
 type SFTP struct {
-	AllowUploads bool   `json:"allow_uploads,omitempty"`
-	Listen       string `json:"listen"`
-	HostKey      string `json:"host_key"`
+	AllowFileManagement bool   `json:"allow_file_management,omitempty"`
+	AllowUploads        bool   `json:"allow_uploads,omitempty"`
+	Listen              string `json:"listen"`
+	HostKey             string `json:"host_key"`
 }
 
 type Config struct {

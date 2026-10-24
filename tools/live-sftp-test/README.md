@@ -10,3 +10,6 @@ Password authentication and actual panel subuser removal are not proved by this 
 
 
 Alpha 54 adds an alternative explicit flag `--allow-disposable-key-and-uploads`, which requires the native `sftp.allow_uploads` opt-in. It adds actual 9 MiB out-of-order upload/readback, no final name before CLOSE, empty files, disconnect cleanup, refusal of existing destinations and revoked-upload nonpublication. Both modes retain ephemeral key removal and exact owned-file cleanup. Use the original flag only while the node remains read-only.
+
+
+Alpha 55 adds `--allow-disposable-key-and-management` for the dedicated node with both upload and management opt-ins. It adds real mkdir, file/nonempty-directory rename, collision preservation, typed/nonempty-delete refusal, file removal, empty-directory removal and revoked-command refusal. Only the exact known nested fixture files and empty directories are cleaned; unexpected contents fail cleanup and are retained.

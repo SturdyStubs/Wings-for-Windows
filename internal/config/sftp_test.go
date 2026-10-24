@@ -8,7 +8,7 @@ import (
 )
 
 func TestSFTPExplicitLoopbackConfiguration(t *testing.T) {
-	for _, kind := range []string{"disabled", "valid", "uploads", "public", "hostname", "zero", "invalid-port", "same-listener", "relative-key", "data-key", "different-parent", "same-config"} {
+	for _, kind := range []string{"disabled", "valid", "uploads", "management", "public", "hostname", "zero", "invalid-port", "same-listener", "relative-key", "data-key", "different-parent", "same-config"} {
 		t.Run(kind, func(t *testing.T) {
 			c := valid(t)
 			dir := t.TempDir()
@@ -17,6 +17,8 @@ func TestSFTPExplicitLoopbackConfiguration(t *testing.T) {
 				c.SFTP = &SFTP{Listen: "127.0.0.1:2203", HostKey: filepath.Join(dir, "host-key")}
 			}
 			switch kind {
+			case "management":
+				c.SFTP.AllowFileManagement = true
 			case "uploads":
 				c.SFTP.AllowUploads = true
 			case "public":
@@ -46,12 +48,15 @@ func TestSFTPExplicitLoopbackConfiguration(t *testing.T) {
 				t.Fatal(e)
 			}
 			loaded, e := Load(filename)
-			want := kind == "valid" || kind == "disabled" || kind == "uploads"
+			want := kind == "valid" || kind == "disabled" || kind == "uploads" || kind == "management"
 			if (e == nil) != want {
 				t.Fatal(e)
 			}
 			if kind == "uploads" && !loaded.SFTP.AllowUploads {
 				t.Fatal("upload opt-in lost")
+			}
+			if kind == "management" && !loaded.SFTP.AllowFileManagement {
+				t.Fatal("management opt-in lost")
 			}
 			if kind == "valid" && loaded.SFTP == nil {
 				t.Fatal("configuration lost")

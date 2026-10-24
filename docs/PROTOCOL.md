@@ -99,7 +99,7 @@ Alpha 34 adds opt-in [manual-approval creation](PENDING-CREATION.md), with no pe
 | `POST /api/servers/{uuid}/files/write?file=/name` | Write a confined text file up to 8 MiB. Parent directories must already exist. |
 | `POST /api/servers/{uuid}/files/create-directory` | JSON `name` and `path`; create nested directories and missing parents, 204 for success/existing directory. Bounded Windows names, denylist preflight and observed reparse/link refusal; [scope](FILE-DIRECTORIES.md). |
 
-Alpha 53 adds a separate opt-in [read-only loopback SFTP subsystem](SFTP.md). It authenticates through the real panel remote SFTP contract, supports password/public keys, and uses existing user deauthorization. It adds no HTTP route; alpha 54 additionally opts into staged new-file uploads. Public SFTP and other writes/mutations remain open.
+Alpha 53 adds a separate opt-in [read-only loopback SFTP subsystem](SFTP.md). It authenticates through the real panel remote SFTP contract, supports password/public keys, and uses existing user deauthorization. It adds no HTTP route; alpha 54 additionally opts into staged new-file uploads. Alpha 55 adds an independent opt-in for bounded mkdir, no-replace rename/move, regular-file removal and empty-directory removal. Public SFTP, overwrite/append and other mutations remain open.
 
 Unknown/unsupported authenticated routes return 501, including server deletion, automatic binary provisioning, resumable transfers, other archive formats, broader remote-fetch policies, backups and transfers. A profile that does not belong to this node is not registered and returns 404.
 

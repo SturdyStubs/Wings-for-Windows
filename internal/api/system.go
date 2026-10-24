@@ -16,9 +16,12 @@ func (a *API) system(w http.ResponseWriter, r *http.Request) {
 	if a.Manager.Config.SFTP != nil {
 		if a.Manager.Config.SFTP.AllowUploads {
 			capabilities = append(capabilities, "sftp_new_file_uploads_loopback")
-		} else {
+		} else if !a.Manager.Config.SFTP.AllowFileManagement {
 			capabilities = append(capabilities, "sftp_read_only_loopback")
 		}
+	}
+	if a.Manager.Config.SFTP != nil && a.Manager.Config.SFTP.AllowFileManagement {
+		capabilities = append(capabilities, "sftp_file_management_loopback")
 	}
 	if a.Manager.Config.AllowRemoteDownloads {
 		capabilities = append(capabilities, "files_remote_pull_https")

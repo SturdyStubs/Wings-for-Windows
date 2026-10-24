@@ -64,3 +64,11 @@ func (s *Server) FileDenied(name string, directory bool) bool {
 	s.mu.Unlock()
 	return policy.Denied(name, directory)
 }
+
+// FilePolicySnapshot returns an immutable policy identity for bounded multi-step
+// operations. Sync replaces the policy; callers may then refuse publication.
+func (s *Server) FilePolicySnapshot() *FilePolicy {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.filePolicy
+}

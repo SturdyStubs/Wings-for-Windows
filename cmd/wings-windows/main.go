@@ -85,7 +85,7 @@ func runWithReady(ctx context.Context, path, markInstalled string, ready func())
 			_ = gateway.Close(closeCtx)
 		}()
 		sftpDone = gateway.Done()
-		log.Printf("SFTP listening on %s (new-file uploads: %t; host fingerprint %s)", c.SFTP.Listen, c.SFTP.AllowUploads, gateway.Fingerprint())
+		log.Printf("SFTP listening on %s (new-file uploads: %t; file management: %t; host fingerprint %s)", c.SFTP.Listen, c.SFTP.AllowUploads, c.SFTP.AllowFileManagement, gateway.Fingerprint())
 	}
 	if err := ctx.Err(); err != nil {
 		return err

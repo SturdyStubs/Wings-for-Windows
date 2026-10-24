@@ -16,30 +16,31 @@ import (
 )
 
 type API struct {
-	Manager         *node.Manager
-	boot            time.Time
-	downloadMu      sync.Mutex
-	downloadUsed    map[string]time.Time
-	downloadSlots   chan struct{}
-	uploadSlots     chan struct{}
-	sftpUploadLocks sync.Map
-	archiveSlots    chan struct{}
-	archiveLocks    sync.Map
-	revoked         sync.Map
-	renameLocks     sync.Map
-	copyLocks       sync.Map
-	deleteLocks     sync.Map
-	slots           chan struct{}
-	done            chan struct{}
-	closeOnce       sync.Once
-	pullMu          sync.Mutex
-	pulls           map[string]*pullJob
-	pullWG          sync.WaitGroup
-	pullClient      *http.Client
+	Manager          *node.Manager
+	boot             time.Time
+	downloadMu       sync.Mutex
+	downloadUsed     map[string]time.Time
+	downloadSlots    chan struct{}
+	uploadSlots      chan struct{}
+	sftpUploadLocks  sync.Map
+	sftpCommandSlots chan struct{}
+	archiveSlots     chan struct{}
+	archiveLocks     sync.Map
+	revoked          sync.Map
+	renameLocks      sync.Map
+	copyLocks        sync.Map
+	deleteLocks      sync.Map
+	slots            chan struct{}
+	done             chan struct{}
+	closeOnce        sync.Once
+	pullMu           sync.Mutex
+	pulls            map[string]*pullJob
+	pullWG           sync.WaitGroup
+	pullClient       *http.Client
 }
 
 func New(m *node.Manager) *API {
-	return &API{Manager: m, boot: time.Now().Truncate(time.Second), slots: make(chan struct{}, 256), done: make(chan struct{}), downloadSlots: make(chan struct{}, 8), uploadSlots: make(chan struct{}, 4), archiveSlots: make(chan struct{}, 2), downloadUsed: make(map[string]time.Time), pulls: make(map[string]*pullJob), pullClient: newPullClient()}
+	return &API{Manager: m, boot: time.Now().Truncate(time.Second), slots: make(chan struct{}, 256), done: make(chan struct{}), downloadSlots: make(chan struct{}, 8), uploadSlots: make(chan struct{}, 4), sftpCommandSlots: make(chan struct{}, 4), archiveSlots: make(chan struct{}, 2), downloadUsed: make(map[string]time.Time), pulls: make(map[string]*pullJob), pullClient: newPullClient()}
 }
 func (a *API) Close() {
 	a.closeOnce.Do(func() {

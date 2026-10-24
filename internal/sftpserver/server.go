@@ -55,6 +55,10 @@ type UploadBackend interface {
 	Upload(context.Context, Access, string) (WriteHandle, error)
 }
 
+type CommandBackend interface {
+	Command(context.Context, Access, string, string, string) error
+}
+
 type Backend interface {
 	Authenticate(context.Context, AuthRequest) (Access, error)
 	Allowed(Access) bool
@@ -349,7 +353,31 @@ func (w *writer) Close() error {
 	})
 	return w.err
 }
-func (h *handler) Filecmd(*sftp.Request) error { return os.ErrPermission }
+func (h *handler) Filecmd(r *sftp.Request) error {
+	if e := h.check(); e != nil {
+		return e
+	}
+	permission := CommandPermission(r.Method)
+	backend, ok := h.backend.(CommandBackend)
+	if !ok || permission == "" || !h.access.Can(permission) {
+		return os.ErrPermission
+	}
+	if e := backend.Command(h.ctx, h.access, r.Method, r.Filepath, r.Target); e != nil {
+		return os.ErrPermission
+	}
+	return nil
+}
+func CommandPermission(method string) string {
+	switch method {
+	case "Mkdir":
+		return "file.create"
+	case "Rename":
+		return "file.update"
+	case "Remove", "Rmdir":
+		return "file.delete"
+	}
+	return ""
+}
 func (h *handler) Fileread(r *sftp.Request) (io.ReaderAt, error) {
 	if e := h.check(); e != nil {
 		return nil, e
