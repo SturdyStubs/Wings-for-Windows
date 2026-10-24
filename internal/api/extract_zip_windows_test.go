@@ -300,3 +300,42 @@ func TestExtractZIPCancellationAndPolicy(t *testing.T) {
 		})
 	}
 }
+
+// A second parser must not discover alternate EOCD/ZIP64 metadata after our
+// bounded preflight, including when a maximum-length comment hides the locator.
+func TestExtractZIPAmbiguousEndMetadata(t *testing.T) {
+	for _, kind := range []string{"end-in-comment", "zip64-locator", "long-comment-locator"} {
+		t.Run(kind, func(t *testing.T) {
+			a, _ := setup(t)
+			var b bytes.Buffer
+			z := zip.NewWriter(&b)
+			comment := "comment"
+			h := &zip.FileHeader{Name: "safe", Method: zip.Store}
+			if kind == "end-in-comment" {
+				comment = string(append([]byte{'P', 'K', 5, 6}, make([]byte, 30)...))
+			} else {
+				h.Comment = string(append([]byte{'P', 'K', 6, 7}, make([]byte, 16)...))
+				if kind == "long-comment-locator" {
+					comment = strings.Repeat("a", 65535)
+				}
+			}
+			if e := z.SetComment(comment); e != nil {
+				t.Fatal(e)
+			}
+			w, e := z.CreateHeader(h)
+			if e != nil {
+				t.Fatal(e)
+			}
+			if _, e = w.Write([]byte("data")); e != nil {
+				t.Fatal(e)
+			}
+			if e = z.Close(); e != nil {
+				t.Fatal(e)
+			}
+			putDownload(t, a, "bundle", b.Bytes())
+			if r := extractRequest(t, a, "/", "bundle"); r.Code != 422 {
+				t.Fatal(r.Code, r.Body)
+			}
+		})
+	}
+}

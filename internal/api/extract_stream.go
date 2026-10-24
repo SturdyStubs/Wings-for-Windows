@@ -114,11 +114,26 @@ func openExtractZIP(source *os.File, size int64, check func() error) (*extractSt
 	if end < 0 {
 		return nil, bad()
 	}
+	// archive/zip scans backwards for its end record and optionally follows a
+	// ZIP64 locator. Reject ambiguous signatures so it cannot select metadata
+	// other than the bounded directory validated below.
+	if bytes.Contains(tail[end+4:], []byte{'P', 'K', 5, 6}) {
+		return nil, bad()
+	}
 	h := tail[end:]
 	count := int(u16(h[10:]))
 	centralSize := int64(u32(h[12:]))
 	offset := int64(u32(h[16:]))
 	centralEnd := size - n + int64(end)
+	if centralEnd >= 20 {
+		locator, e := read(centralEnd-20, 4)
+		if e != nil {
+			return nil, e
+		}
+		if u32(locator) == 0x07064b50 {
+			return nil, bad()
+		}
+	}
 	if u16(h[4:]) != 0 || u16(h[6:]) != 0 || int(u16(h[8:])) != count || count == 65535 || u32(h[12:]) == 0xffffffff || u32(h[16:]) == 0xffffffff {
 		return nil, bad()
 	}
@@ -211,6 +226,9 @@ func openExtractZIP(source *os.File, size int64, check func() error) (*extractSt
 	z, e := zip.NewReader(source, size)
 	if e != nil {
 		return nil, e
+	}
+	if len(z.File) != count {
+		return nil, bad()
 	}
 	i := 0
 	var active io.ReadCloser
