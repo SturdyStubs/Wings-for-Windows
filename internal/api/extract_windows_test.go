@@ -568,29 +568,21 @@ func TestExtractIncompleteOutputCleanup(t *testing.T) {
 					return &directoryFailure{408, "cancelled"}
 				}
 				if !fired {
-					list, e := os.ReadDir(filepath.Join(a.Manager.Get(serverID).Root, "new"))
+					info, e := os.Stat(filepath.Join(a.Manager.Get(serverID).Root, "new", "data"))
 					if os.IsNotExist(e) {
 						return nil
 					}
 					if e != nil {
 						return e
 					}
-					for _, entry := range list {
-						if entry.Name() == "data" {
-							info, e := entry.Info()
-							if e != nil {
-								return e
-							}
-							if info.Size() > 0 {
-								fired = true
-								if kind == "cancel" {
-									cancel()
-									return &directoryFailure{408, "cancelled"}
-								}
-								denied.Store(true)
-								return a.Manager.Get(serverID).Sync(context.Background())
-							}
+					if info.Size() > 0 {
+						fired = true
+						if kind == "cancel" {
+							cancel()
+							return &directoryFailure{408, "cancelled"}
 						}
+						denied.Store(true)
+						return a.Manager.Get(serverID).Sync(context.Background())
 					}
 				}
 				return nil
