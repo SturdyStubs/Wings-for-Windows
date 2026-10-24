@@ -3,6 +3,7 @@ package main
 
 import (
 	"archive/tar"
+	"archive/zip"
 	"bytes"
 	"compress/gzip"
 	"crypto/rand"
@@ -65,7 +66,7 @@ func main() {
 						failed = true
 					}
 				}
-				for _, name := range []string{"target/tree", "target/empty-dir", "target", "source/tree", "source/empty-dir", "source"} {
+				for _, name := range []string{"target/zip", "target/tree", "target/empty-dir", "target", "source/tree", "source/empty-dir", "source"} {
 					if e := root.Remove(dir + "/" + name); e != nil && !os.IsNotExist(e) {
 						failed = true
 					}
@@ -200,6 +201,36 @@ func main() {
 		need(os.IsNotExist(e))
 		checks[tc.kind+"_refused_before_publication"] = true
 	}
+	// ZIP is independently produced, with Store/Deflate, Unicode and a comment.
+	var zipBody bytes.Buffer
+	zw := zip.NewWriter(&zipBody)
+	need(zw.SetComment("live Windows ZIP fixture") == nil)
+	zf, e := zw.CreateHeader(&zip.FileHeader{Name: "zip/Caf?.bin", Method: zip.Deflate})
+	need(e == nil)
+	_, e = zf.Write(large)
+	need(e == nil)
+	need(zw.Close() == nil)
+	put("target/bundle.zip", zipBody.Bytes())
+	need(extract("bundle.zip") == 204)
+	current, e = root.ReadFile(dir + "/target/zip/Caf?.bin")
+	need(e == nil && sha256.Sum256(current) == sha256.Sum256(large))
+	checks["zip_nine_mib_unicode_binary_integrity"] = true
+	need(extract("bundle.zip") == 409)
+	checks["zip_repeat_preserves_existing_data"] = true
+	var badBody bytes.Buffer
+	badZIP := zip.NewWriter(&badBody)
+	for _, name := range []string{"safe.txt", "../escape.bin"} {
+		f, e := badZIP.Create(name)
+		need(e == nil)
+		_, e = f.Write([]byte("never publish"))
+		need(e == nil)
+	}
+	need(badZIP.Close() == nil)
+	put("target/bad.zip", badBody.Bytes())
+	need(extract("bad.zip") == 422)
+	_, e = root.Lstat(dir + "/target/safe.txt")
+	need(os.IsNotExist(e))
+	checks["zip_traversal_refused_before_publication"] = true
 	_, e = root.Lstat(dir + "/escape.bin")
 	need(os.IsNotExist(e))
 	current, e = root.ReadFile(dir + "/sentinel")

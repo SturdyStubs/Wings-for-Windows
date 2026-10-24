@@ -1,9 +1,6 @@
 package api
 
 import (
-	"archive/tar"
-	"bufio"
-	"compress/gzip"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
@@ -163,7 +160,7 @@ func extractArchive(ctx context.Context, s *node.Server, base, sourceName string
 		return e
 	}
 	if !info.Mode().IsRegular() {
-		return &directoryFailure{422, "A regular gzip tar archive is required"}
+		return &directoryFailure{422, "A regular tar.gz or ZIP archive is required"}
 	}
 	if info.Size() > maxArchiveOutput {
 		return &directoryFailure{413, "Compressed archive exceeds 101 MiB"}
@@ -185,15 +182,11 @@ func extractArchive(ctx context.Context, s *node.Server, base, sourceName string
 		}
 		return nil
 	}
-	reader := bufio.NewReader(downloadReader{r: source, check: checkSource})
-	z, e := gzip.NewReader(reader)
+	stream, e := openExtractStream(source, info.Size(), checkSource)
 	if e != nil {
-		return &directoryFailure{400, "Expected a valid gzip tar archive"}
+		return e
 	}
-	defer z.Close()
-	z.Multistream(false)
-	decoded := &extractBudget{reader: z, remaining: maxExtractStream, check: checkSource}
-	tr := tar.NewReader(decoded)
+	defer stream.close()
 	var entries []*extractEntry
 	index := map[string]*extractEntry{}
 	defer func() {
@@ -244,12 +237,8 @@ func extractArchive(ctx context.Context, s *node.Server, base, sourceName string
 		if e = checkSource(); e != nil {
 			return e
 		}
-		beforeHeader := decoded.used
-		h, e := tr.Next()
+		h, payload, e := stream.next()
 		if e == io.EOF {
-			if decoded.used-beforeHeader < 1024 {
-				return &directoryFailure{400, "Tar end markers are missing"}
-			}
 			break
 		}
 		if e != nil {
@@ -259,19 +248,8 @@ func extractArchive(ctx context.Context, s *node.Server, base, sourceName string
 		if headers > maxArchiveEntries {
 			return &directoryFailure{413, "Extraction exceeds 256 archive headers"}
 		}
-		dir := h.Typeflag == tar.TypeDir
-		if !dir && h.Typeflag != tar.TypeReg && h.Typeflag != tar.TypeRegA {
-			return &directoryFailure{422, "Only regular files and directories may be extracted"}
-		}
-		if h.Linkname != "" || h.Size < 0 || dir && h.Size != 0 {
-			return &directoryFailure{422, "Invalid archive entry"}
-		}
-		for key := range h.PAXRecords {
-			if strings.HasPrefix(key, "GNU.sparse.") {
-				return &directoryFailure{422, "Sparse archive records are unsupported"}
-			}
-		}
-		name := h.Name
+		dir := h.directory
+		name := h.name
 		if dir {
 			name = strings.TrimSuffix(name, "/")
 		}
@@ -297,16 +275,16 @@ func extractArchive(ctx context.Context, s *node.Server, base, sourceName string
 		if dir {
 			continue
 		}
-		if h.Size > maxArchiveInput-total {
+		if h.size > maxArchiveInput-total {
 			return &directoryFailure{413, "Expanded files exceed 100 MiB aggregate"}
 		}
-		total += h.Size
+		total += h.size
 		var random [16]byte
 		if _, e = rand.Read(random[:]); e != nil {
 			return e
 		}
 		entry.stage = ".wings-extract-" + hex.EncodeToString(random[:]) + ".tmp"
-		entry.size = h.Size
+		entry.size = h.size
 		if e = current(entry.stage, false); e != nil {
 			return e
 		}
@@ -314,11 +292,11 @@ func extractArchive(ctx context.Context, s *node.Server, base, sourceName string
 		if e != nil {
 			return e
 		}
-		n, e := io.CopyBuffer(copyWriter{ctx: ctx, w: entry.file}, downloadReader{r: tr, check: func() error { return current(entry.name, false) }}, buf)
+		n, e := io.CopyBuffer(copyWriter{ctx: ctx, w: entry.file}, downloadReader{r: io.LimitReader(payload, h.size+1), check: func() error { return current(entry.name, false) }}, buf)
 		if e != nil {
 			return e
 		}
-		if n != h.Size {
+		if n != h.size {
 			return io.ErrUnexpectedEOF
 		}
 		if e = entry.file.Sync(); e != nil {
@@ -328,16 +306,8 @@ func extractArchive(ctx context.Context, s *node.Server, base, sourceName string
 	if headers == 0 {
 		return &directoryFailure{400, "Archive contains no extractable entries"}
 	}
-	// Fully consume the single gzip member: verify CRC/truncation and permit only
-	// zero tar padding after EOF. Refuse additional members or trailing payload.
-	if _, e = io.CopyBuffer(extractPadding{}, decoded, buf); e != nil {
+	if e = stream.finish(); e != nil {
 		return e
-	}
-	if _, e = reader.Peek(1); e != io.EOF {
-		if e != nil {
-			return e
-		}
-		return &directoryFailure{422, "Trailing gzip members or bytes are unsupported"}
 	}
 	for _, entry := range entries {
 		if e = checkSource(); e != nil {

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.0-alpha.50 - 2026-10-23
+
+- Add ZIP Store/Deflate support to the existing Extract endpoint, detected by content, with shared Windows path/policy checks, bounded staging and new destinations only.
+- Preflight a bounded single-disk central directory before ZIP parser allocation; validate local/central headers and descriptors, refuse encryption, ZIP64, special files, prefixes, overlaps, gaps and appended bytes. Verify payload sizes/CRC before publication.
+- Keep tar.gz parsing/integrity checks and the existing 101 MiB source, 100 MiB expanded data, 256-path, two-global/one-server and 60-second extraction limits. ZIP metadata is not applied.
+- Extend portable extraction tests and the opt-in public HTTPS probe. Local/Server 2022 verification is pending for this source revision; evidence will be recorded separately.
+
 ## 0.1.0-alpha.49 - 2026-10-23
 
 - Add opt-in panel/upstream remote-file pull POST/GET/DELETE contracts, foreground metadata or background identifiers, bounded active progress and early/scoped cancellation. Default disabled via `allow_remote_downloads`; graceful shutdown cancels and waits for cleanup.

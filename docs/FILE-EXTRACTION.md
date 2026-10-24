@@ -1,6 +1,6 @@
-# Bounded tar.gz extraction
+# Bounded archive extraction
 
-Alpha 48 implements the existing panel/Wings Extract action for a single gzip-compressed tar archive:
+Alpha 48 implements the existing panel/Wings Extract action for a single gzip-compressed tar archive. Alpha 50 also accepts a bounded ZIP subset through the same endpoint:
 
 ```http
 POST /api/servers/SERVER_UUID/files/decompress
@@ -10,7 +10,7 @@ Content-Type: application/json
 {"root":"/target","file":"bundle.tar.gz"}
 ```
 
-`root` must already exist under an approved server's data root. The archive path is relative to that root; extracted paths are also relative to it. Success returns 204. The input is detected as gzip/tar rather than trusted by extension. Pending profiles have no file access. The independent fixture follows reviewed Wings `postServerDecompressFiles` and panel `app/Services/Daemon/FilesClient.php::decompressFile`.
+`root` must already exist under an approved server's data root. The archive path is relative to that root; extracted paths are also relative to it. Success returns 204. The input is detected as gzip/tar or ZIP rather than trusted by extension. Pending profiles have no file access. The independent fixture follows reviewed Wings `postServerDecompressFiles` and panel `app/Services/Daemon/FilesClient.php::decompressFile`.
 
 **Existing top-level destinations are refused**, including existing empty directories, files, links and the archive itself if an entry would replace it. Use a destination containing no colliding names. Extraction does not merge trees or overwrite files; this intentionally differs from broader upstream behavior. Archives made by the native Compress action round-trip into a fresh destination.
 
@@ -23,6 +23,14 @@ Content-Type: application/json
 - Validate the complete single gzip member, including CRC/length/truncation, tar end markers and bounded zero padding, before publication. Refuse concatenated gzip members, compressed trailing bytes and nonzero trailing tar payload. Go's tar/gzip parsers have their own bounded metadata allocations before subset checks; no fixed 64 KiB total-memory claim is made.
 
 File payloads stream through 64 KiB chunks into exclusive random `.wings-extract-*.tmp` files in the existing destination root. No final directories/files are created while parsing. A malformed later header or bad checksum removes unpublished stages rather than publishing earlier valid payloads.
+
+## ZIP subset (alpha 50)
+
+Single-disk ZIP with Store or Deflate payloads, UTF-8/ASCII names, optional comments and ordinary 32-bit data descriptors is supported. A 1 MiB central-directory cap and at most 256 central entries are checked before Go ZIP parser allocation; the shared 256-final-path bound also counts implicit parents. Compressed input remains capped at 101 MiB and expanded file data at 100 MiB aggregate. The 102 MiB decoded-tar-stream limit applies only to tar.gz. ZIP fields cannot increase these limits.
+
+Local headers must match central names, methods and flags; local records and descriptors must occupy contiguous nonoverlapping ranges from byte zero to the central directory. The central directory must immediately precede the final end record and its declared comment. Refuse multi-disk/ZIP64 archives, encryption, unknown flags/methods, self-extracting prefixes, gaps, overlapping records, trailing payload and inconsistent headers/descriptors. Unix special-file modes are refused; archive permissions/read-only flags are ignored. Every file is read to its declared size and CRC-checked before any final output is published; empty directory streams are validated too. Non-UTF-8 legacy names are refused. This deliberately bounded subset does not accept every otherwise legal ZIP.
+
+ZIP and tar.gz use the same source handles, path/denylist checks, flat owned stages, exact-handle cleanup and publication code. Extracting executable bytes does not approve or execute them. ZIP creation, other compression methods, merge/overwrite and durable recovery remain open.
 
 ## Publication and partial outcomes
 
@@ -38,7 +46,7 @@ Typical statuses: 401 bad node bearer; 404 unavailable archive/parent; 400 malfo
 
 The focused suite covers the panel contract, native create/extract round trip, Unicode/binary/empty/implicit directories, exact 100 MiB and 256-path boundaries, overflow, unsafe paths and metadata types, corruption/truncation/trailing members, expansion and decoded-stream limits, links, collisions, dynamic policy, nonempty-stage cancellation/shutdown cleanup, pinned new directories and partial publication. The corrected clean release passes 1,187 local cases/subtests, zero skips and vet; Server 2022 passes 14 native, 70 portable extraction and thirteen live create/extract/cleanup groups, plus ten each upload/WSS regressions. Public HTTPS extracts a 9 MiB binary with matching SHA256 and refuses malicious inputs. The initial Server 2022 sharing issue was fixed before deployment; see [exact evidence](evidence/server2022-alpha48-archive-extraction.md). The opt-in [live probe](../tools/live-extract-test/README.md) uses known owned fixture data and nonrecursive cleanup.
 
-Plain tar, ZIP/RAR/7z, merge/overwrite, sparse/link extraction, metadata restoration, quotas/reservations, broader remote-fetch policies, progress/cancel UI, durable recovery and actual panel browser Extract certification remain open. The separate Nginx large-upload body limit does not affect this small JSON request; it still affects uploading large archives through public HTTPS. The private/trusted-node limitation remains.
+Plain tar, RAR/7z, ZIP64/encrypted ZIP/ZIP creation, merge/overwrite, sparse/link extraction, metadata restoration, quotas/reservations, broader remote-fetch policies, progress/cancel UI, durable recovery and actual panel browser Extract certification remain open. The separate Nginx large-upload body limit does not affect this small JSON request; it still affects uploading large archives through public HTTPS. The private/trusted-node limitation remains.
 
 
 Alpha 49 adds opt-in [guarded HTTPS remote-file pulls](REMOTE-PULLS.md); downloads do not automatically extract or execute content.
