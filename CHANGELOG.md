@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.48 - 2026-10-23
+
+- Add the panel/upstream `POST /files/decompress` root/file contract for a bounded single gzip tar member and 204 success. Stream payloads into exclusive owned stages, validate all headers, gzip checksum, tar terminators and trailing data before publication, then create new directories/files using native handle-relative no-replace operations.
+- Refuse traversal/Windows aliases, links, sparse/special/global records, duplicate/conflicting paths, restricted entries and existing top-level destinations. Bound compressed input, expanded files, decoded framing, paths/headers, concurrency and cooperative time. Cancellation/policy/shutdown removes unpublished stages; earlier published entries can remain after a late failure.
+- Merge/overwrite, additional formats, quotas, durable staging recovery, remote fetch and actual browser Extract remain open. All 67 focused extraction cases/subtests pass; full clean build and VM evidence pending. See [scope](docs/FILE-EXTRACTION.md).
+
 ## 0.1.0-alpha.47 - 2026-10-23
 
 - Add the panel/upstream `POST /files/compress` root/files contract and file-metadata response for tar.gz creation. Include regular files, nested directories, empty entries and Unicode paths with portable tar modes and no host ownership metadata.
