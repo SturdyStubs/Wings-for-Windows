@@ -57,3 +57,7 @@ Opt-in direct public HTTPS pulls now support foreground/background operation, ac
 ## Alpha 50 ZIP extraction progress
 
 Bounded ZIP Store/Deflate extraction now shares the tar.gz safety/publication workflow. The clean release passes 1,340 local / 14 native / 133 portable extraction cases and sixteen public HTTPS live groups, plus upload/WSS regressions. The initial probe encoding/cleanup failure and corrected rerun are preserved in [evidence](evidence/server2022-alpha50-zip-extraction.md). Issue #29 remains open for broader archive/fetch/workflow/recovery work. No new accepted issue is split out: M4 remains 4/9, 44 deliverables overall, all milestones open. Actual browser Extract and the public large-upload proxy gate remain open.
+
+## Alpha 51 disk measurement progress
+
+Cached logical data-root usage now replaces constant zero in approved server/console stats. Clean release: 1,360 local / 14 native / 19 scanner-cache / one API case; six live disk groups verify exact growth and baseline restoration, with extraction/upload/WSS regressions passing. [Evidence](evidence/server2022-alpha51-disk-usage.md). This advances #31 but does not complete accounting or enforce quotas. No new accepted task is split out: M4 4/9, 44 deliverables overall, all milestones open. Browser dashboard, full quotas, SFTP and the public large-upload proxy gate remain open.

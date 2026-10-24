@@ -138,7 +138,8 @@
           "title": "Implement SFTP authentication, permissions, revocation and limits"
         },
         {
-          "title": "Enforce storage accounting across file, archive, installer and game writes"
+          "title": "Enforce storage accounting across file, archive, installer and game writes",
+          "notes": "Alpha 51 adds cached asynchronous logical data-root measurement in server/console stats, with bounded guarded scans and explicit stale/error status. 1360 local / 14 native / 19 scanner-cache / one API case and six live disk groups pass, plus extraction/upload/WSS regressions. Measurement is not quota enforcement; allocated space, alternate streams, reservations and enforcement across all writers remain open. Evidence: https://github.com/SturdyStubs/Wings-for-Windows/blob/main/docs/evidence/server2022-alpha51-disk-usage.md"
         },
         {
           "title": "Verify locked files, long paths, disk-full, archives and link attacks"

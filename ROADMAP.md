@@ -8,7 +8,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 
 ## Current state
 
-- Alpha 51: asynchronous cached logical data-root disk measurement replaces constant zero in server/console stats. Explicit stale/error state, guarded bounded scans and shutdown cancellation are implemented; verification pending. Quota enforcement and broader M4 storage work remain open.
+- Alpha 51: cached logical data-root usage replaces constant zero in server/console stats. 1,360 local / 14 native / 19 scanner-cache / one API case pass, plus six public HTTPS disk groups verifying an exact 9,437,187-byte change and baseline restoration. Extraction/upload/WSS regressions pass. Quotas and browser dashboard verification remain open. See [scope](docs/DISK-USAGE.md) and [evidence](docs/evidence/server2022-alpha51-disk-usage.md).
 
 - Alpha 50: bounded ZIP Store/Deflate extraction shares guarded staging/publication with tar.gz. 1,340 local / 14 native / 133 portable Server 2022 cases pass, plus sixteen live extraction groups and ten each upload/WSS regressions. Both formats preserve 9 MiB binary integrity through public HTTPS. Initial helper encoding/cleanup error is documented; runtime unchanged during correction. Broad M4 archive work stays open. See [scope](docs/FILE-EXTRACTION.md) and [evidence](docs/evidence/server2022-alpha50-zip-extraction.md).
 

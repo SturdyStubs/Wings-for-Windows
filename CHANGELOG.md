@@ -5,7 +5,7 @@
 - Replace the constant server `disk_bytes` with asynchronously cached logical data-root file sizes shared by server responses and console stats. Expose availability, stale/scanning state, timestamps, counts and sanitized failure status.
 - Bound scans to two node-wide workers, 100,000 entries, depth 32 and a cooperative 10-second deadline. Refresh on stats demand after 30 seconds (five-second failure/capacity backoff), retaining the last good result after incomplete scans.
 - Pin local directory ancestors and descend through native handle-relative opens, refusing reparse points/multiple hardlinks and discarding partial totals. File metadata reads permit ordinary writer sharing. Shutdown cancels work with bounded waiting.
-- This measures logical unnamed file data, including hidden/denylisted files; it does not enforce quotas, reserve space or report allocated NTFS/alternate-stream usage. Local/VM verification pending.
+- This measures logical unnamed file data, including hidden/denylisted files; it does not enforce quotas, reserve space or report allocated NTFS/alternate-stream usage. Clean release passes 1,360 local cases/subtests, zero skips and vet; Server 2022 passes 14 native, 19 scanner/cache and one API/console-stats case. Six live disk checks plus extraction/upload/WSS regressions pass; [exact evidence](docs/evidence/server2022-alpha51-disk-usage.md).
 
 ## 0.1.0-alpha.50 - 2026-10-23
 
