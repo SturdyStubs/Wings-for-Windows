@@ -16,7 +16,7 @@ Content-Type: application/json
 
 ## Validation before publication
 
-- At most 101 MiB compressed input, 100 MiB aggregate file data, 102 MiB total decoded tar stream (including headers/padding), 256 returned archive headers and 256 final paths including implicit directories. Independent limits can reject a combination of otherwise valid entries.
+- At most 101 MiB source input, 100 MiB aggregate file data, 102 MiB total decoded tar stream (including headers/padding), 256 returned archive headers and 256 final paths including implicit directories. Independent limits can reject a combination of otherwise valid entries.
 - Regular files and directories only. Refuse symbolic/hard links, device/FIFO/global metadata entries and sparse records. Do not apply archive ownership, ACLs, alternate streams, modes, read-only flags or timestamps; new objects inherit destination permissions. Modification times need not match the archive.
 - Validate raw entry names as relative Windows-valid UTF-8 paths, with bounded depth/component lengths. Refuse absolute paths, traversal, backslashes, ADS, devices, trailing-dot/space aliases, repeated separators and `./` aliases. Directory headers may have one trailing slash. Case-insensitive duplicate files, inconsistent parent casing, repeated explicit directory headers and file/directory conflicts fail.
 - Check requested/canonical source, destination, ancestor and temporary-file denylist policy. Refuse linked/multi-hardlink archive sources and observed reparse parents. Hold a native read-sharing-only archive handle against ordinary conflicting writes/deletion.
@@ -58,3 +58,5 @@ RAR/7z, ZIP64/encrypted ZIP/ZIP creation, merge/overwrite, sparse/link extractio
 Alpha 49 adds opt-in [guarded HTTPS remote-file pulls](REMOTE-PULLS.md); downloads do not automatically extract or execute content.
 
 Alpha 50 verification: 1,340 local cases/subtests, zero skips and vet; 14 native and 133 portable extraction cases on Server 2022; sixteen live tar.gz/ZIP groups through public HTTPS, including both formats with 9 MiB binary integrity, and ten each upload/WSS regressions. Initial live helper encoding/cleanup failure and corrected rerun are retained in [alpha 50 evidence](evidence/server2022-alpha50-zip-extraction.md); runtime code is unchanged by that instrumentation correction.
+
+Alpha 52 verification: 1,394 local cases/subtests (zero skipped), vet and clean release; 14 native / 150 portable extraction cases on Server 2022. Nineteen real Client/panel-issued-token groups pass, including plain TAR signed upload/extraction, with tar.gz/ZIP/upload/WSS regressions and independent nonrecursive cleanup. [Exact evidence](evidence/server2022-alpha52-plain-tar.md).

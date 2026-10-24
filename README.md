@@ -26,9 +26,9 @@ Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.co
 GitHub Issues are the source of truth; ROADMAP.md records implementation scope and verification. Run `scripts/Update-Progress.ps1` to regenerate this section. Use `-Initialize` to add missing planned milestones/tasks; rerunning it never automatically re-closes existing issues.
 <!-- progress:end -->
 
-Latest verification: **1,360 local cases/subtests**, zero skips and vet; Server 2022 **14 native / 19 scanner-cache / one API** case; **six live disk groups** plus extraction/upload/WSS regressions. A known 9,437,187-byte change appears through public HTTPS and returns to baseline after deletion. Service/demo/tunnel remain running. Quotas, browser dashboard validation and the public large-upload proxy gate remain open. [Exact evidence](docs/evidence/server2022-alpha51-disk-usage.md).
+Latest verification: **1,394 local cases/subtests**, zero skips and vet; Server 2022 **14 native / 150 portable extraction** cases; **19 real Client API/panel-issued-token groups**, including a plain TAR upload/extract. TAR.GZ/ZIP/upload/WSS regressions pass, config/prior data are intact and demo/service/tunnel remain Running. Browser visuals, actual subuser removal, quotas and public large uploads remain open. [Exact evidence](docs/evidence/server2022-alpha52-plain-tar.md).
 
-Real panel integration now passes **12 Application API** and **18 Client API/panel-issued-token** checks: suspension/reinstall, file workflows, real signed uploads/downloads, WSS and power/console. Browser visuals and actual subuser removal remain open. [Evidence](docs/evidence/server2022-alpha51-real-panel-apis.md).
+The earlier alpha 51 real panel integration passed **12 Application API** and **18 Client API/panel-issued-token** checks: suspension/reinstall, file workflows, real signed uploads/downloads, WSS and power/console. Browser visuals and actual subuser removal remain open. [Evidence](docs/evidence/server2022-alpha51-real-panel-apis.md).
 
 Version-specific test history is retained in [verification](docs/VERIFICATION.md). Public large uploads in the test topology still return proxy 413 and need the [Nginx size-limit change/retest](docs/FILE-UPLOADS.md); remote pull requests use small JSON bodies.
 

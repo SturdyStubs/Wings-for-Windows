@@ -8,7 +8,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 
 ## Current state
 
-- Alpha 52: plain TAR extraction shares the existing guarded tar.gz/ZIP workflow, with full header/framing preflight, owned staging and no replacement. Focused tests pass; clean release, Server 2022 and actual Client API verification pending. Broader M4 requirements remain open.
+- Alpha 52: plain TAR extraction shares guarded tar.gz/ZIP staging/publication. Clean release passes 1,394 local / 14 native / 150 portable extraction cases; nineteen real Client/panel-issued-token groups include a signed TAR upload/extract, with tar.gz/ZIP/upload/WSS regressions passing. Config/prior data intact, fixtures removed, demo/service/tunnel Running. Broader M4 requirements remain open. [Scope](docs/FILE-EXTRACTION.md), [evidence](docs/evidence/server2022-alpha52-plain-tar.md).
 
 - Real-panel alpha 51 follow-up: twelve Application and eighteen Client/panel-issued-token checks pass, including suspension/reinstall/callbacks, file workflows, real signed upload/download replay refusal, WSS auth/stats/commands and Client power. Independent cleanup confirms one profile, intact config/prior data and demo/service/tunnel Running. Runtime unchanged; browser visuals and actual subuser removal remain open. [Evidence](docs/evidence/server2022-alpha51-real-panel-apis.md).
 
