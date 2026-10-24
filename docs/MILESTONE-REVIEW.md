@@ -1,6 +1,6 @@
 # GitHub milestone review
 
-Current review: October 24, 2026. All six descriptions refreshed through alpha 53. Scoped read-only loopback SFTP [#51](https://github.com/SturdyStubs/Wings-for-Windows/issues/51) is accepted with [exact evidence](evidence/server2022-alpha53-sftp.md); full SFTP #30 remains open. M4 is 5/10 accepted tasks, 45 total project deliverables. M1 11/12, M2 2/5, M3 2/7, M5 0/4 and M6 2/7 remain unchanged. No milestone is closed and task counts are not effort percentages.
+Current review: October 24, 2026. Descriptions reviewed through alpha 54; the latest SFTP upload scope is recorded below. Scoped read-only loopback SFTP [#51](https://github.com/SturdyStubs/Wings-for-Windows/issues/51) is accepted with [exact evidence](evidence/server2022-alpha53-sftp.md); full SFTP #30 remains open. M4 is 5/10 accepted tasks, 45 total project deliverables. M1 11/12, M2 2/5, M3 2/7, M5 0/4 and M6 2/7 remain unchanged. No milestone is closed and task counts are not effort percentages.
 
 ## Historical alpha 43 review
 
@@ -73,3 +73,8 @@ Twelve real Application and eighteen Client/panel-issued-token checks pass on th
 ## Alpha 52 plain TAR and real Client progress
 
 Plain TAR now shares the guarded tar.gz/ZIP Extract workflow. Clean release: 1,394 local / 14 native / 150 portable extraction cases; nineteen actual Client/panel-issued-token groups include signed TAR upload/extract, with tar.gz/ZIP/upload/WSS regressions passing. [Evidence](evidence/server2022-alpha52-plain-tar.md). This advances #29 without closing broader archive/fetch/recovery requirements. Browser visuals, actual subuser removal, real-game certification, quotas and public large uploads remain open. No accepted task is split out: all milestones/counts remain unchanged.
+
+
+## Alpha 54 new-file SFTP uploads
+
+Additional explicit upload opt-in passes 1,515 local, 14 native, 74 backend/integrated-protocol, 34 SSH subsystem and 13 config cases. Eighteen real-panel read-only and 23 upload checks prove default refusal, 9 MiB out-of-order upload integrity, publication only after CLOSE, disconnect cleanup and revoked-upload nonpublication. Nineteen actual Client API/token groups and ten HTTP upload regressions pass; final audit confirms protected key/config, only planned flag addition, no fixtures/stages and Running demo/service/tunnel. [Evidence](evidence/server2022-alpha54-sftp-uploads.md). Full SFTP #30 remains open for overwrite/append/other mutations, public deployment and remaining live/client gates. No new accepted task: M4 stays 5/10, 45 project deliverables and all milestones open.

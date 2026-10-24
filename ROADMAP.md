@@ -8,7 +8,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 
 ## Current state
 
-- Alpha 54 candidate: additional opt-in new-file SFTP uploads, staged until clean close, no-replace publication, bounded random-order packets and disconnect/revocation cleanup. Local native/protocol tests pass; clean release and live validation pending. Broader #30 remains open. [Scope](docs/SFTP.md).
+- Alpha 54: opt-in staged new-file SFTP uploads with clean-close/no-replace publication, bounded random-order packets and disconnect/revocation cleanup. Clean release: 1,515 local; Server 2022: 14 native / 74 backend and integrated-protocol / 34 SSH subsystem / 13 config cases. Eighteen real-panel read-only, 23 real-panel upload and 19 Client API/token groups pass; HTTP upload regression passes. Only planned flag added, same protected host key, zero stages/fixtures, demo/service/tunnel Running. Full #30 stays open; M4 remains 5/10. [Scope](docs/SFTP.md), [evidence](docs/evidence/server2022-alpha54-sftp-uploads.md).
 
 - Alpha 53: opt-in read-only loopback SFTP with panel auth, scoped permissions/revocation, protected Windows handles/key and bounded sessions. Clean release: 1,472 local; Server 2022: 14 native / 32 backend / 34 SSH-SFTP cases. Eighteen real-panel public-key checks and nineteen Client API/token groups pass, plus archive/upload/WSS regressions. Config changes only by planned opt-in addition; fixtures/ephemeral panel key removed, demo/service/tunnel Running. Accept scoped #51 (M4 5/10); broader #30 and all milestones remain open. [Scope](docs/SFTP.md), [evidence](docs/evidence/server2022-alpha53-sftp.md).
 

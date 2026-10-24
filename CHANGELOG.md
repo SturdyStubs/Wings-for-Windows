@@ -4,7 +4,7 @@
 
 - Add explicit `sftp.allow_uploads` for new files only, retaining read-only behavior by default. Require file.create and write/create flags; refuse overwrite, append, implicit parents and other mutations. Accept ordinary create/read-write opens while refusing reads through the unpublished upload handle.
 - Stage with exclusive native handles, allow bounded random-order writes, require complete coverage, flush and publish without replacement only on successful CLOSE. Poison and discard on failed writes, disconnect, cancellation, suspension, policy changes or revocation. Two-minute transfer context, 100 MiB file/cumulative-payload cap, 64 KiB write packets, 4096 merged ranges and one transfer per server share the four HTTP/SFTP upload slots. No quota/reservation or crash-recovery claim.
-- Extend actual encrypted protocol/native tests and the opt-in real-panel probe. Clean release/Server 2022/live validation pending. [Setup and limits](docs/SFTP.md).
+- Extend actual encrypted protocol/native tests and the opt-in real-panel probe. Clean release passes 1,515 local cases/subtests, zero skips and vet; Server 2022 passes 14 native / 74 backend and integrated-protocol / 34 SSH subsystem / 13 config cases. Eighteen real-panel read-only, 23 real-panel upload and 19 actual Client API/token groups plus HTTP upload regressions pass. Same protected host key/config ACLs and only planned flag addition verified; fixtures/stages removed, demo/service/tunnel Running. [Exact evidence](docs/evidence/server2022-alpha54-sftp-uploads.md). [Setup and limits](docs/SFTP.md).
 
 ## 0.1.0-alpha.53 - 2026-10-24
 
