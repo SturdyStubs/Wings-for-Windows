@@ -2,6 +2,8 @@
 
 ## 0.1.0-alpha.51 - 2026-10-23
 
+- Live follow-up on the unchanged runtime: twelve real Application and eighteen Client/panel-issued-token checks pass for suspension/reinstall/callbacks, file workflows, signed transfers/replay refusal, actual WSS and Client power/console. Add opt-in reusable probes with private key input and exact owned cleanup; browser visuals and actual subuser removal remain open. [Evidence](docs/evidence/server2022-alpha51-real-panel-apis.md).
+
 - Replace the constant server `disk_bytes` with asynchronously cached logical data-root file sizes shared by server responses and console stats. Expose availability, stale/scanning state, timestamps, counts and sanitized failure status.
 - Bound scans to two node-wide workers, 100,000 entries, depth 32 and a cooperative 10-second deadline. Refresh on stats demand after 30 seconds (five-second failure/capacity backoff), retaining the last good result after incomplete scans.
 - Pin local directory ancestors and descend through native handle-relative opens, refusing reparse points/multiple hardlinks and discarding partial totals. File metadata reads permit ordinary writer sharing. Shutdown cancels work with bounded waiting.

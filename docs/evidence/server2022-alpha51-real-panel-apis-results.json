@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "runtime": {
+    "runtime_source_dirty": false,
+    "version": "0.1.0-alpha.51",
+    "runtime_source_revision": "e1d29fb79025f69a873d7a8c75a90b85f4cd4473",
+    "daemon_sha256": "0e70a483a7a2b5a4302418caa1252421d00ad89a0fb2b59147868b52be789180"
+  },
+  "probe_source_revision": "358b332589a5ee3708b9a67b8700162e3e127633",
+  "application_probe_source_sha256": "705f16a3298585a56fe6bd9506cbb324c88e3b7b5476700a24bcd13830a2e7a7",
+  "client_probe_source_sha256": "6a2c823477b6ea9c5f88f1d1a064cf57ce1dcac8f1dbe05ac903940b087d19f9",
+  "client_probe_sha256": "ce19dd97cf4db591fbc560520c490dca2e2992d18192923f3c5beffc6331c754",
+  "client_probe_binary_build_revision": "d911c53602cee9a75fda70bc59a962bde7e5c09b",
+  "client_probe_binary_build_modified": true,
+  "probe_binding_note": "Client executable was compiled from the final main.go before its source commit; its exact source/file hashes bind the tested code. This is developer instrumentation, not a clean runtime release. Runtime daemon remains unchanged from the alpha51 clean package.",
+  "application": {
+    "schema_version": 1,
+    "observed_utc": "2026-10-24T03:59:16Z",
+    "identity_source": "real panel Application API key and panel-provided node token",
+    "browser_tested": false,
+    "client_api_key_used": false,
+    "checks": {
+      "application_server_matches_approved_demo": true,
+      "application_node_matches_explicit_https_endpoint": true,
+      "panel_configuration_token_authenticates_live_node": true,
+      "application_key_refused_by_client_api": true,
+      "real_panel_suspension_syncs_and_stops_demo": true,
+      "suspended_start_refused": true,
+      "real_panel_unsuspension_syncs": true,
+      "real_panel_reinstall_runs_approved_recipe_and_rewrites_marker": true,
+      "actual_install_callback_clears_panel_installing_state": true,
+      "installation_finishes_without_pending_notification": true,
+      "demo_restarts_and_echoes_unique_console_command": true,
+      "demo_and_panel_restored_to_running_unsuspended": true
+    },
+    "passed": true,
+    "finished_utc": "2026-10-24T03:59:30Z"
+  },
+  "client": {
+    "browser_ui_tested": false,
+    "checks": {
+      "actual_panel_download_token_replay_refused": true,
+      "actual_panel_signed_download_binary_integrity": true,
+      "actual_panel_signed_upload_accepts_binary": true,
+      "actual_panel_upload_token_replay_refused": true,
+      "actual_panel_websocket_token_authenticates_over_wss": true,
+      "client_access_matches_approved_demo": true,
+      "client_command_echo_over_authenticated_wss": true,
+      "client_power_start_observed_over_wss": true,
+      "client_power_stop_observed_over_wss": true,
+      "final_start_request_accepted": true,
+      "known_files_deleted_and_only_empty_owned_directories_remain": true,
+      "panel_authenticated_console_stats_received": true,
+      "panel_compress_move_extract_round_trip": true,
+      "panel_creates_owned_directories": true,
+      "panel_file_create_edit_and_read_round_trip": true,
+      "panel_rename_and_copy_preserve_content": true,
+      "real_panel_resources_contains_disk_bytes": true,
+      "websocket_command_echo_over_authenticated_wss": true
+    },
+    "download_replay_status": 404,
+    "finished_utc": "2026-10-24T04:04:03Z",
+    "fixture_name": "client-probe-1c38b740c1e1182afb7899c1f75bb3a7",
+    "identity_source": "real Client API key and panel-issued signed URLs/WebSocket JWT",
+    "observed_utc": "2026-10-24T04:03:45Z",
+    "panel_subuser_removal_tested": false,
+    "passed": true,
+    "signed_binary_bytes": 65536,
+    "upload_replay_status": 404
+  },
+  "independent_audit": {
+    "tunnel": "Running",
+    "suspended": false,
+    "native_config_bytes_preserved": true,
+    "installer_persistent": false,
+    "service": "Running",
+    "game": "running",
+    "profile_count": 1,
+    "fixture_roots": 0,
+    "empty_fixture_removed": true,
+    "native_config_protected": true,
+    "observed_utc": "2026-10-24T04:04:52.9893542Z",
+    "prior_file_data_present": true,
+    "recursive_cleanup": false,
+    "installer_successful": true,
+    "marker_content_valid": true,
+    "installer_callback_error_absent": true,
+    "installer_stage": "complete"
+  },
+  "initial_client_probe": {
+    "browser_ui_tested": false,
+    "checks": {
+      "client_access_matches_approved_demo": true,
+      "real_panel_resources_contains_disk_bytes": true
+    },
+    "finished_utc": "2026-10-24T04:03:07Z",
+    "fixture_name": "",
+    "identity_source": "real Client API key and panel-issued signed URLs/WebSocket JWT",
+    "observed_utc": "2026-10-24T04:03:05Z",
+    "panel_subuser_removal_tested": false,
+    "passed": false
+  },
+  "initial_probe_correction": "Initial helper compared socket origins as literal strings and refused the panel URL containing explicit :443. It stopped before fixture creation or power actions. Helper now validates host/scheme/path/default443 equivalence, still refusing different hosts/ports, userinfo/fragments and unexpected token queries. Runtime unchanged.",
+  "local_probe_verification": {
+    "go_url_guard_cases_including_parent": 17,
+    "python_no_network_refusals": 4,
+    "go_vet_passed": true,
+    "full_runtime_suite_rerun": false
+  },
+  "limits": [
+    "Actual panel Application/Client API calls and panel-signed JWTs, not rendered browser UI or actual panel subuser removal.",
+    "Only one established harmless Windows demo, with native profile approval already present. No new node/egg/server/account/key was created; no real game tested.",
+    "Reinstall reruns the existing approved demo recipe and rewrites its marker. Persistent installer receipts are disabled on this deployment; no durable receipt/reboot claim.",
+    "Known fixture files deleted through Client API; three remaining empty directories removed on-node by nonrecursive Directory.Delete(false), with independent zero-fixture audit.",
+    "Runtime version remains alpha51. Earlier clean runtime 1360-case evidence is unchanged; this follow-up adds targeted helper tests and live checks, not a new release/full-suite result.",
+    "The public large-upload proxy gate remains pending; panel-signed binary verification here is 65536 bytes.",
+    "Keys, node master token, JWTs, signed URLs, owner identity and raw responses are excluded from evidence."
+  ]
+}

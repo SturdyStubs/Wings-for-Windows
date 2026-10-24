@@ -61,3 +61,7 @@ Bounded ZIP Store/Deflate extraction now shares the tar.gz safety/publication wo
 ## Alpha 51 disk measurement progress
 
 Cached logical data-root usage now replaces constant zero in approved server/console stats. Clean release: 1,360 local / 14 native / 19 scanner-cache / one API case; six live disk groups verify exact growth and baseline restoration, with extraction/upload/WSS regressions passing. [Evidence](evidence/server2022-alpha51-disk-usage.md). This advances #31 but does not complete accounting or enforce quotas. No new accepted task is split out: M4 4/9, 44 deliverables overall, all milestones open. Browser dashboard, full quotas, SFTP and the public large-upload proxy gate remain open.
+
+## Alpha 51 real panel API follow-up
+
+Twelve real Application and eighteen Client/panel-issued-token checks pass on the unchanged alpha 51 runtime. Actual panel-driven suspension/reinstall/callbacks, file edits/mutations/archives, signed upload/download with replay refusal, WSS auth/stats/commands and Client power are now verified beyond synthetic identities. Exact owned-file deletion and nonrecursive empty-directory cleanup pass; demo/service/tunnel Running. [Evidence](evidence/server2022-alpha51-real-panel-apis.md). Issues #17/#23/#28/#29 stay open for browser rendering, actual panel subuser removal, broader semantics/recovery and real-game gates. Completed scoped #49/#50 gain actual panel-token evidence. No new task is split out: M1 11/12, M3 2/7, M4 4/9; all six milestones remain open. Public large uploads still require the separate proxy fix/retest.

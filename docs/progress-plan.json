@@ -51,7 +51,7 @@
         },
         {
           "title": "Verify real panel TLS, console, subuser revocation and file workflows",
-          "notes": "Live verification gate: record actual panel/Windows versions and results; do not close using mock-panel tests."
+          "notes": "Live verification gate: record actual panel/Windows versions and results; do not close using mock-panel tests. Alpha51 real panel follow-up: 12 Application and 18 Client/panel-issued-token checks pass for bounded demo lifecycle, files, signed transfers, WSS/power/console. Browser UI, actual subuser removal, real game and broader semantics/recovery remain open. Evidence: https://github.com/SturdyStubs/Wings-for-Windows/blob/main/docs/evidence/server2022-alpha51-real-panel-apis.md"
         },
         {
           "title": "Verify live HTTPS node authentication and demo browser console",
@@ -99,7 +99,8 @@
           "notes": "Schema v1, legacy migration, PE/architecture/OS-build and explicitly declared file checks before start/installation acknowledgement; offline CLI. Not automatic dependency resolution or game certification."
         },
         {
-          "title": "Implement create, delete, install and reinstall with cancellation and callbacks"
+          "title": "Implement create, delete, install and reinstall with cancellation and callbacks",
+          "notes": " Alpha51 real panel follow-up: 12 Application and 18 Client/panel-issued-token checks pass for bounded demo lifecycle, files, signed transfers, WSS/power/console. Browser UI, actual subuser removal, real game and broader semantics/recovery remain open. Evidence: https://github.com/SturdyStubs/Wings-for-Windows/blob/main/docs/evidence/server2022-alpha51-real-panel-apis.md"
         },
         {
           "title": "Implement egg text, JSON, YAML, INI, properties and XML config parsers"
@@ -128,7 +129,8 @@
       "description": "Complete the file manager and SFTP with permissions, streaming, confinement and storage accounting.",
       "tasks": [
         {
-          "title": "Implement remaining file operations and scoped large-file upload/download"
+          "title": "Implement remaining file operations and scoped large-file upload/download",
+          "notes": " Alpha51 real panel follow-up: 12 Application and 18 Client/panel-issued-token checks pass for bounded demo lifecycle, files, signed transfers, WSS/power/console. Browser UI, actual subuser removal, real game and broader semantics/recovery remain open. Evidence: https://github.com/SturdyStubs/Wings-for-Windows/blob/main/docs/evidence/server2022-alpha51-real-panel-apis.md"
         },
         {
           "title": "Add safe archives and guarded remote fetch with cancellation",

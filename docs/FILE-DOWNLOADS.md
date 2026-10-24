@@ -1,5 +1,8 @@
 # One-use signed file downloads
 
+Alpha 51 real-panel follow-up: actual Client API-issued upload/download URLs pass a 64 KiB binary integrity check and replay refusal, using the real panel Client key rather than operator-minted JWTs. Runtime unchanged; browser rendering and public large-upload limits remain separate gates. [Evidence](evidence/server2022-alpha51-real-panel-apis.md).
+
+
 Alpha 45 adds the panel/upstream public route:
 
 ```http

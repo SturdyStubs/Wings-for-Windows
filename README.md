@@ -28,6 +28,8 @@ GitHub Issues are the source of truth; ROADMAP.md records implementation scope a
 
 Latest verification: **1,360 local cases/subtests**, zero skips and vet; Server 2022 **14 native / 19 scanner-cache / one API** case; **six live disk groups** plus extraction/upload/WSS regressions. A known 9,437,187-byte change appears through public HTTPS and returns to baseline after deletion. Service/demo/tunnel remain running. Quotas, browser dashboard validation and the public large-upload proxy gate remain open. [Exact evidence](docs/evidence/server2022-alpha51-disk-usage.md).
 
+Real panel integration now passes **12 Application API** and **18 Client API/panel-issued-token** checks: suspension/reinstall, file workflows, real signed uploads/downloads, WSS and power/console. Browser visuals and actual subuser removal remain open. [Evidence](docs/evidence/server2022-alpha51-real-panel-apis.md).
+
 Version-specific test history is retained in [verification](docs/VERIFICATION.md). Public large uploads in the test topology still return proxy 413 and need the [Nginx size-limit change/retest](docs/FILE-UPLOADS.md); remote pull requests use small JSON bodies.
 
 For a new panel node, start with the [Windows node and demo egg walkthrough](docs/PANEL-WINDOWS-SETUP.md). It explains the full UUID/profile binding and the manual approval requirement.

@@ -1,8 +1,8 @@
 # First Windows node and demo egg
 
-Use a disposable, trusted test node. The native daemon runs Windows executables; unchanged Linux eggs and Docker images are not supported. This guide prepares a harmless console demo before a game-specific Windows recipe. A real panel/node/game integration run remains an open validation gate. Alpha 34 adds opt-in [manual-approval creation](PENDING-CREATION.md): retain the panel record first, then bind its full UUID to an approved Windows profile. Automatic installation/start during creation remains unavailable.
+Use a disposable, trusted test node. The native daemon runs Windows executables; unchanged Linux eggs and Docker images are not supported. This guide prepares a harmless console demo before a game-specific Windows recipe. The harmless demo now passes real Application/Client panel API lifecycle, file and panel-issued-token/WSS checks; a real panel/node/game integration run remains an open validation gate. See [current live evidence](evidence/server2022-alpha51-real-panel-apis.md). Alpha 34 adds opt-in [manual-approval creation](PENDING-CREATION.md): retain the panel record first, then bind its full UUID to an approved Windows profile. Automatic installation/start during creation remains unavailable.
 
-For a private VM behind a remote VPS, see the [proposed live connection plan](LIVE-PANEL-CONNECTION.md). DNS alone does not provide a route; actual proxy/tunnel deployment and live validation remain pending.
+For a private VM behind a remote VPS, see the [proposed live connection plan](LIVE-PANEL-CONNECTION.md). DNS alone does not provide a route. The dedicated test node now uses a supervised reverse SSH tunnel and trusted HTTPS proxy; see [deployment evidence](evidence/server2022-alpha42-live-operations.md) and [current API verification](evidence/server2022-alpha51-real-panel-apis.md).
 
 ## 1. Prepare the Windows host
 

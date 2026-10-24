@@ -8,6 +8,8 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 
 ## Current state
 
+- Real-panel alpha 51 follow-up: twelve Application and eighteen Client/panel-issued-token checks pass, including suspension/reinstall/callbacks, file workflows, real signed upload/download replay refusal, WSS auth/stats/commands and Client power. Independent cleanup confirms one profile, intact config/prior data and demo/service/tunnel Running. Runtime unchanged; browser visuals and actual subuser removal remain open. [Evidence](docs/evidence/server2022-alpha51-real-panel-apis.md).
+
 - Alpha 51: cached logical data-root usage replaces constant zero in server/console stats. 1,360 local / 14 native / 19 scanner-cache / one API case pass, plus six public HTTPS disk groups verifying an exact 9,437,187-byte change and baseline restoration. Extraction/upload/WSS regressions pass. Quotas and browser dashboard verification remain open. See [scope](docs/DISK-USAGE.md) and [evidence](docs/evidence/server2022-alpha51-disk-usage.md).
 
 - Alpha 50: bounded ZIP Store/Deflate extraction shares guarded staging/publication with tar.gz. 1,340 local / 14 native / 133 portable Server 2022 cases pass, plus sixteen live extraction groups and ten each upload/WSS regressions. Both formats preserve 9 MiB binary integrity through public HTTPS. Initial helper encoding/cleanup error is documented; runtime unchanged during correction. Broad M4 archive work stays open. See [scope](docs/FILE-EXTRACTION.md) and [evidence](docs/evidence/server2022-alpha50-zip-extraction.md).
@@ -96,7 +98,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - [x] Complete system information, HTTP CORS/preflight and consistent error/request-ID handling.
 - [ ] Verify node connectivity, console, subuser revocation and file browsing/editing through a real panel over trusted TLS.
 
-M1 core implementation tasks are locally verified. Authenticated live HTTPS and operator-reported browser console pass; direct WSS origin, token, permission and synthetic revocation checks also pass. Actual panel subuser removal, browser file browsing/editing and broader reconnect behavior remain open. M1 cannot close on synthetic-user checks alone.
+M1 core implementation tasks are locally verified. Authenticated live HTTPS and operator-reported browser console pass; direct WSS origin, token, permission and synthetic revocation checks also pass. Actual Client API file browsing/editing, signed transfers, WSS and power controls now pass using real panel keys/tokens. Actual panel subuser removal, rendered browser workflows and broader reconnect behavior remain open. M1 cannot close on synthetic-user checks alone.
 
 ## How to read progress
 
