@@ -1,0 +1,5 @@
+# Direct OpenTTD compatibility diagnostic
+
+Developer-only local diagnostic. Build `go build -trimpath -o dist/native-realgame-probe.exe ./tools/native-realgame-probe`. Arguments are the approved absolute OpenTTD executable, a disposable absolute directory containing `openttd.cfg`, and `--allow-local-game`. It uses the native pseudoconsole and Job Object, binds only 127.0.0.1:43979, records a TCP listener/UDP identity, tries console echo/version/quit and kills its owned job after a bounded wait if graceful shutdown fails. An OpenTTD config with server name beginning `Wings Windows OpenTTD` is expected for the identity check.
+
+It writes `probe-console.log` only in the explicitly supplied disposable directory. Use an isolated directory, without panel/node credentials or user saves. JSON reports booleans/counts and exit status rather than raw console text or file contents. A failed console check returns failure even if networking works. This is not a panel-integrated game test, a password/identity provisioning command, or a licensed distribution manager. Current official Windows GUI build console compatibility is unresolved; see docs/PSEUDOCONSOLE.md.

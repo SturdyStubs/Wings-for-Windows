@@ -18,7 +18,7 @@ import (
 	"wings-windows/internal/networkpolicy"
 )
 
-const Version = "0.1.0-alpha.55"
+const Version = "0.1.0-alpha.56"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -27,6 +27,7 @@ type TLS struct {
 	Key  string `json:"key"`
 }
 type Profile struct {
+	Pseudoconsole              bool                 `json:"pseudoconsole,omitempty"`
 	Installer                  *Installer           `json:"installer,omitempty"`
 	LogFile                    *LogFile             `json:"log_file,omitempty"`
 	SourceRCON                 *SourceRCON          `json:"source_rcon,omitempty"`

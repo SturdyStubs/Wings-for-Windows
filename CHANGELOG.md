@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.56 - 2026-10-24
+
+- Add opt-in `profile.pseudoconsole` for Windows Console API applications, using a fixed 120x40 ConPTY, CR input, no inherited arbitrary handles and existing suspended/job/restricted-token launch. Default remains pipe stdio; installer profiles retain pipe mode.
+- Drain terminal output independently into a bounded 256 KiB buffer with truncation markers, including after consumer close, so full output pipes cannot block older-host ClosePseudoConsole cleanup. Native terminal output retains VT controls; this is not a full screen emulator or GUI automation facility.
+- Add native-console I/O, restricted-token, descendant-kill, unopened-consumer, buffer and startup-failure tests, plus an explicit local OpenTTD diagnostic. Real OpenTTD starts/listens but console forwarding remains incompatible; do not mark the full game lifecycle verified. Release/VM validation pending.
+
 ## 0.1.0-alpha.55 - 2026-10-24
 
 - Add independent `sftp.allow_file_management` for single-directory creation, no-replace file/directory rename/move, regular-file deletion and empty-directory removal. Default false; require file.create/update/delete respectively. Reuse native pinned handles and HTTP rename/delete contention locks; reject root/aliases/links, collisions and wrong entry types. Never recursively delete through SFTP.

@@ -501,7 +501,7 @@ func (s *Server) specForProfile(profile config.Profile) (native.Spec, error) {
 	if err != nil {
 		return native.Spec{}, err
 	}
-	return native.Spec{NetworkPolicy: profile.NetworkPolicy, RunAs: profile.RunAs, AccessRules: accessRules, Executable: profile.Executable, Arguments: args, Environment: clean, Directory: s.Root, TempDirectory: temp, RequiredFiles: append([]string(nil), profile.Requirements.RequiredFiles...), MemoryMB: limits.MemoryMB, CPUPercent: limits.CPUPercent}, nil
+	return native.Spec{Pseudoconsole: profile.Pseudoconsole, NetworkPolicy: profile.NetworkPolicy, RunAs: profile.RunAs, AccessRules: accessRules, Executable: profile.Executable, Arguments: args, Environment: clean, Directory: s.Root, TempDirectory: temp, RequiredFiles: append([]string(nil), profile.Requirements.RequiredFiles...), MemoryMB: limits.MemoryMB, CPUPercent: limits.CPUPercent}, nil
 }
 
 var ErrSuspended = errors.New("cannot start or restart a suspended server")

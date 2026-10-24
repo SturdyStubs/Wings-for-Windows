@@ -101,10 +101,15 @@ func startWithTokenAndPolicy(spec Spec, token windows.Token, policy io.Closer) (
 		return nil, err
 	}
 	defer windows.CloseHandle(outWrite)
+	var terminal *pseudoTerminal
 	defer func() {
 		if err != nil {
 			windows.CloseHandle(inWrite)
-			windows.CloseHandle(outRead)
+			if terminal == nil {
+				windows.CloseHandle(outRead)
+			} else {
+				terminal.close()
+			}
 		}
 	}()
 	if err = windows.SetHandleInformation(inWrite, windows.HANDLE_FLAG_INHERIT, 0); err != nil {
@@ -118,11 +123,25 @@ func startWithTokenAndPolicy(spec Spec, token windows.Token, policy io.Closer) (
 		return nil, err
 	}
 	defer attrs.Delete()
-	handles := []windows.Handle{inRead, outWrite}
-	if err = attrs.Update(windows.PROC_THREAD_ATTRIBUTE_HANDLE_LIST, unsafe.Pointer(&handles[0]), uintptr(len(handles))*unsafe.Sizeof(handles[0])); err != nil {
-		return nil, err
+	si := windows.StartupInfoEx{StartupInfo: windows.StartupInfo{Cb: uint32(unsafe.Sizeof(windows.StartupInfoEx{}))}, ProcThreadAttributeList: attrs.List()}
+	if spec.Pseudoconsole {
+		terminal, err = newPseudoTerminal(inRead, outWrite, outRead)
+		if err != nil {
+			return nil, err
+		}
+		if err = terminal.attach(attrs); err != nil {
+			return nil, err
+		}
+	} else {
+		handles := []windows.Handle{inRead, outWrite}
+		if err = attrs.Update(windows.PROC_THREAD_ATTRIBUTE_HANDLE_LIST, unsafe.Pointer(&handles[0]), uintptr(len(handles))*unsafe.Sizeof(handles[0])); err != nil {
+			return nil, err
+		}
+		si.Flags = windows.STARTF_USESTDHANDLES
+		si.StdInput = inRead
+		si.StdOutput = outWrite
+		si.StdErr = outWrite
 	}
-	si := windows.StartupInfoEx{StartupInfo: windows.StartupInfo{Cb: uint32(unsafe.Sizeof(windows.StartupInfoEx{})), Flags: windows.STARTF_USESTDHANDLES, StdInput: inRead, StdOutput: outWrite, StdErr: outWrite}, ProcThreadAttributeList: attrs.List()}
 	app, err := windows.UTF16PtrFromString(spec.Executable)
 	if err != nil {
 		return nil, err
@@ -161,10 +180,20 @@ func startWithTokenAndPolicy(spec Spec, token windows.Token, policy io.Closer) (
 		return nil, err
 	}
 	flags := uint32(windows.CREATE_SUSPENDED | windows.CREATE_UNICODE_ENVIRONMENT | windows.EXTENDED_STARTUPINFO_PRESENT | windows.CREATE_NO_WINDOW)
+	inherit := true
+	if spec.Pseudoconsole {
+		flags &^= windows.CREATE_NO_WINDOW
+		inherit = false
+		si.Flags = windows.STARTF_USESTDHANDLES
+		si.StdInput = windows.InvalidHandle
+		si.StdOutput = windows.InvalidHandle
+		si.StdErr = windows.InvalidHandle
+	}
+
 	if token != 0 {
-		err = windows.CreateProcessAsUser(token, app, line, nil, nil, true, flags, &block[0], dir, &si.StartupInfo, &pi)
+		err = windows.CreateProcessAsUser(token, app, line, nil, nil, inherit, flags, &block[0], dir, &si.StartupInfo, &pi)
 	} else {
-		err = windows.CreateProcess(app, line, nil, nil, true, flags, &block[0], dir, &si.StartupInfo, &pi)
+		err = windows.CreateProcess(app, line, nil, nil, inherit, flags, &block[0], dir, &si.StartupInfo, &pi)
 	}
 	if err != nil {
 		return nil, err
@@ -186,7 +215,13 @@ func startWithTokenAndPolicy(spec Spec, token windows.Token, policy io.Closer) (
 		return nil, err
 	}
 	state := &processState{job: job, process: pi.Process}
-	p := &Process{implementation: platformProcess{state}, Stdin: os.NewFile(uintptr(inWrite), "stdin"), Stdout: os.NewFile(uintptr(outRead), "stdout"), Done: make(chan struct{})}
+	p := &Process{implementation: platformProcess{state}, Stdin: os.NewFile(uintptr(inWrite), "stdin"), Stdout: nil, Done: make(chan struct{})}
+	if terminal != nil {
+		p.Stdout = terminal.output
+		p.lineEnding = "\r"
+	} else {
+		p.Stdout = os.NewFile(uintptr(outRead), "stdout")
+	}
 	go func() {
 		windows.WaitForSingleObject(pi.Process, windows.INFINITE)
 		state.Lock()
@@ -197,6 +232,9 @@ func startWithTokenAndPolicy(spec Spec, token windows.Token, policy io.Closer) (
 		state.process = 0
 		state.Unlock()
 		p.Stdin.Close()
+		if terminal != nil {
+			terminal.close()
+		}
 		close(p.Done)
 	}()
 	return p, nil

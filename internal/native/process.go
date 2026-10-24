@@ -11,6 +11,7 @@ import (
 )
 
 type Spec struct {
+	Pseudoconsole          bool
 	NetworkPolicy          networkpolicy.Policy
 	Context                context.Context
 	RunAs                  *identity.Reference
@@ -45,6 +46,7 @@ type Process struct {
 	Done           chan struct{}
 	ExitCode       uint32
 	input          chan inputRequest
+	lineEnding     string
 }
 type inputRequest struct {
 	text   string
@@ -74,7 +76,11 @@ func Start(spec Spec) (*Process, error) {
 			case <-p.Done:
 				return
 			case request := <-p.input:
-				_, err := io.WriteString(p.Stdin, request.text+"\r\n")
+				ending := p.lineEnding
+				if ending == "" {
+					ending = "\r\n"
+				}
+				_, err := io.WriteString(p.Stdin, request.text+ending)
 				request.result <- err
 			}
 		}

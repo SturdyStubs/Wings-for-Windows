@@ -1,12 +1,14 @@
 # Progress toward Wings compatibility
 
-Last updated: October 24, 2026. Current version: **0.1.0-alpha.55**. Active development: **M3 — Windows lifecycle features**, with **bounded M4 file management and scoped transfers** implemented. M1/M2 remain open for live panel and isolation gates.
+Last updated: October 24, 2026. Current version: **0.1.0-alpha.56**. Active development: **M3 — Windows lifecycle features**, with **bounded M4 file management and scoped transfers** implemented. M1/M2 remain open for live panel and isolation gates.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
 This file tracks the current implementation. The audit preserves the alpha 1 baseline. A checked implementation item means code and local regression tests exist; a live verification item stays open until exercised against a real panel/host/game. Route coverage is not a completion percentage.
 
 ## Current state
+
+- Alpha 56 candidate: opt-in pseudoconsole profile adapter for native Windows Console APIs, independent bounded output draining and existing suspended/job/restricted-token launch. Native tests pass; release/Server2022/retained-service evidence pending. OpenTTD official Windows binary starts/listens in a direct diagnostic, but console forwarding is not yet compatible; no complete real-game or panel-game proof. [Scope](docs/PSEUDOCONSOLE.md).
 
 - Alpha 55: independent opt-in SFTP mkdir, no-replace rename/move, single-file deletion and empty-directory removal. Clean release: 1,572 local; Server 2022: 14 native / 130 backend-integrated protocol / 34 SSH / 14 config cases. Real panel: 23 pre-opt-in upload, 31 management and 19 Client API/token groups pass. Same protected host key, only planned flag addition, zero fixtures/stages, demo/service/tunnel Running. Broader #30 remains open; no new accepted task, M4 5/10. [Scope](docs/SFTP.md), [evidence](docs/evidence/server2022-alpha55-sftp-management.md).
 
