@@ -26,7 +26,7 @@ Follow the [progress tracker](ROADMAP.md), [GitHub milestones](https://github.co
 GitHub Issues are the source of truth; ROADMAP.md records implementation scope and verification. Run `scripts/Update-Progress.ps1` to regenerate this section. Use `-Initialize` to add missing planned milestones/tasks; rerunning it never automatically re-closes existing issues.
 <!-- progress:end -->
 
-Alpha 48 extraction verification is pending clean release and Server 2022 checks. See [scope](docs/FILE-EXTRACTION.md).
+Alpha 48: **1,187 local cases/subtests**, zero skips, vet and corrected clean release; **14 native** and **70 portable extraction** cases/subtests pass on Server 2022. **Thirteen live checks** pass, including public HTTPS create/extract and a SHA256-verified 9 MiB binary; ten upload and ten WSS regressions pass. The initial Server 2022 rename-sharing failure was fixed before deployment. Service/demo/tunnel remain running, config/ACLs preserved and fixtures removed. Actual browser Extract, other formats, merge/overwrite and remote fetch remain open. See [evidence](docs/evidence/server2022-alpha48-archive-extraction.md) and [scope](docs/FILE-EXTRACTION.md).
 
 Alpha 47: **1,117 local cases/subtests**, zero skips, vet and clean release; **14 native** and **38 portable compress** cases/subtests pass on Server 2022. **Eleven live archive checks** pass, including public HTTPS creation/download and SHA256-verified 9 MiB random binary round trip; ten upload and ten WSS regressions pass. Configuration/ACLs and earlier data are preserved, fixtures cleaned up, and service/demo/tunnel remain running. Extraction and actual browser Compress remain open. See [evidence](docs/evidence/server2022-alpha47-archive-creation.md) and [scope](docs/FILE-ARCHIVES.md).
 

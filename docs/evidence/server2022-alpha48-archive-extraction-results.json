@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "version": "0.1.0-alpha.48",
+  "source_revision": "29dc6152d8b530c646d9e8631d2a8d10cb6995ce",
+  "source_dirty": false,
+  "zip_sha256": "b2af8e905c3f94aac14a4d451c610951d51a0775ac34888f9dad4503a89cf85d",
+  "daemon_sha256": "1f3756fe024803adc8c84574ca30a3a5f3d189644c4c69d9f12bf952652a1ef4",
+  "runtime_tests_sha256": "428f07aab4df4bb585932c92c4424841c8bdec66dcd0a221d6289151212a9251",
+  "demo_sha256": "ae3c18a358ffa570e3173365dd6046266618ef8843c6d58b2eaa0319de4958a4",
+  "api_tests_sha256": "376b34b67379cd85b0590162d25f9f51a34bd0975dbc918b2ccab31a9b0038fe",
+  "contract_fixture_sha256": "18ec82bbb03a10e5ed296799657c4e7feef934dc5fbce3fe89a056a95f819e8d",
+  "live_extract_probe_sha256": "3d1958b194eb322f637860f95f37c60869c4d746dc4c22c183b53070953865b0",
+  "live_extract_probe_source_sha256": "7d51771277fcc9bd7917f402544540f56290c295cd2dd18b1637371520114684",
+  "missing_fixture_consent_exit_code": 2,
+  "host": {
+    "caption": "Microsoft Windows Server 2022 Standard Evaluation",
+    "version": "10.0.20348",
+    "build": "20348",
+    "architecture": "64-bit",
+    "windows_server": true,
+    "powershell": "5.1.20348.558"
+  },
+  "local_tests_passed": 1187,
+  "local_tests_skipped": 0,
+  "native_tests_passed": 14,
+  "baseline_started_utc": "2026-10-24T00:09:34.9295547Z",
+  "baseline_finished_utc": "2026-10-24T00:09:37.4319921Z",
+  "portable_extract_api": {
+    "tests_skipped": 0,
+    "tests_failed": 0,
+    "tests_passed": 70,
+    "exit_code": 0
+  },
+  "live_service_deployment": {
+    "reboot_tested": false,
+    "version": "0.1.0-alpha.48",
+    "public_update_status": 200,
+    "observed_utc": "2026-10-24T00:09:46.1899195Z",
+    "game_state": "running",
+    "game_was_running": true,
+    "applied": false,
+    "runtime_only_upgrade": true,
+    "original_incoming_credentials_valid": true,
+    "outgoing_live_panel_sync_status": 204,
+    "upgrade_config_hash_unchanged": true,
+    "service_state": "Running",
+    "native_config_hash_unchanged": true,
+    "panel_save_button_retested": false,
+    "executable_acl_preserved": true
+  },
+  "live_extract": {
+    "archive_bytes": 9440617,
+    "browser_extract_tested": false,
+    "checks": {
+      "checksum_refused_before_publication": true,
+      "conflicting_archive_writer_refused": true,
+      "empty_file_directory_and_implicit_parents": true,
+      "link_refused_before_publication": true,
+      "nine_mib_unicode_binary_integrity": true,
+      "no_temporary_extraction_files_remain": true,
+      "original_source_binary_preserved": true,
+      "outside_destination_sentinel_preserved": true,
+      "owned_fixture_removed": true,
+      "public_archive_creation_regression": true,
+      "public_extraction_status": true,
+      "repeat_extraction_preserves_destinations": true,
+      "traversal_refused_before_publication": true
+    },
+    "identity_source": "operator master-authenticated HTTPS requests; not panel browser actions",
+    "observed_utc": "2026-10-24T00:10:09Z",
+    "passed": true,
+    "source_bytes": 9437184
+  },
+  "live_upload_regression": {
+    "browser_upload_tested": false,
+    "checks": {
+      "existing_file_preserved": true,
+      "fresh_post_revocation_link_accepted": true,
+      "no_temporary_uploads_remain": true,
+      "one_use_replay_rejected": true,
+      "owned_fixture_removed": true,
+      "public_binary_multipart_and_empty": true,
+      "raw_traversal_filename_rejected": true,
+      "retained_service_large_binary_integrity": true,
+      "synthetic_user_revocation_enforced": true,
+      "wrong_scope_rejected": true
+    },
+    "identity_source": "operator-minted synthetic upload JWTs; not real panel-issued links",
+    "large_bytes": 9437184,
+    "observed_utc": "2026-10-24T00:10:28Z",
+    "passed": true,
+    "public_large_upload_status": 413,
+    "public_large_upload_verified": false,
+    "public_proxy_size_gate_pending": true
+  },
+  "live_websocket_regression": {
+    "checks": {
+      "allowed_origin_synthetic_auth": true,
+      "expired_token_rejected": true,
+      "fresh_post_revocation_token_accepted": true,
+      "jti_revocation_and_replay_rejected": true,
+      "missing_console_permission_rejected": true,
+      "missing_power_permission_rejected": true,
+      "synthetic_user_revocation_and_replay_rejected": true,
+      "untrusted_origin_rejected": true,
+      "wrong_issuer_rejected": true,
+      "wrong_server_rejected": true
+    },
+    "identity_source": "operator-minted synthetic JWTs; not a real panel subuser",
+    "observed_utc": "2026-10-24T00:10:32Z",
+    "panel_subuser_removal_tested": false,
+    "passed": true
+  },
+  "independent_cleanup_audit": {
+    "marker_present": true,
+    "observed_utc": "2026-10-24T00:10:42.6553528Z",
+    "earlier_file_manager_data_present": true,
+    "tunnel": "Running",
+    "game": "running",
+    "upload_probe_roots": 0,
+    "service_account": ".\\WingsRuntime",
+    "profile_count": 1,
+    "extract_probe_roots": 0,
+    "service": "Running"
+  },
+  "preliminary_failures": {
+    "source_revision": "7a6c665a2b7277d87482caf94b50a4dd82b23c24",
+    "package_sha256": "bf35480b8cd7fe7be2bb481e594308d4b5a412d4d9d6fe7051e29c43e0647c1a",
+    "portable_results": {
+      "tests_skipped": 0,
+      "tests_failed": 5,
+      "tests_passed": 62,
+      "exit_code": 1
+    },
+    "deployment_withheld": true,
+    "reason": "Server 2022 requires delete sharing for the existing handle-relative child rename path; a no-delete-sharing new parent admitted local Windows child renames but failed five portable nested-publication assertions on Server 2022.",
+    "local_cleanup_test_instrumentation_failure": {
+      "tests_failed": 3,
+      "reason": "New output-cleanup tests attempted directory enumeration while publication held a no-delete-sharing directory handle; changed observer to exact-file metadata lookup. Product fix passed 67 preliminary VM tests, then 70 after the observer correction. The failed clean-build attempt emitted no replacement package."
+    }
+  },
+  "limits": [
+    "Single-member gzip tar, new destinations only; no merge/overwrite, other formats or metadata restoration.",
+    "Initial local pass did not prove Server 2022 sharing behavior; first portable run failed 5 checks, fixed and rerun before service upgrade.",
+    "Temporary stage plus output copy can consume roughly 200 MiB in addition to the source archive; no quota/reservation.",
+    "Late publication failure can retain earlier new entries; crash can retain temporary or incomplete new final files.",
+    "Live tests use operator master authentication, not actual panel browser Extract; no new direct distinct-game-account output read or real-game/reboot/combined mock SCM certification.",
+    "Public 9 MiB upload remains proxy-limited with 413; this does not prevent small JSON extraction requests.",
+    "Remote fetch, progress UI, durable recovery, broader hostile archive/isolation certification and other formats remain open."
+  ]
+}
