@@ -1,12 +1,14 @@
 # Progress toward Wings compatibility
 
-Last updated: October 23, 2026. Current version: **0.1.0-alpha.51**. Active development: **M3 — Windows lifecycle features**, with **bounded M4 file management and scoped transfers** implemented. M1/M2 remain open for live panel and isolation gates.
+Last updated: October 23, 2026. Current version: **0.1.0-alpha.52**. Active development: **M3 — Windows lifecycle features**, with **bounded M4 file management and scoped transfers** implemented. M1/M2 remain open for live panel and isolation gates.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
 This file tracks the current implementation. The audit preserves the alpha 1 baseline. A checked implementation item means code and local regression tests exist; a live verification item stays open until exercised against a real panel/host/game. Route coverage is not a completion percentage.
 
 ## Current state
+
+- Alpha 52: plain TAR extraction shares the existing guarded tar.gz/ZIP workflow, with full header/framing preflight, owned staging and no replacement. Focused tests pass; clean release, Server 2022 and actual Client API verification pending. Broader M4 requirements remain open.
 
 - Real-panel alpha 51 follow-up: twelve Application and eighteen Client/panel-issued-token checks pass, including suspension/reinstall/callbacks, file workflows, real signed upload/download replay refusal, WSS auth/stats/commands and Client power. Independent cleanup confirms one profile, intact config/prior data and demo/service/tunnel Running. Runtime unchanged; browser visuals and actual subuser removal remain open. [Evidence](docs/evidence/server2022-alpha51-real-panel-apis.md).
 
@@ -189,7 +191,7 @@ Current scope remains a trusted private node. File denylist/path checks are not 
 - [ ] Safe archives/extraction and guarded remote fetch with progress/cancel.
   - [x] Add bounded tar.gz creation for selected regular files and directories, pinned sources, owned staging and no-replace publication.
   - [x] Add bounded single-member tar.gz extraction into new destinations with full validation before publication and explicit partial outcomes.
-  - [x] Add bounded ZIP Store/Deflate extraction through the existing guarded workflow.
+  - [x] Add bounded ZIP Store/Deflate and plain TAR extraction through the existing guarded workflow.
   - [x] Add bounded opt-in public HTTPS remote-file downloads with active polling, foreground/background modes and scoped cancellation.
   - [ ] Add merge/overwrite/additional formats, broader fetch policies, progress UI/events, durable recovery, quotas and real browser verification.
 - [ ] SFTP with panel authentication, per-operation permissions, revocation and session limits.

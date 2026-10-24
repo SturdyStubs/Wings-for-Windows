@@ -2,6 +2,7 @@
 package main
 
 import (
+	"archive/tar"
 	"bufio"
 	"bytes"
 	"crypto/rand"
@@ -123,7 +124,7 @@ func main() {
 						report["file_cleanup_failed"] = true
 					}
 				}()
-				for dir, names := range map[string][]string{"source": {"note.txt", "renamed.txt", "renamed copy.txt", "payload.bin", "replay.bin"}, "extracted": {"renamed.txt"}} {
+				for dir, names := range map[string][]string{"source": {"note.txt", "renamed.txt", "renamed copy.txt", "payload.bin", "replay.bin"}, "extracted": {"renamed.txt", "plain.tar", "plain.txt"}} {
 					if archive != "" {
 						names = append(names, archive)
 					}
@@ -313,6 +314,24 @@ func main() {
 	status, b = api("GET", "/files/contents?file="+url.QueryEscape("/"+fixture+"/extracted/renamed.txt"), nil)
 	need(status == 200 && string(b) == text)
 	checks["panel_compress_move_extract_round_trip"] = true
+	// Exercise the plain-TAR format through the real panel-issued upload link.
+	var tarBody bytes.Buffer
+	tw := tar.NewWriter(&tarBody)
+	need(tw.WriteHeader(&tar.Header{Name: "plain.txt", Size: int64(len(text)), Mode: 0600}) == nil)
+	_, e = tw.Write([]byte(text))
+	need(e == nil && tw.Close() == nil)
+	b = jsonPost("GET", "/files/upload", nil, 200)
+	u, e = url.Parse(parseSigned(b, "/upload/file"))
+	need(e == nil)
+	q = u.Query()
+	q.Set("directory", "/"+fixture+"/extracted")
+	u.RawQuery = q.Encode()
+	payload = tarBody.Bytes()
+	need(upload("plain.tar") == 200)
+	jsonPost("POST", "/files/decompress", map[string]string{"root": "/" + fixture + "/extracted", "file": "plain.tar"}, 204)
+	status, b = api("GET", "/files/contents?file="+url.QueryEscape("/"+fixture+"/extracted/plain.txt"), nil)
+	need(status == 200 && string(b) == text)
+	checks["panel_signed_upload_and_plain_tar_extract_round_trip"] = true
 	powerTouched = true
 	jsonPost("POST", "/power", map[string]string{"signal": "stop"}, 204)
 	readUntil(func(v event) bool { return v.Event == "status" && len(v.Args) == 1 && v.Args[0] == "offline" })
@@ -332,7 +351,7 @@ func main() {
 		})
 		checks[mode+"_command_echo_over_authenticated_wss"] = true
 	}
-	report["signed_binary_bytes"] = len(payload)
+	report["signed_binary_bytes"] = 64 << 10
 }
 
 // The panel includes :443 explicitly; both forms identify the same TLS origin.

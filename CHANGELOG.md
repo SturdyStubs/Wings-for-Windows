@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.52 - 2026-10-23
+
+- Add plain TAR extraction to the existing Extract endpoint, detected by content rather than suffix, sharing tar.gz/ZIP Windows path/policy checks, bounded stages and new-destination publication.
+- Reuse TAR header/end-marker/padding validation; refuse links, unsafe paths, duplicates, truncated data and concatenated/nonzero trailing archives before publication. Plain TAR has no payload CRC; no checksum claim is made for that format. Source cap remains 101 MiB, file data 100 MiB, decoded TAR 102 MiB and 256 paths/headers.
+- Extend the actual Client API probe with a panel-signed upload and plain-TAR extraction round trip. Local/Server 2022/live verification pending for the clean source revision.
+
 ## 0.1.0-alpha.51 - 2026-10-23
 
 - Live follow-up on the unchanged runtime: twelve real Application and eighteen Client/panel-issued-token checks pass for suspension/reinstall/callbacks, file workflows, signed transfers/replay refusal, actual WSS and Client power/console. Add opt-in reusable probes with private key input and exact owned cleanup; browser visuals and actual subuser removal remain open. [Evidence](docs/evidence/server2022-alpha51-real-panel-apis.md).

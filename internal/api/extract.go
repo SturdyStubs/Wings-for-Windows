@@ -160,10 +160,10 @@ func extractArchive(ctx context.Context, s *node.Server, base, sourceName string
 		return e
 	}
 	if !info.Mode().IsRegular() {
-		return &directoryFailure{422, "A regular tar.gz or ZIP archive is required"}
+		return &directoryFailure{422, "A regular tar, tar.gz or ZIP archive is required"}
 	}
 	if info.Size() > maxArchiveOutput {
-		return &directoryFailure{413, "Compressed archive exceeds 101 MiB"}
+		return &directoryFailure{413, "Archive source exceeds 101 MiB"}
 	}
 	canonical, e := resolvedFilePath(root, source)
 	if e != nil {

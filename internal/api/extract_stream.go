@@ -34,15 +34,22 @@ func openExtractStream(source *os.File, size int64, check func() error) (*extrac
 		return openExtractZIP(source, size, check)
 	}
 	reader := bufio.NewReader(downloadReader{r: source, check: check})
-	z, e := gzip.NewReader(reader)
-	if e != nil {
-		return nil, &directoryFailure{400, "Expected a valid gzip tar or ZIP archive"}
+	var payload io.Reader = reader
+	closeStream := func() {}
+	compressed := magic[0] == 0x1f && magic[1] == 0x8b
+	if compressed {
+		z, e := gzip.NewReader(reader)
+		if e != nil {
+			return nil, &directoryFailure{400, "Expected a valid gzip tar archive"}
+		}
+		z.Multistream(false)
+		payload = z
+		closeStream = func() { _ = z.Close() }
 	}
-	z.Multistream(false)
-	decoded := &extractBudget{reader: z, remaining: maxExtractStream, check: check}
+	decoded := &extractBudget{reader: payload, remaining: maxExtractStream, check: check}
 	tr := tar.NewReader(decoded)
 	return &extractStream{
-		close: func() { _ = z.Close() },
+		close: closeStream,
 		next: func() (extractHeader, io.Reader, error) {
 			before := decoded.used
 			h, e := tr.Next()
@@ -70,11 +77,13 @@ func openExtractStream(source *os.File, size int64, check func() error) (*extrac
 			if _, e := io.CopyBuffer(extractPadding{}, decoded, make([]byte, 64<<10)); e != nil {
 				return e
 			}
-			if _, e := reader.Peek(1); e != io.EOF {
-				if e != nil {
-					return e
+			if compressed {
+				if _, e := reader.Peek(1); e != io.EOF {
+					if e != nil {
+						return e
+					}
+					return &directoryFailure{422, "Trailing gzip members or bytes are unsupported"}
 				}
-				return &directoryFailure{422, "Trailing gzip members or bytes are unsupported"}
 			}
 			return nil
 		},

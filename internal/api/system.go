@@ -12,7 +12,7 @@ func (a *API) system(w http.ResponseWriter, r *http.Request) {
 		failure(w, 500, "Cannot read Windows host information")
 		return
 	}
-	capabilities := []string{"native_executable", "disk_usage_cached", "job_objects", "console", "power", "files_read_write", "files_create_directory", "files_rename_move", "files_copy", "files_delete", "signed_file_download", "signed_file_upload", "files_compress_tar_gzip", "files_extract_tar_gzip", "files_extract_zip", "live_resource_limits", "egg_process_opt_in", "native_installer_opt_in"}
+	capabilities := []string{"native_executable", "disk_usage_cached", "job_objects", "console", "power", "files_read_write", "files_create_directory", "files_rename_move", "files_copy", "files_delete", "signed_file_download", "signed_file_upload", "files_compress_tar_gzip", "files_extract_tar_gzip", "files_extract_tar", "files_extract_zip", "live_resource_limits", "egg_process_opt_in", "native_installer_opt_in"}
 	if a.Manager.Config.AllowRemoteDownloads {
 		capabilities = append(capabilities, "files_remote_pull_https")
 	}

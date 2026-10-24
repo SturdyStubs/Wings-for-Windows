@@ -197,7 +197,7 @@ func TestExtractAliasesAndConflicts(t *testing.T) {
 	}
 }
 func TestExtractFramingAndIntegrity(t *testing.T) {
-	for _, kind := range []string{"checksum", "truncated-gzip", "truncated-tar", "missing-terminator", "second-member", "compressed-trailer", "tar-trailer", "empty", "plain-tar"} {
+	for _, kind := range []string{"checksum", "truncated-gzip", "truncated-tar", "missing-terminator", "second-member", "compressed-trailer", "tar-trailer", "empty"} {
 		t.Run(kind, func(t *testing.T) {
 			a, _ := setup(t)
 			raw := testTar(t, tarTestEntry{name: "good", kind: tar.TypeReg, data: []byte("must stay unpublished")})
@@ -219,8 +219,6 @@ func TestExtractFramingAndIntegrity(t *testing.T) {
 				b = testGzip(t, append(raw, []byte("junk")...))
 			case "empty":
 				b = testGzip(t, testTar(t))
-			case "plain-tar":
-				b = raw
 			}
 			putDownload(t, a, "bundle", b)
 			w := extractRequest(t, a, "/", "bundle")
