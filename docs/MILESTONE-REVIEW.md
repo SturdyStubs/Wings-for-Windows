@@ -53,3 +53,7 @@ Bounded single-member tar.gz extraction into new destinations passes 1,187 local
 ## Alpha 49 remote-fetch progress
 
 Opt-in direct public HTTPS pulls now support foreground/background operation, active progress and scoped cancellation. The clean release passes 1,277 local / 14 native / 87 portable pull cases and eleven live checks, plus upload/WSS regressions. Only the dedicated test node was explicitly enabled; existing configuration bytes are preserved except that field. Browser workflows, broader archive/fetch behavior, quotas and durable recovery keep #29 open. Counts remain M4 4/9 and 44 deliverables overall. The separate public large-upload proxy gate remains open. See [evidence](evidence/server2022-alpha49-remote-pulls.md).
+
+## Alpha 50 ZIP extraction progress
+
+Bounded ZIP Store/Deflate extraction now shares the tar.gz safety/publication workflow. The clean release passes 1,340 local / 14 native / 133 portable extraction cases and sixteen public HTTPS live groups, plus upload/WSS regressions. The initial probe encoding/cleanup failure and corrected rerun are preserved in [evidence](evidence/server2022-alpha50-zip-extraction.md). Issue #29 remains open for broader archive/fetch/workflow/recovery work. No new accepted issue is split out: M4 remains 4/9, 44 deliverables overall, all milestones open. Actual browser Extract and the public large-upload proxy gate remain open.

@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "version": "0.1.0-alpha.50",
+  "source_revision": "0f428edf289837a9a0c7718dbf68eb42066c82a9",
+  "source_dirty": false,
+  "zip_sha256": "8df86521e4450666aa894f34c5930711231fea50142bacf6309fff4ba40d1fbb",
+  "daemon_sha256": "51aa8bc19e3eeec078d158a03ef3826977522a20eb33e2ec7dae4d629915a35c",
+  "runtime_tests_sha256": "428f07aab4df4bb585932c92c4424841c8bdec66dcd0a221d6289151212a9251",
+  "demo_sha256": "1173368e69e2a2cfd587f272b37e1a5cb37af18eb83e2f1307764247dafac0de",
+  "api_tests_sha256": "e1ee78e4fafe175bb792081e81b01a86067858180b165231063c894b8d10afa5",
+  "contract_fixture_sha256": "18ec82bbb03a10e5ed296799657c4e7feef934dc5fbce3fe89a056a95f819e8d",
+  "live_extract_probe_sha256": "1ab950c8ae673e9a1e9fab3bee9514867f8cb1cf0fc76756f99b8cb1481bba5f",
+  "live_extract_probe_source_sha256": "3fc886ce15ef8cb65933129ffffc154a98305470637ee64289de9ac25e9399db",
+  "host": {
+    "caption": "Microsoft Windows Server 2022 Standard Evaluation",
+    "version": "10.0.20348",
+    "build": "20348",
+    "architecture": "64-bit",
+    "windows_server": true,
+    "powershell": "5.1.20348.558"
+  },
+  "local_tests_passed": 1340,
+  "local_tests_skipped": 0,
+  "native_tests_passed": 14,
+  "baseline_started_utc": "2026-10-24T03:38:53.9431656Z",
+  "baseline_finished_utc": "2026-10-24T03:38:56.5538732Z",
+  "portable_extraction_api": {
+    "tests_skipped": 0,
+    "tests_failed": 0,
+    "tests_passed": 133,
+    "exit_code": 0
+  },
+  "live_deployment": {
+    "reboot_tested": false,
+    "version": "0.1.0-alpha.50",
+    "public_update_status": 200,
+    "observed_utc": "2026-10-24T03:39:16.5305034Z",
+    "game_state": "running",
+    "game_was_running": true,
+    "applied": false,
+    "runtime_only_upgrade": true,
+    "original_incoming_credentials_valid": true,
+    "outgoing_live_panel_sync_status": 204,
+    "upgrade_config_hash_unchanged": true,
+    "service_state": "Running",
+    "native_config_hash_unchanged": true,
+    "panel_save_button_retested": false,
+    "executable_acl_preserved": true
+  },
+  "live_extraction": {
+    "archive_bytes": 9440617,
+    "browser_extract_tested": false,
+    "checks": {
+      "checksum_refused_before_publication": true,
+      "conflicting_archive_writer_refused": true,
+      "empty_file_directory_and_implicit_parents": true,
+      "link_refused_before_publication": true,
+      "nine_mib_unicode_binary_integrity": true,
+      "no_temporary_extraction_files_remain": true,
+      "original_source_binary_preserved": true,
+      "outside_destination_sentinel_preserved": true,
+      "owned_fixture_removed": true,
+      "public_archive_creation_regression": true,
+      "public_extraction_status": true,
+      "repeat_extraction_preserves_destinations": true,
+      "traversal_refused_before_publication": true,
+      "zip_nine_mib_unicode_binary_integrity": true,
+      "zip_repeat_preserves_existing_data": true,
+      "zip_traversal_refused_before_publication": true
+    },
+    "identity_source": "operator master-authenticated HTTPS requests; not panel browser actions",
+    "observed_utc": "2026-10-24T03:40:19Z",
+    "passed": true,
+    "source_bytes": 9437184,
+    "zip_extract_status": 204
+  },
+  "live_upload_regression": {
+    "browser_upload_tested": false,
+    "checks": {
+      "existing_file_preserved": true,
+      "fresh_post_revocation_link_accepted": true,
+      "no_temporary_uploads_remain": true,
+      "one_use_replay_rejected": true,
+      "owned_fixture_removed": true,
+      "public_binary_multipart_and_empty": true,
+      "raw_traversal_filename_rejected": true,
+      "retained_service_large_binary_integrity": true,
+      "synthetic_user_revocation_enforced": true,
+      "wrong_scope_rejected": true
+    },
+    "identity_source": "operator-minted synthetic upload JWTs; not real panel-issued links",
+    "large_bytes": 9437184,
+    "observed_utc": "2026-10-24T03:40:23Z",
+    "passed": true,
+    "public_large_upload_status": 413,
+    "public_large_upload_verified": false,
+    "public_proxy_size_gate_pending": true
+  },
+  "live_websocket_regression": {
+    "checks": {
+      "allowed_origin_synthetic_auth": true,
+      "expired_token_rejected": true,
+      "fresh_post_revocation_token_accepted": true,
+      "jti_revocation_and_replay_rejected": true,
+      "missing_console_permission_rejected": true,
+      "missing_power_permission_rejected": true,
+      "synthetic_user_revocation_and_replay_rejected": true,
+      "untrusted_origin_rejected": true,
+      "wrong_issuer_rejected": true,
+      "wrong_server_rejected": true
+    },
+    "identity_source": "operator-minted synthetic JWTs; not a real panel subuser",
+    "observed_utc": "2026-10-24T03:40:28Z",
+    "panel_subuser_removal_tested": false,
+    "passed": true
+  },
+  "independent_audit": {
+    "service": "Running",
+    "remote_download_optin": true,
+    "observed_utc": "2026-10-24T03:40:54.5249688Z",
+    "prior_file_data_present": true,
+    "config_bytes_preserved": true,
+    "fixture_roots": 0,
+    "prior_marker_present": true,
+    "config_has_protected_dacl": true,
+    "game": "running",
+    "profile_count": 1,
+    "tunnel": "Running",
+    "service_identity": ".\\WingsRuntime",
+    "active_pulls": 0
+  },
+  "initial_live_extraction": {
+    "browser_extract_tested": false,
+    "checks": {
+      "checksum_refused_before_publication": true,
+      "empty_file_directory_and_implicit_parents": true,
+      "link_refused_before_publication": true,
+      "nine_mib_unicode_binary_integrity": true,
+      "owned_fixture_removed": false,
+      "public_archive_creation_regression": true,
+      "public_extraction_status": true,
+      "repeat_extraction_preserves_destinations": true,
+      "traversal_refused_before_publication": true
+    },
+    "identity_source": "operator master-authenticated HTTPS requests; not panel browser actions",
+    "observed_utc": "2026-10-24T03:39:23Z",
+    "passed": false
+  },
+  "initial_fixture_cleanup_recovery": {
+    "recursive_cleanup": false,
+    "known_archive_only": true,
+    "initial_fixture_removed": true
+  },
+  "probe_correction": "PowerShell-to-Python source generation replaced Unicode e-acute in new ZIP fixture names with a question mark. Runtime correctly rejected the unsafe name (422). Corrected only developer probe names with Go Unicode escapes and added missing known ZIP files to its nonrecursive cleanup list. Removed only the known leftover archive and empty owned directories; corrected probe passes with runtime unchanged.",
+  "limits": [
+    "ZIP Store/Deflate, single-disk, UTF-8/ASCII only; no ZIP64/encryption/SFX, gaps/overlaps or trailing bytes. Strict structure can reject otherwise legal ZIPs.",
+    "101 MiB source, 100 MiB aggregate file data, 256 entries/final paths, 1 MiB ZIP central directory; tar decoded stream 102 MiB.",
+    "New destinations only; no merge/overwrite, quotas/reservations, transactional publication, durable recovery or automatic executable approval.",
+    "No actual browser Extract, real game installation, distinct-game-account read, new reboot or hostile isolation certification.",
+    "Public 9 MiB uploads still return proxy 413; retained-service large uploads and public small uploads pass.",
+    "Vault backup files inherit vault ACLs; no exact configuration-ACL comparison against those backups is claimed. Runtime config bytes unchanged, protected DACL observed, executable SDDL preserved."
+  ]
+}

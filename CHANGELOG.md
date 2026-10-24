@@ -5,7 +5,7 @@
 - Add ZIP Store/Deflate support to the existing Extract endpoint, detected by content, with shared Windows path/policy checks, bounded staging and new destinations only.
 - Preflight a bounded single-disk central directory before ZIP parser allocation; validate local/central headers and descriptors, refuse encryption, ZIP64, special files, prefixes, overlaps, gaps and appended bytes. Verify payload sizes/CRC before publication.
 - Keep tar.gz parsing/integrity checks and the existing 101 MiB source, 100 MiB expanded data, 256-path, two-global/one-server and 60-second extraction limits. ZIP metadata is not applied.
-- Extend portable extraction tests and the opt-in public HTTPS probe. Local/Server 2022 verification is pending for this source revision; evidence will be recorded separately.
+- Extend portable extraction tests and the opt-in public HTTPS probe. Clean release passes 1,340 local cases/subtests, zero skips and vet; Server 2022 passes 14 native and 133 portable extraction cases. Sixteen live extraction groups plus ten each upload/WSS regressions pass. The initial probe encoding/cleanup failure and independent correction are retained in [exact evidence](docs/evidence/server2022-alpha50-zip-extraction.md).
 
 ## 0.1.0-alpha.49 - 2026-10-23
 

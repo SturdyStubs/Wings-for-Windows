@@ -57,7 +57,7 @@ func main() {
 		}
 		if root != nil {
 			if owned {
-				files := []string{"target/tree/Café.bin", "target/empty.bin", "target/unsafe.tar.gz", "target/checksum.tar.gz", "target/link.tar.gz", "target/safe.txt", "target/rejected-link", "source/tree/Café.bin", "source/empty.bin", "sentinel", "escape.bin"}
+				files := []string{"target/tree/Café.bin", "target/zip/Caf\u00e9.bin", "target/bundle.zip", "target/bad.zip", "target/empty.bin", "target/unsafe.tar.gz", "target/checksum.tar.gz", "target/link.tar.gz", "target/safe.txt", "target/rejected-link", "source/tree/Café.bin", "source/empty.bin", "sentinel", "escape.bin"}
 				if archive != "" {
 					files = append(files, "target/"+archive, "source/"+archive)
 				}
@@ -205,14 +205,16 @@ func main() {
 	var zipBody bytes.Buffer
 	zw := zip.NewWriter(&zipBody)
 	need(zw.SetComment("live Windows ZIP fixture") == nil)
-	zf, e := zw.CreateHeader(&zip.FileHeader{Name: "zip/Caf?.bin", Method: zip.Deflate})
+	zf, e := zw.CreateHeader(&zip.FileHeader{Name: "zip/Caf\u00e9.bin", Method: zip.Deflate})
 	need(e == nil)
 	_, e = zf.Write(large)
 	need(e == nil)
 	need(zw.Close() == nil)
 	put("target/bundle.zip", zipBody.Bytes())
-	need(extract("bundle.zip") == 204)
-	current, e = root.ReadFile(dir + "/target/zip/Caf?.bin")
+	zipStatus := extract("bundle.zip")
+	report["zip_extract_status"] = zipStatus
+	need(zipStatus == 204)
+	current, e = root.ReadFile(dir + "/target/zip/Caf\u00e9.bin")
 	need(e == nil && sha256.Sum256(current) == sha256.Sum256(large))
 	checks["zip_nine_mib_unicode_binary_integrity"] = true
 	need(extract("bundle.zip") == 409)

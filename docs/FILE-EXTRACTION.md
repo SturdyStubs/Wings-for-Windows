@@ -50,3 +50,5 @@ Plain tar, RAR/7z, ZIP64/encrypted ZIP/ZIP creation, merge/overwrite, sparse/lin
 
 
 Alpha 49 adds opt-in [guarded HTTPS remote-file pulls](REMOTE-PULLS.md); downloads do not automatically extract or execute content.
+
+Alpha 50 verification: 1,340 local cases/subtests, zero skips and vet; 14 native and 133 portable extraction cases on Server 2022; sixteen live tar.gz/ZIP groups through public HTTPS, including both formats with 9 MiB binary integrity, and ten each upload/WSS regressions. Initial live helper encoding/cleanup failure and corrected rerun are retained in [alpha 50 evidence](evidence/server2022-alpha50-zip-extraction.md); runtime code is unchanged by that instrumentation correction.
