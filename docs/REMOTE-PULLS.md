@@ -6,6 +6,8 @@ Alpha 49 implements the panel/Wings remote pull routes for approved native serve
 "allow_remote_downloads": true
 ```
 
+Keep the other configuration fields intact when adding this property. When rolling back to a daemon older than alpha 49, remove this field or restore the protected pre-upgrade configuration; older strict JSON loaders do not recognize it.
+
 The default is false: all three routes return 501 until enabled. The system capability `files_remote_pull_https` appears only when enabled. Node master authentication remains required; the panel enforces its user's permissions before making that request. No pending profile gains access. Downloaded files are data only: this does not install, execute or approve game code.
 
 ```http
@@ -40,6 +42,6 @@ Typical statuses: 501 disabled; 401 invalid node bearer; 202 background accepted
 
 ## Verification and open work
 
-Focused tests cover contract/metadata/binary/empty/unknown-length downloads, filename headers, URL/IP/DNS pinning, proxy/TLS/redirect configuration, limits, truncation/read failures, collisions, active progress/cancellation, cross-server cancellation refusal, shutdown/request cleanup, dynamic policy and opt-in configuration. Full clean build and Server 2022/live verification are pending. The [live probe](../tools/live-pull-test/README.md) exercises controlled public HTTPS sources on the node without outputting signed URLs.
+Focused tests cover contract/metadata/binary/empty/unknown-length downloads, filename headers, URL/IP/DNS pinning, proxy/TLS/redirect configuration, limits, truncation/read failures, collisions, active progress/cancellation, cross-server cancellation refusal, shutdown/request cleanup, dynamic policy and opt-in configuration. The clean release passes 1,277 local cases/subtests with zero skips and vet; Server 2022 passes 14 native, 87 portable pull and eleven live pull/cleanup groups, plus ten each upload/WSS regressions. Controlled public HTTPS foreground/background downloads match a 9 MiB source SHA256, and early cancellation cleans up. The test node opt-in is explicitly enabled; other configuration bytes/ACLs remain preserved. See [exact evidence](evidence/server2022-alpha49-remote-pulls.md). The [live probe](../tools/live-pull-test/README.md) exercises controlled public HTTPS sources on the node without outputting signed URLs.
 
 Private-network allowlists, arbitrary ports/schemes, redirect support, larger/configurable limits, terminal job history, automatic retries/resume, overwrite, quota enforcement, durable recovery and actual browser Pull UI certification remain open. The separate public-upload Nginx body limit does not affect these small JSON requests; it still affects browser uploads of large files.

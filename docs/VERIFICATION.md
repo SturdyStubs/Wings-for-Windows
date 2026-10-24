@@ -1,6 +1,6 @@
 # Verification and release status
 
-Alpha 49: 87 focused pull and three opt-in configuration cases/subtests pass locally. Full clean build and Server 2022/live validation pending. See [scope](REMOTE-PULLS.md).
+Alpha 49: **1,277 local cases/subtests**, zero skips, vet and clean release; **14 native** and **87 portable remote-pull** cases/subtests pass on Server 2022. **Eleven live checks** pass, including foreground/background public HTTPS 9 MiB integrity, private-address refusal, early cancellation and cleanup; ten upload and ten WSS regressions pass. Enabled only the explicit opt-in field on the test VM with protected backups, preserving other configuration bytes/ACLs. Service/demo/tunnel remain running. Browser Pull, quotas and durable recovery remain open. See [evidence](evidence/server2022-alpha49-remote-pulls.md) and [scope](REMOTE-PULLS.md).
 
 Alpha 48: **1,187 local cases/subtests**, zero skips, vet and corrected clean release; **14 native** and **70 portable extraction** cases/subtests pass on Server 2022. **Thirteen live checks** pass, including public HTTPS create/extract and a SHA256-verified 9 MiB binary; ten upload and ten WSS regressions pass. The initial Server 2022 rename-sharing failure was fixed before deployment. Service/demo/tunnel remain running, config/ACLs preserved and fixtures removed. Actual browser Extract, other formats, merge/overwrite and remote fetch remain open. See [evidence](evidence/server2022-alpha48-archive-extraction.md) and [scope](FILE-EXTRACTION.md).
 

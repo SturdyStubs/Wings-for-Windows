@@ -4,7 +4,7 @@
 
 - Add opt-in panel/upstream remote-file pull POST/GET/DELETE contracts, foreground metadata or background identifiers, bounded active progress and early/scoped cancellation. Default disabled via `allow_remote_downloads`; graceful shutdown cancels and waits for cleanup.
 - Permit only direct public HTTPS on port 443 with normal TLS, DNS answer screening and numeric-address pinning. No redirects, proxy, credential forwarding or automatic decompression. Bound network/header/time, six global/three per-server jobs and 100 MiB files, including unknown-length streams.
-- Stream into exclusive owned staging, enforce current destination policy/parent identity and no-replace publication, and remove unpublished stages on ordinary failure/cancellation. No automatic execution, quota/reservation, durable job/stage recovery, overwrite, retry/resume or browser certification. All 87 focused pull and three opt-in configuration cases/subtests pass; full clean build and VM validation pending. See [scope](docs/REMOTE-PULLS.md).
+- Stream into exclusive owned staging, enforce current destination policy/parent identity and no-replace publication, and remove unpublished stages on ordinary failure/cancellation. No automatic execution, quota/reservation, durable job/stage recovery, overwrite, retry/resume or browser certification. Validate 1,277 local cases/subtests (zero skips), vet, clean release, 14 native and 87 portable Server 2022 cases, eleven live pull/cleanup groups and ten each upload/WSS regressions. Explicitly enable the flag on the test node while preserving all other configuration bytes and ACLs. See [evidence and helper/probe corrections](docs/evidence/server2022-alpha49-remote-pulls.md). See [scope](docs/REMOTE-PULLS.md).
 
 ## 0.1.0-alpha.48 - 2026-10-23
 

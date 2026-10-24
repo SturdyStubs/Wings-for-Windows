@@ -48,3 +48,8 @@ Bounded tar.gz creation now passes 1,117 local / 14 native / 38 portable cases a
 ## Alpha 48 partial archive progress
 
 Bounded single-member tar.gz extraction into new destinations passes 1,187 local / 14 native / 70 portable cases and thirteen live create/extract/cleanup checks, plus upload/WSS regressions. Initial Server 2022 sharing failures were fixed before service upgrade; exact failures/correction are retained in the evidence. Issue #29 stays open for merge/overwrite/additional formats, remote fetch, progress UI and remaining validation. No new accepted task is split out: M4 stays 4/9 with 44 total deliverables. Actual browser Extract and the public large-upload proxy gate remain open. See [evidence](evidence/server2022-alpha48-archive-extraction.md).
+
+
+## Alpha 49 remote-fetch progress
+
+Opt-in direct public HTTPS pulls now support foreground/background operation, active progress and scoped cancellation. The clean release passes 1,277 local / 14 native / 87 portable pull cases and eleven live checks, plus upload/WSS regressions. Only the dedicated test node was explicitly enabled; existing configuration bytes are preserved except that field. Browser workflows, broader archive/fetch behavior, quotas and durable recovery keep #29 open. Counts remain M4 4/9 and 44 deliverables overall. The separate public large-upload proxy gate remains open. See [evidence](evidence/server2022-alpha49-remote-pulls.md).

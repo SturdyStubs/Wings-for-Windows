@@ -62,7 +62,7 @@ func main() {
 		if root != nil {
 			if owned {
 				for _, name := range []string{"pulled.bin", "async.bin", "cancel.bin", "source.bin", "cancel-source.bin"} {
-					deadline := time.Now().Add(15 * time.Second)
+					deadline := time.Now().Add(45 * time.Second)
 					for {
 						e := root.Remove(dir + "/" + name)
 						if e == nil || os.IsNotExist(e) {

@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "version": "0.1.0-alpha.49",
+  "source_revision": "67c594700749dca6fe84b35b2dc121c74ccbbee5",
+  "source_dirty": false,
+  "zip_sha256": "4c6ec163f56b276eb5d51bf3d7992e496f9717eac7f0814913881b97ec2ba132",
+  "daemon_sha256": "26940f578e5ea23cdff509642c6bebdf94c90d770873a4567121915998de73a9",
+  "runtime_tests_sha256": "428f07aab4df4bb585932c92c4424841c8bdec66dcd0a221d6289151212a9251",
+  "demo_sha256": "e7a93f749106235923e123080801d5fa747d4790abeb65413274e99c94331300",
+  "api_tests_sha256": "71114038ec7c986ba8334777a86a79fe0b0518766cb65b31bc0e044520250037",
+  "contract_fixture_sha256": "1ba0e1ed543efcb44da82394a08bc85868c7593264151237e9a4c78b84e93ff9",
+  "live_pull_probe_sha256": "81c92c1a366e98ae2450ed3dd4d630042d3755c3fe31c2bffca290e5b1540498",
+  "live_pull_probe_source_sha256": "4ff5cd103f6710bea6daa4bf4ef9a82f92f9f975e5a649e24baca60593f709c2",
+  "missing_fixture_consent_exit_code": 2,
+  "host": {
+    "caption": "Microsoft Windows Server 2022 Standard Evaluation",
+    "version": "10.0.20348",
+    "build": "20348",
+    "architecture": "64-bit",
+    "windows_server": true,
+    "powershell": "5.1.20348.558"
+  },
+  "local_tests_passed": 1277,
+  "local_tests_skipped": 0,
+  "native_tests_passed": 14,
+  "baseline_started_utc": "2026-10-24T02:29:51.6114681Z",
+  "baseline_finished_utc": "2026-10-24T02:29:54.1450496Z",
+  "portable_pull_api": {
+    "tests_skipped": 0,
+    "tests_failed": 0,
+    "tests_passed": 87,
+    "exit_code": 0
+  },
+  "live_service_deployment_before_optin": {
+    "reboot_tested": false,
+    "version": "0.1.0-alpha.49",
+    "public_update_status": 200,
+    "observed_utc": "2026-10-24T02:30:00.0527261Z",
+    "game_state": "running",
+    "game_was_running": true,
+    "applied": false,
+    "runtime_only_upgrade": true,
+    "original_incoming_credentials_valid": true,
+    "outgoing_live_panel_sync_status": 204,
+    "upgrade_config_hash_unchanged": true,
+    "service_state": "Running",
+    "native_config_hash_unchanged": true,
+    "panel_save_button_retested": false,
+    "executable_acl_preserved": true
+  },
+  "explicit_config_optin": {
+    "panel_sync_status": 204,
+    "allow_remote_downloads": true,
+    "version": "0.1.0-alpha.49",
+    "service_state": "Running",
+    "observed_utc": "2026-10-24T02:32:36.2576632Z",
+    "default_gate_status": 501,
+    "reboot_tested": false,
+    "game_state": "running",
+    "config_acl_preserved": true,
+    "only_opt_in_field_added": true,
+    "other_config_bytes_preserved": true,
+    "protected_backup_created": true
+  },
+  "live_pull": {
+    "browser_pull_tested": false,
+    "cancel_source_bytes": 104857600,
+    "checks": {
+      "background_accept_list_and_completion": true,
+      "cancel_replay_is_idempotent": true,
+      "dns_loopback_refused": true,
+      "early_cancel_removes_unpublished_file": true,
+      "existing_destination_preserved": true,
+      "foreground_public_https_nine_mib_integrity": true,
+      "http_source_refused": true,
+      "literal_loopback_refused": true,
+      "no_temporary_pulls_remain": true,
+      "owned_fixture_removed": true,
+      "source_binary_preserved": true
+    },
+    "identity_source": "operator master-authenticated pull API; synthetic signed source URLs",
+    "observed_utc": "2026-10-24T02:36:48Z",
+    "passed": true,
+    "source_bytes": 9437184
+  },
+  "live_upload_regression": {
+    "browser_upload_tested": false,
+    "checks": {
+      "existing_file_preserved": true,
+      "fresh_post_revocation_link_accepted": true,
+      "no_temporary_uploads_remain": true,
+      "one_use_replay_rejected": true,
+      "owned_fixture_removed": true,
+      "public_binary_multipart_and_empty": true,
+      "raw_traversal_filename_rejected": true,
+      "retained_service_large_binary_integrity": true,
+      "synthetic_user_revocation_enforced": true,
+      "wrong_scope_rejected": true
+    },
+    "identity_source": "operator-minted synthetic upload JWTs; not real panel-issued links",
+    "large_bytes": 9437184,
+    "observed_utc": "2026-10-24T02:38:22Z",
+    "passed": true,
+    "public_large_upload_status": 413,
+    "public_large_upload_verified": false,
+    "public_proxy_size_gate_pending": true
+  },
+  "live_websocket_regression": {
+    "checks": {
+      "allowed_origin_synthetic_auth": true,
+      "expired_token_rejected": true,
+      "fresh_post_revocation_token_accepted": true,
+      "jti_revocation_and_replay_rejected": true,
+      "missing_console_permission_rejected": true,
+      "missing_power_permission_rejected": true,
+      "synthetic_user_revocation_and_replay_rejected": true,
+      "untrusted_origin_rejected": true,
+      "wrong_issuer_rejected": true,
+      "wrong_server_rejected": true
+    },
+    "identity_source": "operator-minted synthetic JWTs; not a real panel subuser",
+    "observed_utc": "2026-10-24T02:38:26Z",
+    "panel_subuser_removal_tested": false,
+    "passed": true
+  },
+  "independent_cleanup_audit": {
+    "pull_probe_roots": 0,
+    "upload_probe_roots": 0,
+    "service": "Running",
+    "earlier_file_manager_data_present": true,
+    "observed_utc": "2026-10-24T02:38:36.5643087Z",
+    "marker_present": true,
+    "tunnel": "Running",
+    "allow_remote_downloads": true,
+    "service_account": ".\\WingsRuntime",
+    "game": "running",
+    "profile_count": 1,
+    "active_pulls": 0,
+    "original_config_bytes_preserved_except_optin": true
+  },
+  "preliminary_optin_helper_failure": {
+    "failed_phase": "replace",
+    "reason": "PowerShell 5.1 File.Replace with a null backup argument raised ArgumentException before changing configuration. Explicit protected backup path fixed the operator helper; service/demo were restored between attempts. Runtime code unchanged."
+  },
+  "initial_live_pull": {
+    "browser_pull_tested": false,
+    "cancel_source_bytes": 104857600,
+    "checks": {
+      "background_accept_list_and_completion": true,
+      "cancel_replay_is_idempotent": true,
+      "dns_loopback_refused": true,
+      "early_cancel_removes_unpublished_file": true,
+      "existing_destination_preserved": true,
+      "foreground_public_https_nine_mib_integrity": true,
+      "http_source_refused": true,
+      "literal_loopback_refused": true,
+      "no_temporary_pulls_remain": true,
+      "owned_fixture_removed": false,
+      "source_binary_preserved": true
+    },
+    "identity_source": "operator master-authenticated pull API; synthetic signed source URLs",
+    "observed_utc": "2026-10-24T02:32:47Z",
+    "passed": false,
+    "source_bytes": 9437184
+  },
+  "initial_fixture_cleanup_recovery": {
+    "recursive_cleanup": false,
+    "known_source_only": true,
+    "initial_fixture_removed": true
+  },
+  "probe_cleanup_correction": "Initial 15-second cleanup retry window expired on a signed source stream read handle after early response refusal. Once released, exact known source and empty fixture were removed. Only developer probe wait changed to 45 seconds; rerun passes all 11 checks without runtime changes.",
+  "limits": [
+    "Default off; explicitly enabled only on the dedicated Windows test node. Original config bytes preserved except one opt-in field; ACL preserved.",
+    "Only direct public HTTPS on port 443; no redirect/proxy/private-network exception, retries/resume, overwrite or automatic execution.",
+    "100 MiB per file, six global/three per-server jobs; no quotas, reservations, terminal history or durable job/stage recovery.",
+    "Progress is active polling; unknown-length progress is zero and no new WebSocket event is added.",
+    "Live uses operator master API requests and synthetic signed controlled sources, not actual panel/browser Pull UI or third-party game install.",
+    "No new real game, direct distinct-game-account output read, reboot, combined mock SCM or hostile isolation certification.",
+    "Public 9 MiB browser upload still returns proxy 413; remote pull JSON requests are unaffected."
+  ]
+}
