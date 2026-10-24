@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.54 - 2026-10-24
+
+- Add explicit `sftp.allow_uploads` for new files only, retaining read-only behavior by default. Require file.create and write/create flags; refuse overwrite, append, implicit parents and other mutations. Accept ordinary create/read-write opens while refusing reads through the unpublished upload handle.
+- Stage with exclusive native handles, allow bounded random-order writes, require complete coverage, flush and publish without replacement only on successful CLOSE. Poison and discard on failed writes, disconnect, cancellation, suspension, policy changes or revocation. Two-minute transfer context, 100 MiB file/cumulative-payload cap, 64 KiB write packets, 4096 merged ranges and one transfer per server share the four HTTP/SFTP upload slots. No quota/reservation or crash-recovery claim.
+- Extend actual encrypted protocol/native tests and the opt-in real-panel probe. Clean release/Server 2022/live validation pending. [Setup and limits](docs/SFTP.md).
+
 ## 0.1.0-alpha.53 - 2026-10-24
 
 - Add opt-in read-only loopback SFTP using panel password/public-key authentication and existing scoped user revocation. Confine access to the approved server data root; apply file read/list permissions and current denylist checks, and refuse writes, links, Windows path aliases, shell/exec/forwarding and extra SSH sessions.

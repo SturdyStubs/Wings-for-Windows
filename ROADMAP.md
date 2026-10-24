@@ -1,12 +1,14 @@
 # Progress toward Wings compatibility
 
-Last updated: October 24, 2026. Current version: **0.1.0-alpha.53**. Active development: **M3 — Windows lifecycle features**, with **bounded M4 file management and scoped transfers** implemented. M1/M2 remain open for live panel and isolation gates.
+Last updated: October 24, 2026. Current version: **0.1.0-alpha.54**. Active development: **M3 — Windows lifecycle features**, with **bounded M4 file management and scoped transfers** implemented. M1/M2 remain open for live panel and isolation gates.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
 This file tracks the current implementation. The audit preserves the alpha 1 baseline. A checked implementation item means code and local regression tests exist; a live verification item stays open until exercised against a real panel/host/game. Route coverage is not a completion percentage.
 
 ## Current state
+
+- Alpha 54 candidate: additional opt-in new-file SFTP uploads, staged until clean close, no-replace publication, bounded random-order packets and disconnect/revocation cleanup. Local native/protocol tests pass; clean release and live validation pending. Broader #30 remains open. [Scope](docs/SFTP.md).
 
 - Alpha 53: opt-in read-only loopback SFTP with panel auth, scoped permissions/revocation, protected Windows handles/key and bounded sessions. Clean release: 1,472 local; Server 2022: 14 native / 32 backend / 34 SSH-SFTP cases. Eighteen real-panel public-key checks and nineteen Client API/token groups pass, plus archive/upload/WSS regressions. Config changes only by planned opt-in addition; fixtures/ephemeral panel key removed, demo/service/tunnel Running. Accept scoped #51 (M4 5/10); broader #30 and all milestones remain open. [Scope](docs/SFTP.md), [evidence](docs/evidence/server2022-alpha53-sftp.md).
 

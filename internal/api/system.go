@@ -14,7 +14,11 @@ func (a *API) system(w http.ResponseWriter, r *http.Request) {
 	}
 	capabilities := []string{"native_executable", "disk_usage_cached", "job_objects", "console", "power", "files_read_write", "files_create_directory", "files_rename_move", "files_copy", "files_delete", "signed_file_download", "signed_file_upload", "files_compress_tar_gzip", "files_extract_tar_gzip", "files_extract_tar", "files_extract_zip", "live_resource_limits", "egg_process_opt_in", "native_installer_opt_in"}
 	if a.Manager.Config.SFTP != nil {
-		capabilities = append(capabilities, "sftp_read_only_loopback")
+		if a.Manager.Config.SFTP.AllowUploads {
+			capabilities = append(capabilities, "sftp_new_file_uploads_loopback")
+		} else {
+			capabilities = append(capabilities, "sftp_read_only_loopback")
+		}
 	}
 	if a.Manager.Config.AllowRemoteDownloads {
 		capabilities = append(capabilities, "files_remote_pull_https")

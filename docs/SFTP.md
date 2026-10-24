@@ -1,6 +1,6 @@
-# Read-only loopback SFTP
+# Loopback SFTP
 
-Alpha 53 introduces a deliberately limited SSH/SFTP subsystem. It is disabled unless the operator adds `sftp` to the native JSON configuration. This is not public-hosting or full Wings SFTP certification.
+Alpha 53 introduces a deliberately limited read-only SSH/SFTP subsystem. Alpha 54 adds a separate opt-in for new-file uploads. It is disabled unless the operator adds `sftp` to the native JSON configuration. This is not public-hosting or full Wings SFTP certification.
 
 ```json
 "sftp": {
@@ -19,7 +19,7 @@ For the disposable test node, the opt-in probe can generate an exclusive new key
 
 Use the panel SFTP username (`username.<eight-character-server-prefix>`), with a panel password or a public key registered on the user's panel account. Every SSH authentication delegates to `POST /api/remote/sftp/auth` using the native node credentials. The returned server must match exactly one locally approved profile. Unknown/ambiguous/unapproved/suspended servers are refused.
 
-`file.sftp` is required for login, `file.read` for directory listing/stat/realpath, and `file.read-content` for opening file contents; panel wildcard permissions are recognized. All mutations are refused, including upload, truncate, mkdir, rename, delete, attributes and links. SSH shell, command execution, forwarding and extra session channels are refused.
+`file.sftp` is required for login, `file.read` for directory listing/stat/realpath, and `file.read-content` for opening file contents; panel wildcard permissions are recognized. By default all mutations are refused, including upload, truncate, mkdir, rename, delete, attributes and links. The upload opt-in below permits only new files. SSH shell, command execution, forwarding and extra session channels are refused.
 
 Reads use pinned Windows handles inside the server data root. Paths and current case-insensitive egg denylists are checked at open and during reads. Reparse points, multiple hardlinks, alternate streams, reserved Windows names and conflicting writer handles are refused. A read handle prevents ordinary concurrent writes/deletion until closed; actively written game logs may consequently be unavailable. This first version favors stable reads over live-tail compatibility. Directory listing filters inaccessible entries and rejects more than 1,000 raw entries, including filtered entries.
 
@@ -34,4 +34,17 @@ The existing authenticated `/api/deauthorize-user` hook invalidates older sessio
 
 Timeouts are cooperative; native filesystem calls are not forcibly interruptible. These limits do not constitute NTFS quotas, bandwidth quotas or isolation from privileged host administrators. Password guessing protection depends on the panel in addition to local handshake limits.
 
-The HTTP reverse proxy does not carry SSH traffic. No public SFTP firewall/tunnel/DNS changes are included. Keep this listener local for testing; public deployment, uploads/mutations, resumable writes, quota reservations, durable recovery, browser configuration and mutually untrusted tenants remain open. Remove the `sftp` object and restart to disable it, keeping the protected host key for a future re-enable.
+The HTTP reverse proxy does not carry SSH traffic. No public SFTP firewall/tunnel/DNS changes are included. Keep this listener local for testing; public deployment, overwrite/append and other mutations, resumable writes, quota reservations, durable recovery, browser configuration and mutually untrusted tenants remain open. Remove the `sftp` object and restart to disable it, keeping the protected host key for a future re-enable.
+
+
+## Optional new-file uploads (alpha 54)
+
+Add `"allow_uploads": true` inside the existing `sftp` object and restart. Omitted/false keeps the listener read-only. This still requires loopback binding and the same persistent protected key. The system capability is `sftp_new_file_uploads_loopback` when enabled and `sftp_read_only_loopback` otherwise.
+
+A user must have `file.create`; the OPEN must request write/create. Ordinary clients' read/write-create OPEN is accepted, but READ on that unpublished handle is denied. Read existing published files through a separate read handle with `file.read-content`. Supplied create mode/ownership/timestamps are not applied; Windows DACL inheritance remains authoritative. Destinations must be new regular files under existing confined parents. Existing files, append/update, implicit mkdir, chmod, timestamps, delete, rename and links remain refused. SFTP clients that insist on preallocation/truncate, chmod or a temporary-name rename may need those options disabled; no universal client certification is claimed.
+
+Upload data stays in an exclusive random `.wings-sftp-*.tmp` stage in the destination parent. The final name appears only after a successful SFTP CLOSE, complete received-byte coverage, flush, fresh policy/authorization checks and native no-replace publication. A destination created by another actor before CLOSE is preserved and the upload fails. Random-order/overlapping packets work within the bounds below; holes cannot be published. SFTP does not declare the intended total length: a clean CLOSE of a contiguous prefix is a completed file at that length, not a detectable network interruption.
+
+Every write rechecks session/egg policy and destination-parent identity. A write error poisons the whole transfer. The pinned pkg/sftp [TransferError contract](https://pkg.go.dev/github.com/pkg/sftp@v1.13.10#TransferError) is forwarded so a dropped transport aborts outstanding stages before their handles close. Context cancellation and the two-minute transfer deadline trigger owned cleanup and release capacity. Native calls remain cooperative; failure/disk errors or abrupt host termination may leave an owned stage, so durable recovery remains open. Successful publication followed by a lost CLOSE reply can leave a valid final file; reload before retrying.
+
+Bounds: 100 MiB per file and cumulative accepted write payload (overlap retransmissions count), 64 KiB per write request, at most 4096 merged byte ranges, one active SFTP upload per server, and four shared HTTP/SFTP upload slots node-wide. The existing sixteen session handles also include writers. There is no disk reservation, per-user storage quota, bandwidth quota, durable stage journal or protection against game-generated disk growth. A failed transfer can be retried as a new create after its stage is removed; no resume protocol is implemented.

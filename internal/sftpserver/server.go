@@ -1,4 +1,4 @@
-// Package sftpserver exposes a bounded, read-only SSH subsystem. Filesystem and
+// Package sftpserver exposes a bounded SSH subsystem. Filesystem and
 // panel authorization are delegated to the existing node backend.
 package sftpserver
 
@@ -44,6 +44,17 @@ type ReadHandle interface {
 	io.ReaderAt
 	io.Closer
 }
+type WriteHandle interface {
+	io.WriterAt
+	io.Closer
+	TransferError(error)
+}
+
+// UploadBackend is optional; implementations must enforce their own opt-in.
+type UploadBackend interface {
+	Upload(context.Context, Access, string) (WriteHandle, error)
+}
+
 type Backend interface {
 	Authenticate(context.Context, AuthRequest) (Access, error)
 	Allowed(Access) bool
@@ -142,7 +153,7 @@ func (s *Server) serve(conn net.Conn, ip string) {
 		}
 		return &ssh.Permissions{Extensions: map[string]string{"wings_access": string(blob)}}, nil
 	}
-	config := &ssh.ServerConfig{MaxAuthTries: 3, ServerVersion: "SSH-2.0-WingsWindowsReadOnly", PasswordCallback: func(c ssh.ConnMetadata, p []byte) (*ssh.Permissions, error) { return auth(c, "password", string(p)) }, PublicKeyCallback: func(c ssh.ConnMetadata, p ssh.PublicKey) (*ssh.Permissions, error) {
+	config := &ssh.ServerConfig{MaxAuthTries: 3, ServerVersion: "SSH-2.0-WingsWindows", PasswordCallback: func(c ssh.ConnMetadata, p []byte) (*ssh.Permissions, error) { return auth(c, "password", string(p)) }, PublicKeyCallback: func(c ssh.ConnMetadata, p ssh.PublicKey) (*ssh.Permissions, error) {
 		return auth(c, "public_key", strings.TrimSpace(string(ssh.MarshalAuthorizedKey(p))))
 	}}
 	config.AddHostKey(s.signer)
@@ -276,8 +287,69 @@ func (h *handler) check() error {
 	}
 	return nil
 }
-func (h *handler) Filewrite(*sftp.Request) (io.WriterAt, error) { return nil, os.ErrPermission }
-func (h *handler) Filecmd(*sftp.Request) error                  { return os.ErrPermission }
+func (h *handler) Filewrite(r *sftp.Request) (io.WriterAt, error) {
+	if e := h.check(); e != nil {
+		return nil, e
+	}
+	flags := r.Pflags()
+	backend, ok := h.backend.(UploadBackend)
+	if !ok || !h.access.Can("file.create") || !flags.Write || !flags.Creat || flags.Append || r.Flags & ^uint32(63) != 0 || len(r.Attrs) > 8192 {
+		return nil, os.ErrPermission
+	}
+	select {
+	case h.handles <- struct{}{}:
+	default:
+		return nil, os.ErrPermission
+	}
+	f, e := backend.Upload(h.ctx, h.access, r.Filepath)
+	if e != nil {
+		<-h.handles
+		return nil, os.ErrPermission
+	}
+	return &writer{WriteHandle: f, check: h.check, release: func() { <-h.handles }}, nil
+}
+
+// Clients commonly use a read/write OPEN for creating a file. Only its write
+// side is supported; unpublished uploads cannot be read through that handle.
+func (h *handler) OpenFile(r *sftp.Request) (sftp.WriterAtReaderAt, error) {
+	f, e := h.Filewrite(r)
+	if e != nil {
+		return nil, e
+	}
+	return f.(*writer), nil
+}
+
+type writer struct {
+	WriteHandle
+	check   func() error
+	release func()
+	once    sync.Once
+	err     error
+}
+
+func (w *writer) ReadAt([]byte, int64) (int, error) { return 0, os.ErrPermission }
+func (w *writer) WriteAt(p []byte, off int64) (int, error) {
+	e := w.check()
+	if e == nil && (len(p) > 64<<10 || off < 0) {
+		e = os.ErrPermission
+	}
+	if e != nil {
+		w.TransferError(e)
+		return 0, e
+	}
+	return w.WriteHandle.WriteAt(p, off)
+}
+func (w *writer) Close() error {
+	w.once.Do(func() {
+		if e := w.check(); e != nil {
+			w.TransferError(e)
+		}
+		w.err = w.WriteHandle.Close()
+		w.release()
+	})
+	return w.err
+}
+func (h *handler) Filecmd(*sftp.Request) error { return os.ErrPermission }
 func (h *handler) Fileread(r *sftp.Request) (io.ReaderAt, error) {
 	if e := h.check(); e != nil {
 		return nil, e

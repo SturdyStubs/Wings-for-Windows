@@ -16,25 +16,26 @@ import (
 )
 
 type API struct {
-	Manager       *node.Manager
-	boot          time.Time
-	downloadMu    sync.Mutex
-	downloadUsed  map[string]time.Time
-	downloadSlots chan struct{}
-	uploadSlots   chan struct{}
-	archiveSlots  chan struct{}
-	archiveLocks  sync.Map
-	revoked       sync.Map
-	renameLocks   sync.Map
-	copyLocks     sync.Map
-	deleteLocks   sync.Map
-	slots         chan struct{}
-	done          chan struct{}
-	closeOnce     sync.Once
-	pullMu        sync.Mutex
-	pulls         map[string]*pullJob
-	pullWG        sync.WaitGroup
-	pullClient    *http.Client
+	Manager         *node.Manager
+	boot            time.Time
+	downloadMu      sync.Mutex
+	downloadUsed    map[string]time.Time
+	downloadSlots   chan struct{}
+	uploadSlots     chan struct{}
+	sftpUploadLocks sync.Map
+	archiveSlots    chan struct{}
+	archiveLocks    sync.Map
+	revoked         sync.Map
+	renameLocks     sync.Map
+	copyLocks       sync.Map
+	deleteLocks     sync.Map
+	slots           chan struct{}
+	done            chan struct{}
+	closeOnce       sync.Once
+	pullMu          sync.Mutex
+	pulls           map[string]*pullJob
+	pullWG          sync.WaitGroup
+	pullClient      *http.Client
 }
 
 func New(m *node.Manager) *API {

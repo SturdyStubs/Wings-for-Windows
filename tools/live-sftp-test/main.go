@@ -48,15 +48,16 @@ func main() {
 		json.NewEncoder(os.Stdout).Encode(map[string]any{"host_key_created": true, "fingerprint": ssh.FingerprintSHA256(signer.PublicKey())})
 		return
 	}
-	if len(os.Args) != 5 || os.Args[4] != "--allow-disposable-key-and-revocation" {
+	if len(os.Args) != 5 || (os.Args[4] != "--allow-disposable-key-and-revocation" && os.Args[4] != "--allow-disposable-key-and-uploads") {
 		fmt.Fprintln(os.Stderr, "arguments: native-config panel-HTTPS-base approved-demo-UUID --allow-disposable-key-and-revocation; Client key on stdin")
 		os.Exit(2)
 	}
+	uploadMode := os.Args[4] == "--allow-disposable-key-and-uploads"
 	key, e := bufio.NewReader(io.LimitReader(os.Stdin, 1025)).ReadString('\n')
 	need(e == nil || e == io.EOF)
 	key = strings.TrimSpace(key)
 	checks := map[string]bool{}
-	report := map[string]any{"observed_utc": time.Now().UTC().Format(time.RFC3339), "identity_source": "real panel Client key registers ephemeral SSH public key; node authenticates with real remote SFTP API", "public_sftp_tested": false, "actual_subuser_removal_tested": false, "checks": checks, "passed": false}
+	report := map[string]any{"observed_utc": time.Now().UTC().Format(time.RFC3339), "identity_source": "real panel Client key registers ephemeral SSH public key; node authenticates with real remote SFTP API", "public_sftp_tested": false, "actual_subuser_removal_tested": false, "checks": checks, "new_file_uploads_tested": uploadMode, "passed": false}
 	failed := false
 	fingerprint := ""
 	keyName := ""
@@ -127,7 +128,7 @@ func main() {
 		}
 		if root != nil {
 			if owned {
-				for _, name := range []string{"binary", "new", "renamed"} {
+				for _, name := range []string{"binary", "new", "renamed", "uploaded", "empty", "aborted", "revoked-upload"} {
 					if e := root.Remove(dir + "/" + name); e != nil && !os.IsNotExist(e) {
 						failed = true
 					}
@@ -158,12 +159,14 @@ func main() {
 		TokenID string `json:"token_id"`
 		Data    string `json:"data_directory"`
 		SFTP    struct {
-			Listen  string `json:"listen"`
-			HostKey string `json:"host_key"`
+			AllowUploads bool   `json:"allow_uploads"`
+			Listen       string `json:"listen"`
+			HostKey      string `json:"host_key"`
 		} `json:"sftp"`
 		Profiles map[string]json.RawMessage `json:"profiles"`
 	}
 	need(json.Unmarshal(b, &cfg) == nil)
+	need(cfg.SFTP.AllowUploads == uploadMode)
 	id := os.Args[3]
 	need(id == "58e8c7f9-4923-43b3-b431-90b2bf4edf4f" && regexp.MustCompile(`^127\.0\.0\.1:\d+$`).MatchString(cfg.SFTP.Listen))
 	_, ok := cfg.Profiles[id]
@@ -255,11 +258,22 @@ func main() {
 	file.Close()
 	need(e == nil && sha256.Sum256(got) == sha256.Sum256(data))
 	checks["nine_mib_sftp_binary_integrity"] = true
-	if created, e := client.Create(dir + "/new"); e == nil {
+	if uploadMode {
+		exerciseUploads(client, root, dir, data, checks, connect)
+	}
+	refusedName := dir + "/new"
+	if uploadMode {
+		refusedName = dir + "/binary"
+	}
+	if created, e := client.Create(refusedName); e == nil {
 		created.Close()
 		panic("write accepted")
 	}
-	checks["sftp_upload_refused"] = true
+	if uploadMode {
+		checks["existing_destination_upload_refused"] = true
+	} else {
+		checks["sftp_upload_refused"] = true
+	}
 	need(client.Remove(dir+"/binary") != nil && client.Rename(dir+"/binary", dir+"/renamed") != nil && client.Chmod(dir+"/binary", 0777) != nil && client.Mkdir(dir+"/new") != nil)
 	checks["sftp_mutations_refused"] = true
 	for _, name := range []string{"../private/config.json", `C:\WingsWindows\private\config.json`, "install.marker:stream"} {
@@ -295,11 +309,26 @@ func main() {
 	_, revoked := connect()
 	open, e := revoked.Open(dir + "/binary")
 	need(e == nil)
+	var revokedWrite *sftp.File
+	if uploadMode {
+		revokedWrite, e = revoked.Create(dir + "/revoked-upload")
+		need(e == nil)
+		_, e = revokedWrite.Write([]byte("unpublished"))
+		need(e == nil)
+	}
 	status, _ = call("http://127.0.0.1:8080", cfg.Token, "POST", "/api/deauthorize-user", map[string]any{"user": account.Attributes.User, "servers": []string{id}})
 	need(status == 204)
 	_, e = open.ReadAt(make([]byte, 32), 0)
 	need(e != nil)
 	open.Close()
+	if revokedWrite != nil {
+		_, e = revokedWrite.WriteAt([]byte("denied"), 0)
+		need(e != nil)
+		need(revokedWrite.Close() != nil)
+		_, e = root.Stat(dir + "/revoked-upload")
+		need(os.IsNotExist(e))
+		checks["revoked_upload_not_published"] = true
+	}
 	revoked.Close()
 	checks["scoped_node_user_revocation_stops_open_sftp_read"] = true
 	time.Sleep(1100 * time.Millisecond)
@@ -319,4 +348,57 @@ func main() {
 	need(e == nil && sha256.Sum256(current) == sha256.Sum256(data))
 	checks["fixture_data_preserved_after_refused_writes"] = true
 	report["binary_bytes"] = len(data)
+}
+
+// All owned names are part of the caller's exact cleanup list.
+func exerciseUploads(client *sftp.Client, root *os.Root, dir string, data []byte, checks map[string]bool, connect func() (*ssh.Client, *sftp.Client)) {
+	f, e := client.Create(dir + "/uploaded")
+	need(e == nil)
+	// Verify bounded out-of-order writes through actual encrypted SFTP.
+	for off := len(data) - (32 << 10); off >= 0; off -= 32 << 10 {
+		n, e := f.WriteAt(data[off:off+(32<<10)], int64(off))
+		need(e == nil && n == 32<<10)
+	}
+	_, e = root.Stat(dir + "/uploaded")
+	need(os.IsNotExist(e))
+	checks["upload_unpublished_until_close"] = true
+	need(f.Close() == nil)
+	got, e := root.ReadFile(dir + "/uploaded")
+	need(e == nil && sha256.Sum256(got) == sha256.Sum256(data))
+	checks["nine_mib_sftp_upload_integrity"] = true
+	empty, e := client.Create(dir + "/empty")
+	need(e == nil && empty.Close() == nil)
+	info, e := root.Stat(dir + "/empty")
+	need(e == nil && info.Size() == 0)
+	checks["empty_sftp_upload_published"] = true
+	// Use another transport and deliberately omit CLOSE; never publish its prefix.
+	abortedConn, abortedClient := connect()
+	aborted, e := abortedClient.Create(dir + "/aborted")
+	need(e == nil)
+	_, e = aborted.Write([]byte("partial"))
+	need(e == nil)
+	abortedConn.Close()
+	deadline := time.Now().Add(4 * time.Second)
+	for {
+		directory, e := root.Open(dir)
+		need(e == nil)
+		entries, e := directory.ReadDir(-1)
+		directory.Close()
+		need(e == nil)
+		stages := false
+		for _, entry := range entries {
+			if strings.HasPrefix(entry.Name(), ".wings-sftp-") {
+				stages = true
+			}
+		}
+		if !stages {
+			break
+		}
+		need(time.Now().Before(deadline))
+		time.Sleep(20 * time.Millisecond)
+	}
+	_, e = root.Stat(dir + "/aborted")
+	need(os.IsNotExist(e))
+	checks["disconnected_upload_discarded"] = true
+	abortedClient.Close()
 }
