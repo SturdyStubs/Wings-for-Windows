@@ -1,6 +1,6 @@
 # GitHub milestone review
 
-Current review: October 24, 2026. Descriptions reviewed through alpha 55; latest bounded SFTP management progress and the remaining-work assessment are recorded below. Scoped read-only loopback SFTP [#51](https://github.com/SturdyStubs/Wings-for-Windows/issues/51) is accepted with [exact evidence](evidence/server2022-alpha53-sftp.md); full SFTP #30 remains open. M4 is 5/10 accepted tasks, 45 total project deliverables. M1 11/12, M2 2/5, M3 2/7, M5 0/4 and M6 2/7 remain unchanged. No milestone is closed and task counts are not effort percentages.
+Current review: October 24, 2026. Relevant descriptions reviewed through alpha 56; optional console-adapter evidence and the failed game diagnostic are recorded below. Scoped read-only loopback SFTP [#51](https://github.com/SturdyStubs/Wings-for-Windows/issues/51) is accepted with [exact evidence](evidence/server2022-alpha53-sftp.md); full SFTP #30 remains open. M4 is 5/10 accepted tasks, 45 total project deliverables. M1 11/12, M2 2/5, M3 2/7, M5 0/4 and M6 2/7 remain unchanged. No milestone is closed and task counts are not effort percentages.
 
 ## Historical alpha 43 review
 
@@ -83,3 +83,8 @@ Additional explicit upload opt-in passes 1,515 local, 14 native, 74 backend/inte
 ## Alpha 55 SFTP management and completion assessment
 
 New independent opt-in mkdir/no-replace rename/move/regular-file delete/empty-directory removal passes 1,572 local, 14 native, 130 backend-integrated protocol, 34 SSH and 14 config cases. Twenty-three pre-opt-in upload checks, 31 real-panel management checks and 19 actual Client API/token groups pass, with protected config/key and exact cleanup verified. [Evidence](evidence/server2022-alpha55-sftp-management.md). This advances #30 without closing overwrite/append/public/client/password/subuser gates. No new accepted task: M4 remains 5/10, all six milestones open; 22 accepted and 23 open milestone tasks out of 45. [Remaining-work assessment](COMPLETION-STATUS.md) separates a practical private game node from full Windows parity; weeks-to-months is an uncertain engineering assessment, not a scheduled delivery promise.
+
+
+## Alpha 56 console adapter and estimate correction
+
+Opt-in Windows pseudoconsole passes 1,580 local / 21 Server 2022 native / one config case, plus 19 actual Client/token groups on the existing dedicated-account demo with the adapter enabled. [Evidence](evidence/server2022-alpha56-pseudoconsole.md). Direct local OpenTTD starts/listens but console/UDP/graceful-stop verification fails; cleanup succeeds after owned-job termination. This advances #26 and identifies a concrete blocker for #27 without closing either. Counts remain 22 accepted / 23 open tasks, all milestones open. The earlier weeks-to-months wording is superseded by **no measured calendar forecast yet**, as explained in [completion status](COMPLETION-STATUS.md); automation does not eliminate host/game/isolation acceptance checks.

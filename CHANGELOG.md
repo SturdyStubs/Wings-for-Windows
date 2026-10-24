@@ -4,7 +4,7 @@
 
 - Add opt-in `profile.pseudoconsole` for Windows Console API applications, using a fixed 120x40 ConPTY, CR input, no inherited arbitrary handles and existing suspended/job/restricted-token launch. Default remains pipe stdio; installer profiles retain pipe mode.
 - Drain terminal output independently into a bounded 256 KiB buffer with truncation markers, including after consumer close, so full output pipes cannot block older-host ClosePseudoConsole cleanup. Native terminal output retains VT controls; this is not a full screen emulator or GUI automation facility.
-- Add native-console I/O, restricted-token, descendant-kill, unopened-consumer, buffer and startup-failure tests, plus an explicit local OpenTTD diagnostic. Real OpenTTD starts/listens but console forwarding remains incompatible; do not mark the full game lifecycle verified. Release/VM validation pending.
+- Add native-console I/O, restricted-token, descendant-kill, unopened-consumer, buffer and startup-failure tests, plus an explicit local OpenTTD diagnostic. Real OpenTTD starts/listens but console forwarding remains incompatible; do not mark the full game lifecycle verified. Clean release passes 1,580 local cases/subtests, zero skips and vet; Server 2022 passes 21 native and one config case. Existing dedicated-account demo passes 19 actual Client API/token groups with the adapter enabled; protected profile-only change and cleanup verified. The direct OpenTTD diagnostic remains failed, with forced owned-job cleanup; [exact evidence](docs/evidence/server2022-alpha56-pseudoconsole.md).
 
 ## 0.1.0-alpha.55 - 2026-10-24
 

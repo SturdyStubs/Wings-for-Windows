@@ -8,7 +8,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 
 ## Current state
 
-- Alpha 56 candidate: opt-in pseudoconsole profile adapter for native Windows Console APIs, independent bounded output draining and existing suspended/job/restricted-token launch. Native tests pass; release/Server2022/retained-service evidence pending. OpenTTD official Windows binary starts/listens in a direct diagnostic, but console forwarding is not yet compatible; no complete real-game or panel-game proof. [Scope](docs/PSEUDOCONSOLE.md).
+- Alpha 56: optional native pseudoconsole with bounded background output draining. Clean release: 1,580 local; Server 2022: 21 native / one config case. Existing dedicated-account demo runs through the adapter and passes 19 real Client API/token groups. Only planned profile flag added, prior data/ACLs intact, no fixtures/stages, demo/service/tunnel Running. OpenTTD direct local diagnostic starts/listens but console/UDP/graceful-stop proof fails; full game #27 remains open. [Scope](docs/PSEUDOCONSOLE.md), [evidence](docs/evidence/server2022-alpha56-pseudoconsole.md).
 
 - Alpha 55: independent opt-in SFTP mkdir, no-replace rename/move, single-file deletion and empty-directory removal. Clean release: 1,572 local; Server 2022: 14 native / 130 backend-integrated protocol / 34 SSH / 14 config cases. Real panel: 23 pre-opt-in upload, 31 management and 19 Client API/token groups pass. Same protected host key, only planned flag addition, zero fixtures/stages, demo/service/tunnel Running. Broader #30 remains open; no new accepted task, M4 5/10. [Scope](docs/SFTP.md), [evidence](docs/evidence/server2022-alpha55-sftp-management.md).
 
