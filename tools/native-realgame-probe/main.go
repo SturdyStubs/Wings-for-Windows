@@ -20,9 +20,15 @@ func main() {
 		os.Exit(2)
 	}
 	exe, data := os.Args[1], os.Args[2]
-	if !filepath.IsAbs(exe) || !filepath.IsAbs(data) {
+	if !filepath.IsAbs(exe) || !filepath.IsAbs(data) || !strings.EqualFold(filepath.Base(exe), "openttd.exe") {
 		os.Exit(2)
 	}
+	tcpProbe, e := net.Listen("tcp", "127.0.0.1:43979")
+	if e != nil {
+		fmt.Println("test port unavailable")
+		os.Exit(1)
+	}
+	tcpProbe.Close()
 	cfg := filepath.Join(data, "openttd.cfg")
 	p, e := native.Start(native.Spec{Pseudoconsole: true, Executable: exe, Arguments: []string{"-D", "127.0.0.1:43979", "-c", cfg}, Directory: data, Environment: []string{"SystemRoot=" + os.Getenv("SystemRoot")}, MemoryMB: 1024})
 	if e != nil {
@@ -90,7 +96,7 @@ func main() {
 	mu.Unlock()
 	_ = os.WriteFile(filepath.Join(data, "probe-console.log"), []byte(text), 0600)
 	passed := !forced && commandErr == nil && versionErr == nil && stopErr == nil && p.ExitCode == 0 && strings.Contains(text, "WINGS_REAL_GAME_TEST")
-	json.NewEncoder(os.Stdout).Encode(map[string]any{"passed": passed, "exit": p.ExitCode, "forced": forced, "console_echo": strings.Contains(text, "WINGS_REAL_GAME_TEST"), "udp_server_identity": udpIdentity, "listening": dialErr == nil, "memory_bytes": stats.MemoryBytes, "console_bytes": len(text), "last_output": text})
+	json.NewEncoder(os.Stdout).Encode(map[string]any{"passed": passed, "exit": p.ExitCode, "forced": forced, "job_cleanup_ok": p.CleanupError == nil, "console_echo": strings.Contains(text, "WINGS_REAL_GAME_TEST"), "udp_server_identity": udpIdentity, "listening": dialErr == nil, "memory_bytes": stats.MemoryBytes, "console_bytes": len(text)})
 	if !passed {
 		os.Exit(1)
 	}
