@@ -44,6 +44,9 @@ func buildIdentityRules(c config.Config, serverID string, profile config.Profile
 	protect(binary, identity.WriteAccess)
 	protect(c.SourcePath, identity.ReadWriteAccess)
 	protect(c.TLS.Key, identity.ReadWriteAccess)
+	if c.SFTP != nil {
+		protect(c.SFTP.HostKey, identity.ReadWriteAccess)
+	}
 	if c.ConsoleLogs != nil {
 		add(c.ConsoleLogs.Directory, identity.ReadWriteAccess, true)
 		add(filepath.Dir(c.ConsoleLogs.Directory), identity.ReplaceChildAccess, false)

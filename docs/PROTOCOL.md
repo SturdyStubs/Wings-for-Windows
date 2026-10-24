@@ -99,7 +99,9 @@ Alpha 34 adds opt-in [manual-approval creation](PENDING-CREATION.md), with no pe
 | `POST /api/servers/{uuid}/files/write?file=/name` | Write a confined text file up to 8 MiB. Parent directories must already exist. |
 | `POST /api/servers/{uuid}/files/create-directory` | JSON `name` and `path`; create nested directories and missing parents, 204 for success/existing directory. Bounded Windows names, denylist preflight and observed reparse/link refusal; [scope](FILE-DIRECTORIES.md). |
 
-Unknown/unsupported authenticated routes return 501, including server deletion, automatic binary provisioning, resumable transfers, other archive formats, broader remote-fetch policies, SFTP, backups and transfers. A profile that does not belong to this node is not registered and returns 404.
+Alpha 53 adds a separate opt-in [read-only loopback SFTP subsystem](SFTP.md). It authenticates through the real panel remote SFTP contract, supports password/public keys, and uses existing user deauthorization. It adds no HTTP route; public SFTP access and writes remain open.
+
+Unknown/unsupported authenticated routes return 501, including server deletion, automatic binary provisioning, resumable transfers, other archive formats, broader remote-fetch policies, backups and transfers. A profile that does not belong to this node is not registered and returns 404.
 
 Filesystem access uses Go `os.Root` for confinement across symlinks. The path parser also rejects Windows drive/UNC syntax, traversal, alternate data streams, device names and trailing-dot/space aliases. This protects HTTP file operations; it does not sandbox executable code running under the same Windows account.
 

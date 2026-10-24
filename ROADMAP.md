@@ -1,12 +1,14 @@
 # Progress toward Wings compatibility
 
-Last updated: October 23, 2026. Current version: **0.1.0-alpha.52**. Active development: **M3 — Windows lifecycle features**, with **bounded M4 file management and scoped transfers** implemented. M1/M2 remain open for live panel and isolation gates.
+Last updated: October 23, 2026. Current version: **0.1.0-alpha.53**. Active development: **M3 — Windows lifecycle features**, with **bounded M4 file management and scoped transfers** implemented. M1/M2 remain open for live panel and isolation gates.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
 This file tracks the current implementation. The audit preserves the alpha 1 baseline. A checked implementation item means code and local regression tests exist; a live verification item stays open until exercised against a real panel/host/game. Route coverage is not a completion percentage.
 
 ## Current state
+
+- Alpha 53 candidate: opt-in read-only loopback SFTP with real panel remote authentication, scoped permissions, revocation, bounded SSH sessions and protected Windows file handles. Local protocol/backend tests pass; release and live evidence are pending. SFTP writes/public deployment and broader M4 acceptance remain open. [Scope](docs/SFTP.md).
 
 - Alpha 52: plain TAR extraction shares guarded tar.gz/ZIP staging/publication. Clean release passes 1,394 local / 14 native / 150 portable extraction cases; nineteen real Client/panel-issued-token groups include a signed TAR upload/extract, with tar.gz/ZIP/upload/WSS regressions passing. Config/prior data intact, fixtures removed, demo/service/tunnel Running. Broader M4 requirements remain open. [Scope](docs/FILE-EXTRACTION.md), [evidence](docs/evidence/server2022-alpha52-plain-tar.md).
 
@@ -194,7 +196,7 @@ Current scope remains a trusted private node. File denylist/path checks are not 
   - [x] Add bounded ZIP Store/Deflate and plain TAR extraction through the existing guarded workflow.
   - [x] Add bounded opt-in public HTTPS remote-file downloads with active polling, foreground/background modes and scoped cancellation.
   - [ ] Add merge/overwrite/additional formats, broader fetch policies, progress UI/events, durable recovery, quotas and real browser verification.
-- [ ] SFTP with panel authentication, per-operation permissions, revocation and session limits.
+- [ ] Full SFTP with panel authentication, per-operation permissions, revocation and session limits. Alpha 53 adds the opt-in read-only loopback subset; writes/public deployment remain open.
 - [ ] Disk accounting/enforcement across file, installer, archive and game writes.
   - [x] Measure cached logical data-root file bytes asynchronously for server and console stats, with bounded scans and explicit unavailable/stale status.
   - [ ] Add allocated-space/alternate-stream accounting, reservations and quota enforcement across every write path.

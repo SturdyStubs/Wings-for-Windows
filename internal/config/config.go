@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 	_ "time/tzdata"
@@ -17,7 +18,7 @@ import (
 	"wings-windows/internal/networkpolicy"
 )
 
-const Version = "0.1.0-alpha.52"
+const Version = "0.1.0-alpha.53"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -45,7 +46,13 @@ type Profile struct {
 	StopTimeoutSeconds         int                  `json:"stop_timeout_seconds"`
 	MemoryMB                   int                  `json:"memory_mb"`
 }
+type SFTP struct {
+	Listen  string `json:"listen"`
+	HostKey string `json:"host_key"`
+}
+
 type Config struct {
+	SFTP                     *SFTP              `json:"sftp,omitempty"`
 	AllowRemoteDownloads     bool               `json:"allow_remote_downloads,omitempty"`
 	IgnorePanelConfigUpdates bool               `json:"ignore_panel_config_updates,omitempty"`
 	AllowPendingCreation     bool               `json:"allow_pending_creation,omitempty"`
@@ -92,6 +99,9 @@ func Load(path string) (Config, error) {
 	err = c.Validate()
 	if err == nil {
 		c.SourcePath, err = filepath.Abs(path)
+		if err == nil && c.SFTP != nil && (!strings.EqualFold(filepath.Dir(c.SFTP.HostKey), filepath.Dir(c.SourcePath)) || strings.EqualFold(c.SFTP.HostKey, c.SourcePath)) {
+			err = errors.New("SFTP host key must be a separate file beside the protected node configuration")
+		}
 		if err == nil && c.ConsoleLogs != nil {
 			err = c.ConsoleLogs.Protect(c.SourcePath)
 		}
@@ -138,6 +148,24 @@ func (c *Config) Validate() error {
 	}
 	if !filepath.IsAbs(c.DataDirectory) {
 		return errors.New("data_directory must be absolute")
+	}
+	if c.SFTP != nil {
+		host, port, e := net.SplitHostPort(c.SFTP.Listen)
+		ip := net.ParseIP(host)
+		if e != nil || ip == nil || !ip.IsLoopback() || port == "0" || port == "" || c.SFTP.Listen == c.Listen {
+			return errors.New("SFTP requires a distinct loopback listener")
+		}
+		n, e := strconv.Atoi(port)
+		if e != nil || n < 1 || n > 65535 {
+			return errors.New("invalid SFTP port")
+		}
+		if !filepath.IsAbs(c.SFTP.HostKey) || filepath.Clean(c.SFTP.HostKey) != c.SFTP.HostKey {
+			return errors.New("SFTP host key must be a canonical absolute path")
+		}
+		rel, e := filepath.Rel(c.DataDirectory, c.SFTP.HostKey)
+		if e != nil || rel == "." || rel != ".." && !strings.HasPrefix(rel, ".."+string(os.PathSeparator)) {
+			return errors.New("SFTP host key must be outside data_directory")
+		}
 	}
 	if c.ConsoleLogs != nil {
 		if err := c.ConsoleLogs.Normalize(c.DataDirectory); err != nil {

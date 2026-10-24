@@ -1,6 +1,7 @@
 package node
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -61,7 +62,11 @@ func (p *Panel) request(ctx context.Context, method, path string, body io.Reader
 		return fmt.Errorf("panel returned HTTP %d", resp.StatusCode)
 	}
 	if out != nil {
-		return json.NewDecoder(io.LimitReader(resp.Body, 8<<20)).Decode(out)
+		limit := int64(8 << 20)
+		if path == "/sftp/auth" {
+			limit = 16 << 10
+		}
+		return json.NewDecoder(io.LimitReader(resp.Body, limit)).Decode(out)
 	}
 	return nil
 }
@@ -108,4 +113,17 @@ func (p *Panel) InstallResult(ctx context.Context, id string, successful, reinst
 		Reinstall  bool `json:"reinstall"`
 	}{successful, reinstall})
 	return p.request(ctx, "POST", "/servers/"+id+"/install", strings.NewReader(string(body)), nil)
+}
+
+// SFTPAuth uses the existing node-authenticated remote contract. The caller
+// validates server/user/permissions before allowing a local session.
+func (p *Panel) SFTPAuth(ctx context.Context, input, out any) error {
+	b, e := json.Marshal(input)
+	if e != nil {
+		return e
+	}
+	if len(b) > 16384 {
+		return fmt.Errorf("SFTP auth input exceeds limit")
+	}
+	return p.request(ctx, "POST", "/sftp/auth", bytes.NewReader(b), out)
 }

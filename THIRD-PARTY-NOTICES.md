@@ -21,3 +21,5 @@ Direct Go dependencies are pinned in `go.mod` and checksummed in `go.sum`:
 Additional indirect tooling requirements from upstream module manifests remain pinned by Go; they are not linked into this daemon.
 
 The binary archive includes the complete dependency notices under `licenses/`. Go itself uses a BSD-style license; its license is included there as well. This project is not endorsed by Pterodactyl or Microsoft.
+
+Read-only SFTP support adds [pkg/sftp v1.13.10](https://github.com/pkg/sftp/tree/v1.13.10), BSD-2-Clause; [golang.org/x/crypto v0.58.0](https://pkg.go.dev/golang.org/x/crypto@v0.58.0/ssh), BSD-3-Clause; and [kr/fs v0.1.0](https://github.com/kr/fs/tree/v0.1.0), BSD-3-Clause. Exact license texts are included under licenses/sftp-BSD.txt, licenses/golang-x-crypto-BSD.txt and licenses/kr-fs-BSD.txt. These versions match the reviewed upstream Wings dependency pins; no claim that they are the latest is made.

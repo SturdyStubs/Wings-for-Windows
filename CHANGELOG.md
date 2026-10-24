@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-alpha.53 - 2026-10-23
+
+- Add opt-in read-only loopback SFTP using panel password/public-key authentication and existing scoped user revocation. Confine access to the approved server data root; apply file read/list permissions and current denylist checks, and refuse writes, links, Windows path aliases, shell/exec/forwarding and extra SSH sessions.
+- Protect an operator-provisioned persistent Ed25519 host key beside native configuration, fail startup if unavailable, and bound connections, handles, listing entries, file size and session duration. Default disabled. Public SFTP, writes, quotas and full isolation remain open; [setup and limits](docs/SFTP.md).
+- Add local SSH/backend/configuration coverage and an opt-in real-panel public-key probe with ephemeral key registration/removal and exact owned cleanup. Release/Server 2022/live validation pending.
+
 ## 0.1.0-alpha.52 - 2026-10-23
 
 - Add plain TAR extraction to the existing Extract endpoint, detected by content rather than suffix, sharing tar.gz/ZIP Windows path/policy checks, bounded stages and new-destination publication.

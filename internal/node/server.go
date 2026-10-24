@@ -669,6 +669,9 @@ func (s *Server) startWithContext(parent context.Context) error {
 	}
 	if len(processPolicy.configs) > 0 {
 		protected := []string{s.panel.Config.SourcePath, s.panel.Config.TLS.Cert, s.panel.Config.TLS.Key}
+		if s.panel.Config.SFTP != nil {
+			protected = append(protected, s.panel.Config.SFTP.HostKey)
+		}
 		for _, profile := range s.panel.Config.Profiles {
 			protected = append(protected, profile.Executable)
 			protected = append(protected, profile.Requirements.RequiredFiles...)
@@ -701,6 +704,9 @@ func (s *Server) startWithContext(parent context.Context) error {
 			return errors.New("approved log file is denied by the egg file policy")
 		}
 		protected := []string{s.panel.Config.SourcePath, s.panel.Config.TLS.Cert, s.panel.Config.TLS.Key}
+		if s.panel.Config.SFTP != nil {
+			protected = append(protected, s.panel.Config.SFTP.HostKey)
+		}
 		for _, profile := range s.panel.Config.Profiles {
 			protected = append(protected, profile.Executable)
 			protected = append(protected, profile.Requirements.RequiredFiles...)
@@ -951,4 +957,10 @@ func (s *Server) Response() map[string]any {
 func (s *Server) StatsJSON() string {
 	b, _ := json.Marshal(s.Response()["utilization"])
 	return string(b)
+}
+
+func (s *Server) SuspendedOrClosing() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.closing || s.settings.Suspended
 }

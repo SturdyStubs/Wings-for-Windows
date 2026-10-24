@@ -20,6 +20,7 @@ import (
 	"wings-windows/internal/identity"
 	"wings-windows/internal/node"
 	"wings-windows/internal/provision"
+	"wings-windows/internal/sftpserver"
 )
 
 func run(ctx context.Context, path, markInstalled string) error {
@@ -72,6 +73,20 @@ func runWithReady(ctx context.Context, path, markInstalled string, ready func())
 		return &runtimeFailure{"listener", err}
 	}
 	defer listener.Close()
+	var sftpDone <-chan struct{}
+	if c.SFTP != nil {
+		gateway, e := sftpserver.Listen(c.SFTP.Listen, c.SFTP.HostKey, api.SFTPBackend{API: handler})
+		if e != nil {
+			return &runtimeFailure{"sftp", e}
+		}
+		defer func() {
+			closeCtx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+			defer cancel()
+			_ = gateway.Close(closeCtx)
+		}()
+		sftpDone = gateway.Done()
+		log.Printf("Read-only SFTP listening on %s (host fingerprint %s)", c.SFTP.Listen, gateway.Fingerprint())
+	}
 	if err := ctx.Err(); err != nil {
 		return err
 	}
@@ -87,6 +102,10 @@ func runWithReady(ctx context.Context, path, markInstalled string, ready func())
 	ready()
 	m.RestoreRunning(ctx)
 	select {
+	case <-sftpDone:
+		handler.Close()
+		server.Close()
+		return &runtimeFailure{"sftp", fmt.Errorf("SFTP listener stopped")}
 	case err = <-result:
 		if err == http.ErrServerClosed {
 			return nil
