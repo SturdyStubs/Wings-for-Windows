@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.0-alpha.51 - 2026-10-23
+
+- Replace the constant server `disk_bytes` with asynchronously cached logical data-root file sizes shared by server responses and console stats. Expose availability, stale/scanning state, timestamps, counts and sanitized failure status.
+- Bound scans to two node-wide workers, 100,000 entries, depth 32 and a cooperative 10-second deadline. Refresh on stats demand after 30 seconds (five-second failure/capacity backoff), retaining the last good result after incomplete scans.
+- Pin local directory ancestors and descend through native handle-relative opens, refusing reparse points/multiple hardlinks and discarding partial totals. File metadata reads permit ordinary writer sharing. Shutdown cancels work with bounded waiting.
+- This measures logical unnamed file data, including hidden/denylisted files; it does not enforce quotas, reserve space or report allocated NTFS/alternate-stream usage. Local/VM verification pending.
+
 ## 0.1.0-alpha.50 - 2026-10-23
 
 - Add ZIP Store/Deflate support to the existing Extract endpoint, detected by content, with shared Windows path/policy checks, bounded staging and new destinations only.

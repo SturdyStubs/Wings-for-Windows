@@ -15,6 +15,7 @@ import (
 	"time"
 	"wings-windows/internal/config"
 	"wings-windows/internal/consolelog"
+	"wings-windows/internal/diskusage"
 	"wings-windows/internal/eggconfig"
 	"wings-windows/internal/logtail"
 	"wings-windows/internal/native"
@@ -38,6 +39,7 @@ type installPersistence interface {
 	Close(context.Context) error
 }
 type Server struct {
+	disk                 *diskusage.Meter
 	installStore         installPersistence
 	installRecord        consolelog.InstallRecord
 	installStorageError  string
@@ -90,6 +92,7 @@ type Server struct {
 	recoveryStorageError string
 }
 type Manager struct {
+	diskSlots   chan struct{}
 	closed      bool
 	pending     map[string]RemoteServer
 	restoreOnce sync.Once
@@ -101,7 +104,7 @@ type Manager struct {
 }
 
 func NewManager(c config.Config) *Manager {
-	return &Manager{pending: make(map[string]RemoteServer), restoreGate: make(chan struct{}, 2), Config: c, Panel: NewPanel(c), servers: make(map[string]*Server)}
+	return &Manager{diskSlots: make(chan struct{}, 2), pending: make(map[string]RemoteServer), restoreGate: make(chan struct{}, 2), Config: c, Panel: NewPanel(c), servers: make(map[string]*Server)}
 }
 func (m *Manager) Sync(ctx context.Context) error {
 	remote, err := m.Panel.Servers(ctx)
@@ -214,6 +217,7 @@ func (m *Manager) Sync(ctx context.Context) error {
 			s.installRecord = record
 			s.restoreInstallRecord()
 		}
+		s.disk = diskusage.New(root, m.diskSlots)
 		m.servers[id] = s
 	}
 	m.pending = pending
@@ -252,6 +256,13 @@ func (m *Manager) Close() {
 		installer := s.installerProcess
 		installDone := s.installDone
 		s.mu.Unlock()
+		if s.disk != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			if err := s.disk.Close(ctx); err != nil {
+				log.Printf("disk scan shutdown did not drain")
+			}
+			cancel()
+		}
 		if installer != nil {
 			installer.Kill()
 			<-installer.Done
@@ -884,6 +895,10 @@ func (s *Server) HasProcess() bool {
 	}
 }
 func (s *Server) Response() map[string]any {
+	disk := diskusage.Status{Scope: "data_root_logical_files", Stale: true}
+	if s.disk != nil {
+		disk = s.disk.Snapshot()
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	uptime := int64(0)
@@ -912,7 +927,7 @@ func (s *Server) Response() map[string]any {
 	if s.process != nil {
 		limit = s.appliedLimits.MemoryMB
 	}
-	stats := map[string]any{"state": s.state, "uptime": uptime, "memory_bytes": memory, "memory_limit_bytes": int64(limit) * 1024 * 1024, "cpu_absolute": s.cpu, "disk_bytes": 0, "network": map[string]int{"rx_bytes": 0, "tx_bytes": 0}, "native_metrics": map[string]any{"process_metrics_available": metricsAvailable, "scope": "root_process", "network_available": false, "disk_available": false}}
+	stats := map[string]any{"state": s.state, "uptime": uptime, "memory_bytes": memory, "memory_limit_bytes": int64(limit) * 1024 * 1024, "cpu_absolute": s.cpu, "disk_bytes": disk.Bytes, "network": map[string]int{"rx_bytes": 0, "tx_bytes": 0}, "native_metrics": map[string]any{"process_metrics_available": metricsAvailable, "scope": "root_process", "network_available": false, "disk_available": disk.Available, "disk": disk}}
 	s.pruneRecoveryLocked(time.Now())
 	recovery := map[string]any{"enabled": s.Profile.CrashRecovery != nil && s.Profile.CrashRecovery.Enabled, "pending": s.recovery != nil, "attempts_in_window": len(s.recoveryHistory)}
 	recovery["persistent_history"] = s.recoveryStore != nil
