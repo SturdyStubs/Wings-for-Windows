@@ -4,7 +4,7 @@
 
 - Add independent `sftp.allow_file_management` for single-directory creation, no-replace file/directory rename/move, regular-file deletion and empty-directory removal. Default false; require file.create/update/delete respectively. Reuse native pinned handles and HTTP rename/delete contention locks; reject root/aliases/links, collisions and wrong entry types. Never recursively delete through SFTP.
 - Bound commands to four node-wide slots and cooperative ten-second contexts; directory rename scans at most 1000 entries / 32 child levels. Refuse publication if the immutable egg policy identity changes during preparation. Other mutations, overwrite/append and public deployment remain open.
-- Extend native/encrypted-protocol tests, real-panel probe and remaining-work assessment. Clean release/live validation pending.
+- Extend native/encrypted-protocol tests, real-panel probe and remaining-work assessment. Clean release passes 1,572 local cases/subtests, zero skips and vet; Server 2022 passes 14 native / 130 backend-integrated protocol / 34 SSH / 14 config cases. Real panel passes 23 management-disabled upload, 31 management and 19 Client API/token groups. Exact cleanup and protected opt-in configuration/key verified; demo/service/tunnel Running. [Evidence](docs/evidence/server2022-alpha55-sftp-management.md).
 
 ## 0.1.0-alpha.54 - 2026-10-24
 

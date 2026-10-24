@@ -1,6 +1,6 @@
 # GitHub milestone review
 
-Current review: October 24, 2026. Descriptions reviewed through alpha 54; the latest SFTP upload scope is recorded below. Scoped read-only loopback SFTP [#51](https://github.com/SturdyStubs/Wings-for-Windows/issues/51) is accepted with [exact evidence](evidence/server2022-alpha53-sftp.md); full SFTP #30 remains open. M4 is 5/10 accepted tasks, 45 total project deliverables. M1 11/12, M2 2/5, M3 2/7, M5 0/4 and M6 2/7 remain unchanged. No milestone is closed and task counts are not effort percentages.
+Current review: October 24, 2026. Descriptions reviewed through alpha 55; latest bounded SFTP management progress and the remaining-work assessment are recorded below. Scoped read-only loopback SFTP [#51](https://github.com/SturdyStubs/Wings-for-Windows/issues/51) is accepted with [exact evidence](evidence/server2022-alpha53-sftp.md); full SFTP #30 remains open. M4 is 5/10 accepted tasks, 45 total project deliverables. M1 11/12, M2 2/5, M3 2/7, M5 0/4 and M6 2/7 remain unchanged. No milestone is closed and task counts are not effort percentages.
 
 ## Historical alpha 43 review
 
@@ -78,3 +78,8 @@ Plain TAR now shares the guarded tar.gz/ZIP Extract workflow. Clean release: 1,3
 ## Alpha 54 new-file SFTP uploads
 
 Additional explicit upload opt-in passes 1,515 local, 14 native, 74 backend/integrated-protocol, 34 SSH subsystem and 13 config cases. Eighteen real-panel read-only and 23 upload checks prove default refusal, 9 MiB out-of-order upload integrity, publication only after CLOSE, disconnect cleanup and revoked-upload nonpublication. Nineteen actual Client API/token groups and ten HTTP upload regressions pass; final audit confirms protected key/config, only planned flag addition, no fixtures/stages and Running demo/service/tunnel. [Evidence](evidence/server2022-alpha54-sftp-uploads.md). Full SFTP #30 remains open for overwrite/append/other mutations, public deployment and remaining live/client gates. No new accepted task: M4 stays 5/10, 45 project deliverables and all milestones open.
+
+
+## Alpha 55 SFTP management and completion assessment
+
+New independent opt-in mkdir/no-replace rename/move/regular-file delete/empty-directory removal passes 1,572 local, 14 native, 130 backend-integrated protocol, 34 SSH and 14 config cases. Twenty-three pre-opt-in upload checks, 31 real-panel management checks and 19 actual Client API/token groups pass, with protected config/key and exact cleanup verified. [Evidence](evidence/server2022-alpha55-sftp-management.md). This advances #30 without closing overwrite/append/public/client/password/subuser gates. No new accepted task: M4 remains 5/10, all six milestones open; 22 accepted and 23 open milestone tasks out of 45. [Remaining-work assessment](COMPLETION-STATUS.md) separates a practical private game node from full Windows parity; weeks-to-months is an uncertain engineering assessment, not a scheduled delivery promise.

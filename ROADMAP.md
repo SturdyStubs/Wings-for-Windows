@@ -8,7 +8,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 
 ## Current state
 
-- Alpha 55 candidate: independent opt-in SFTP mkdir, no-replace rename/move, single-file delete and empty-directory removal. Permissions, native confinement, shared mutation locks and bounded policy-checked scans covered locally; clean release/live validation pending. [Scope](docs/SFTP.md).
+- Alpha 55: independent opt-in SFTP mkdir, no-replace rename/move, single-file deletion and empty-directory removal. Clean release: 1,572 local; Server 2022: 14 native / 130 backend-integrated protocol / 34 SSH / 14 config cases. Real panel: 23 pre-opt-in upload, 31 management and 19 Client API/token groups pass. Same protected host key, only planned flag addition, zero fixtures/stages, demo/service/tunnel Running. Broader #30 remains open; no new accepted task, M4 5/10. [Scope](docs/SFTP.md), [evidence](docs/evidence/server2022-alpha55-sftp-management.md).
 
 - Alpha 54: opt-in staged new-file SFTP uploads with clean-close/no-replace publication, bounded random-order packets and disconnect/revocation cleanup. Clean release: 1,515 local; Server 2022: 14 native / 74 backend and integrated-protocol / 34 SSH subsystem / 13 config cases. Eighteen real-panel read-only, 23 real-panel upload and 19 Client API/token groups pass; HTTP upload regression passes. Only planned flag added, same protected host key, zero stages/fixtures, demo/service/tunnel Running. Full #30 stays open; M4 remains 5/10. [Scope](docs/SFTP.md), [evidence](docs/evidence/server2022-alpha54-sftp-uploads.md).
 
