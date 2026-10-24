@@ -17,7 +17,7 @@ import (
 	"wings-windows/internal/networkpolicy"
 )
 
-const Version = "0.1.0-alpha.48"
+const Version = "0.1.0-alpha.49"
 
 var UUID = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 
@@ -46,6 +46,7 @@ type Profile struct {
 	MemoryMB                   int                  `json:"memory_mb"`
 }
 type Config struct {
+	AllowRemoteDownloads     bool               `json:"allow_remote_downloads,omitempty"`
 	IgnorePanelConfigUpdates bool               `json:"ignore_panel_config_updates,omitempty"`
 	AllowPendingCreation     bool               `json:"allow_pending_creation,omitempty"`
 	ConsoleLogs              *ConsoleLogs       `json:"console_logs,omitempty"`

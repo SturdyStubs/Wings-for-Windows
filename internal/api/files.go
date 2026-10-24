@@ -35,6 +35,10 @@ func filePath(value string) (string, error) {
 	return value, nil
 }
 func (a *API) files(w http.ResponseWriter, r *http.Request, s *node.Server, action string) {
+	if action == "pull" || strings.HasPrefix(action, "pull/") {
+		a.pullFiles(w, r, s, action)
+		return
+	}
 	if action == "decompress" && r.Method == http.MethodPost {
 		a.decompressFile(w, r, s)
 		return

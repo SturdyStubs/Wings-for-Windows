@@ -31,12 +31,26 @@ type API struct {
 	slots         chan struct{}
 	done          chan struct{}
 	closeOnce     sync.Once
+	pullMu        sync.Mutex
+	pulls         map[string]*pullJob
+	pullWG        sync.WaitGroup
+	pullClient    *http.Client
 }
 
 func New(m *node.Manager) *API {
-	return &API{Manager: m, boot: time.Now().Truncate(time.Second), slots: make(chan struct{}, 256), done: make(chan struct{}), downloadSlots: make(chan struct{}, 8), uploadSlots: make(chan struct{}, 4), archiveSlots: make(chan struct{}, 2), downloadUsed: make(map[string]time.Time)}
+	return &API{Manager: m, boot: time.Now().Truncate(time.Second), slots: make(chan struct{}, 256), done: make(chan struct{}), downloadSlots: make(chan struct{}, 8), uploadSlots: make(chan struct{}, 4), archiveSlots: make(chan struct{}, 2), downloadUsed: make(map[string]time.Time), pulls: make(map[string]*pullJob), pullClient: newPullClient()}
 }
-func (a *API) Close() { a.closeOnce.Do(func() { close(a.done) }) }
+func (a *API) Close() {
+	a.closeOnce.Do(func() {
+		close(a.done)
+		a.pullMu.Lock()
+		for _, job := range a.pulls {
+			job.cancel()
+		}
+		a.pullMu.Unlock()
+		a.pullWG.Wait()
+	})
+}
 func respond(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)

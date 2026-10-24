@@ -1,6 +1,6 @@
 # Progress toward Wings compatibility
 
-Last updated: October 23, 2026. Current version: **0.1.0-alpha.48**. Active development: **M3 — Windows lifecycle features**, with **bounded M4 file management and scoped transfers** implemented. M1/M2 remain open for live panel and isolation gates.
+Last updated: October 23, 2026. Current version: **0.1.0-alpha.49**. Active development: **M3 — Windows lifecycle features**, with **bounded M4 file management and scoped transfers** implemented. M1/M2 remain open for live panel and isolation gates.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
@@ -8,6 +8,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 
 ## Current state
 
+- Alpha 49: opt-in public HTTPS remote pulls with active progress, early/scoped cancellation and owned staging; clean build and VM verification pending. See [scope](docs/REMOTE-PULLS.md).
 - Alpha 48: bounded tar.gz extraction with complete parse/integrity preflight, owned stages and no-replace publication. Corrected clean release passes 1,187 local cases/subtests, 14 native and 70 portable Server 2022 cases; thirteen live create/extract checks include 9 MiB integrity and malicious-input rejection, plus ten upload and ten WSS regressions. The first Server 2022 rename-sharing failure was fixed before upgrade. Actual browser workflows, merge/overwrite and remote fetch remain open. See [scope](docs/FILE-EXTRACTION.md) and [evidence](docs/evidence/server2022-alpha48-archive-extraction.md).
 - Alpha 47: bounded tar.gz creation with pinned sources, owned staging and no-replace publication; 1,117 local cases/subtests, 14 native and 38 portable Server 2022 cases pass; eleven live archive checks include public HTTPS creation/download and 9 MiB binary integrity, plus ten upload and ten WSS regressions. Extraction and actual browser Compress remain open. See [scope](docs/FILE-ARCHIVES.md) and [evidence](docs/evidence/server2022-alpha47-archive-creation.md).
 - Alpha 46: bounded scoped multipart uploads with no-overwrite staging and streaming authorization checks; 1,079 local cases/subtests, 14 native and 52 portable Server 2022 cases pass; ten live upload/service/cleanup groups, ten download and ten WSS regressions pass. Public small uploads and retained-service 9 MiB integrity work; public 9 MiB uploads remain proxy-limited (413). Actual browser-issued links remain unverified. See [scope](docs/FILE-UPLOADS.md) and [evidence](docs/evidence/server2022-alpha46-signed-uploads.md).
@@ -68,7 +69,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 - Alpha 40: panel-compatible nested directory creation with whole-path preflight, case-insensitive denylist checks, reparse refusal, confined parent traversal, bounded Windows names and inherited directory permissions. All 871 local cases/subtests, 14 packaged native cases, 38 portable API cases/subtests and 23 focused Server 2022 service checks pass; independent cleanup verifies removal with one retained/loaded profile. See [exact evidence](docs/evidence/server2022-alpha40-file-directories.md). Rename/copy/delete, scoped upload/download and SFTP remain open. See [directory scope](docs/FILE-DIRECTORIES.md).
 - Alpha 41: panel-compatible file/directory rename/move with case-only names, confined relative parent moves, batch preflight, descendant denylist scans, pinned sources and native no-replace destination protection. Existing destination parents are required; chains/swaps/overlaps are refused and execution is not transactional. All 905 local cases/subtests, 14 packaged native VM cases, 72 portable file API cases/subtests and 30 focused SCM checks pass; independent cleanup passes with one retained/loaded profile. See [scope](docs/FILE-RENAME.md) and [exact evidence](docs/evidence/server2022-alpha41-file-rename.md).
 - Alpha 42: bounded regular-file copies with upstream names, binary streaming, locked-source/no-link checks, owned temporary staging, exact-handle cleanup and no-replace publication. One-GiB source bound and 51 candidate names; quotas and durable orphan recovery remain open. All 931 local cases/subtests, 14 packaged native VM cases, 98 portable file API cases/subtests and 35 focused SCM checks pass; independent cleanup passes with one retained/loaded profile. See [scope](docs/FILE-COPY.md) and [exact evidence](docs/evidence/server2022-alpha42-file-copy.md).
-- HTTP inventory: handlers at **25 of upstream's 38 method/path combinations**, with partial behavior; **13 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
+- HTTP inventory: handlers at **28 of upstream's 38 method/path combinations**, with partial behavior; **10 remain absent**. SFTP, security and recovery are additional work outside this count. Legacy `/files/list` is an extra alias, not an upstream route.
 - Automatic binary provisioning, full file manager/SFTP, backups/restores, transfers, strong isolation and live certification remain open.
 - Unchanged Linux eggs require a Linux execution backend. Native Windows profiles do not translate Linux images/binaries.
 
@@ -182,7 +183,8 @@ Current scope remains a trusted private node. File denylist/path checks are not 
 - [ ] Safe archives/extraction and guarded remote fetch with progress/cancel.
   - [x] Add bounded tar.gz creation for selected regular files and directories, pinned sources, owned staging and no-replace publication.
   - [x] Add bounded single-member tar.gz extraction into new destinations with full validation before publication and explicit partial outcomes.
-  - [ ] Add merge/overwrite/additional formats, guarded remote fetch, progress events, durable archive recovery, quotas and real browser verification.
+  - [x] Add bounded opt-in public HTTPS remote-file downloads with active polling, foreground/background modes and scoped cancellation.
+  - [ ] Add merge/overwrite/additional formats, broader fetch policies, progress UI/events, durable recovery, quotas and real browser verification.
 - [ ] SFTP with panel authentication, per-operation permissions, revocation and session limits.
 - [ ] Disk accounting/enforcement across file, installer, archive and game writes.
 - [ ] Locked/long paths, disk-full, malicious archive and link/race tests.

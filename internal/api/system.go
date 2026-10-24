@@ -13,6 +13,9 @@ func (a *API) system(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	capabilities := []string{"native_executable", "job_objects", "console", "power", "files_read_write", "files_create_directory", "files_rename_move", "files_copy", "files_delete", "signed_file_download", "signed_file_upload", "files_compress_tar_gzip", "files_extract_tar_gzip", "live_resource_limits", "egg_process_opt_in", "native_installer_opt_in"}
+	if a.Manager.Config.AllowRemoteDownloads {
+		capabilities = append(capabilities, "files_remote_pull_https")
+	}
 	if a.Manager.Config.IgnorePanelConfigUpdates {
 		capabilities = append(capabilities, "configuration_updates_operator_managed")
 	}

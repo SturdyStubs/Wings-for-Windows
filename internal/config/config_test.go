@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -9,6 +10,27 @@ import (
 )
 
 const id = "11111111-1111-4111-8111-111111111111"
+
+func TestRemoteDownloadsOptIn(t *testing.T) {
+	for _, enabled := range []bool{false, true} {
+		t.Run(fmt.Sprint(enabled), func(t *testing.T) {
+			c := valid(t)
+			c.AllowRemoteDownloads = enabled
+			b, e := json.Marshal(c)
+			if e != nil {
+				t.Fatal(e)
+			}
+			p := filepath.Join(t.TempDir(), "config.json")
+			if e = os.WriteFile(p, b, 0600); e != nil {
+				t.Fatal(e)
+			}
+			loaded, e := Load(p)
+			if e != nil || loaded.AllowRemoteDownloads != enabled {
+				t.Fatal(e)
+			}
+		})
+	}
+}
 
 func valid(t *testing.T) Config {
 	return Config{Listen: "127.0.0.1:8080", PanelURL: "http://127.0.0.1:8081", NodeUUID: id, TokenID: "node", Token: strings.Repeat("s", 32), DataDirectory: t.TempDir(), AllowInsecureLoopback: true, Profiles: map[string]Profile{id: {Executable: filepath.Join(t.TempDir(), "game.exe"), ReadyPattern: "READY", StopCommand: "stop"}}}
