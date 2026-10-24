@@ -1,4 +1,8 @@
-# GitHub milestone review — October 23, 2026
+# GitHub milestone review
+
+Current review: October 24, 2026. All six descriptions refreshed through alpha 53. Scoped read-only loopback SFTP [#51](https://github.com/SturdyStubs/Wings-for-Windows/issues/51) is accepted with [exact evidence](evidence/server2022-alpha53-sftp.md); full SFTP #30 remains open. M4 is 5/10 accepted tasks, 45 total project deliverables. M1 11/12, M2 2/5, M3 2/7, M5 0/4 and M6 2/7 remain unchanged. No milestone is closed and task counts are not effort percentages.
+
+## Historical alpha 43 review
 
 All six milestone descriptions were refreshed against the current alpha 43 evidence. No milestone was closed. The original broad deliverables remain open until their entire acceptance scope passes.
 

@@ -1,6 +1,6 @@
 # Progress toward Wings compatibility
 
-Last updated: October 23, 2026. Current version: **0.1.0-alpha.53**. Active development: **M3 — Windows lifecycle features**, with **bounded M4 file management and scoped transfers** implemented. M1/M2 remain open for live panel and isolation gates.
+Last updated: October 24, 2026. Current version: **0.1.0-alpha.53**. Active development: **M3 — Windows lifecycle features**, with **bounded M4 file management and scoped transfers** implemented. M1/M2 remain open for live panel and isolation gates.
 
 [Repository](https://github.com/SturdyStubs/Wings-for-Windows) · [Tracking issues](https://github.com/SturdyStubs/Wings-for-Windows/issues) · [Changelog](CHANGELOG.md) · [Original audit](docs/WINGS-PARITY-AUDIT.md) · [Verification](docs/VERIFICATION.md)
 
@@ -8,7 +8,7 @@ This file tracks the current implementation. The audit preserves the alpha 1 bas
 
 ## Current state
 
-- Alpha 53 candidate: opt-in read-only loopback SFTP with real panel remote authentication, scoped permissions, revocation, bounded SSH sessions and protected Windows file handles. Local protocol/backend tests pass; release and live evidence are pending. SFTP writes/public deployment and broader M4 acceptance remain open. [Scope](docs/SFTP.md).
+- Alpha 53: opt-in read-only loopback SFTP with panel auth, scoped permissions/revocation, protected Windows handles/key and bounded sessions. Clean release: 1,472 local; Server 2022: 14 native / 32 backend / 34 SSH-SFTP cases. Eighteen real-panel public-key checks and nineteen Client API/token groups pass, plus archive/upload/WSS regressions. Config changes only by planned opt-in addition; fixtures/ephemeral panel key removed, demo/service/tunnel Running. Accept scoped #51 (M4 5/10); broader #30 and all milestones remain open. [Scope](docs/SFTP.md), [evidence](docs/evidence/server2022-alpha53-sftp.md).
 
 - Alpha 52: plain TAR extraction shares guarded tar.gz/ZIP staging/publication. Clean release passes 1,394 local / 14 native / 150 portable extraction cases; nineteen real Client/panel-issued-token groups include a signed TAR upload/extract, with tar.gz/ZIP/upload/WSS regressions passing. Config/prior data intact, fixtures removed, demo/service/tunnel Running. Broader M4 requirements remain open. [Scope](docs/FILE-EXTRACTION.md), [evidence](docs/evidence/server2022-alpha52-plain-tar.md).
 

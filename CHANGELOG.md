@@ -1,10 +1,10 @@
 # Changelog
 
-## 0.1.0-alpha.53 - 2026-10-23
+## 0.1.0-alpha.53 - 2026-10-24
 
 - Add opt-in read-only loopback SFTP using panel password/public-key authentication and existing scoped user revocation. Confine access to the approved server data root; apply file read/list permissions and current denylist checks, and refuse writes, links, Windows path aliases, shell/exec/forwarding and extra SSH sessions.
 - Protect an operator-provisioned persistent Ed25519 host key beside native configuration, fail startup if unavailable, and bound connections, handles, listing entries, file size and session duration. Default disabled. Public SFTP, writes, quotas and full isolation remain open; [setup and limits](docs/SFTP.md).
-- Add local SSH/backend/configuration coverage and an opt-in real-panel public-key probe with ephemeral key registration/removal and exact owned cleanup. Release/Server 2022/live validation pending.
+- Add local SSH/backend/configuration coverage and an opt-in real-panel public-key probe with ephemeral key registration/removal and exact owned cleanup. Clean release passes 1,472 local cases/subtests, zero skips and vet; Server 2022 passes 14 native / 32 backend / 34 SSH-SFTP cases. Eighteen real-panel public-key checks, nineteen actual Client API/token groups and archive/upload/WSS regressions pass. Protected opt-in loopback deployment/cleanup verified; [exact evidence](docs/evidence/server2022-alpha53-sftp.md).
 
 ## 0.1.0-alpha.52 - 2026-10-23
 

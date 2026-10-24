@@ -165,6 +165,11 @@
           "title": "Implement and verify bounded one-use multipart uploads",
           "verified_in": "0.1.0-alpha.46",
           "notes": "Scoped acceptance: 1079 local / 14 native / 52 portable upload / 10 live upload-service-cleanup / 10 download / 10 WSS regressions. Retained service 9 MiB and public small uploads pass; public 9 MiB remains proxy-limited (413). Browser-issued links, real subuser removal, overwrite/resume, quotas, SFTP and durable staging recovery remain in open parent gates. Evidence: https://github.com/SturdyStubs/Wings-for-Windows/blob/main/docs/evidence/server2022-alpha46-signed-uploads.md"
+        },
+        {
+          "title": "Implement and verify read-only loopback SFTP",
+          "notes": "Scoped alpha53 read-only loopback deliverable; full SFTP #30 remains open. Real-panel public-key evidence and limitations in docs/evidence/server2022-alpha53-sftp.md.",
+          "verified_in": "0.1.0-alpha.53"
         }
       ]
     },
